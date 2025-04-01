@@ -7,6 +7,16 @@ import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinitio
 import { capitalizeFirstLetter, camelToPascalCase, toSnakeCase } from '../utils/naming';
 
 /**
+ * Interface for pre-loaded Dart template strings.
+ */
+interface DartTemplateStrings {
+    model: string;
+    collectionRef: string;
+    queryBuilder: string;
+    updateBuilder: string;
+}
+
+/**
  * Generates Dart ODM code based on the provided schema and configuration.
  *
  * @param target The specific output target configuration for Dart.
@@ -24,6 +34,7 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
   const coreTemplatePath = path.resolve(__dirname, '../../templates/dart/core.dart.ejs');
   const updateBuilderTemplatePath = path.resolve(__dirname, '../../templates/dart/updateBuilder.dart.ejs');
 
+  // Pre-load all templates
   if (!fs.existsSync(modelTemplatePath)) {
     throw new Error(`Dart model template not found at: ${modelTemplatePath}`);
   }
@@ -39,110 +50,24 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
   if (!fs.existsSync(updateBuilderTemplatePath)) {
     throw new Error(`Dart updateBuilder template not found at: ${updateBuilderTemplatePath}`);
   }
-  const modelTemplate = fs.readFileSync(modelTemplatePath, 'utf-8');
-  const collectionRefTemplate = fs.readFileSync(collectionRefTemplatePath, 'utf-8');
-  const queryBuilderTemplate = fs.readFileSync(queryBuilderTemplatePath, 'utf-8');
-  const coreTemplate = fs.readFileSync(coreTemplatePath, 'utf-8');
-  const updateBuilderTemplate = fs.readFileSync(updateBuilderTemplatePath, 'utf-8');
 
-  // Generate files for each collection
+  const templates: DartTemplateStrings = {
+      model: fs.readFileSync(modelTemplatePath, 'utf-8'),
+      collectionRef: fs.readFileSync(collectionRefTemplatePath, 'utf-8'),
+      queryBuilder: fs.readFileSync(queryBuilderTemplatePath, 'utf-8'),
+      updateBuilder: fs.readFileSync(updateBuilderTemplatePath, 'utf-8'),
+  };
+  const coreTemplate = fs.readFileSync(coreTemplatePath, 'utf-8'); // Core is separate
+
+  // Generate files for each top-level collection
   for (const collectionId in schema.collections) {
     const collection = schema.collections[collectionId];
-    // Dart convention is typically PascalCase for classes, snake_case for filenames
-    const modelName = camelToPascalCase(collectionId);
-    const fileNameBase = toSnakeCase(collectionId); // Use snake_case for file names
-
-    // --- Generate Model File ---
-    const modelData = {
-      modelName: modelName,
-      collection: collection,
-      options: options,
-      // Pass helper functions to the template (or define within template as done previously)
-      getDartType: getDartType, // Pass the helper function
-      camelToPascalCase: camelToPascalCase, // Needed by template helper
-    };
-    // Data for collectionRef template
-    const collectionRefData = {
-        modelName: modelName,
-        collection: collection,
-        options: options,
-        toSnakeCase: toSnakeCase, // Pass helper
-    };
-    // Data for query builder template
-    // Pass necessary helpers to the query builder template
-    const queryBuilderData = {
-        modelName: modelName,
-        collection: collection,
-        options: options,
-        toSnakeCase: toSnakeCase,
-        getDartQueryInfoForField: getDartQueryInfoForField,
-        getDartType: getDartType, // Needed by query info helper
-        capitalizeFirstLetter: capitalizeFirstLetter,
-    };
-    // Data for update builder template
-    const updateBuilderData = {
-        modelName: modelName,
-        collection: collection,
-        options: options,
-        toSnakeCase: toSnakeCase,
-        getDartType: getDartType,
-        capitalizeFirstLetter: capitalizeFirstLetter,
-    };
-
-    try {
-      const renderedModel = ejs.render(modelTemplate, modelData);
-      const modelFileName = `${fileNameBase}_data.dart`; // e.g., user_data.dart
-      const modelFilePath = path.join(target.outputDir, modelFileName);
-      await fs.promises.writeFile(modelFilePath, renderedModel);
-      console.log(`  ✓ Generated model: ${modelFilePath}`);
-    } catch (error: any) {
-      console.error(`  ✗ Error generating model for collection "${collectionId}": ${error.message}`);
-    }
-
-    // --- Generate Collection Reference File (Placeholder) ---
-    try {
-        const renderedCollectionRef = ejs.render(collectionRefTemplate, collectionRefData);
-        const collectionRefFileName = `${fileNameBase}_collection.dart`; // e.g., users_collection.dart
-        const collectionRefFilePath = path.join(target.outputDir, collectionRefFileName);
-        await fs.promises.writeFile(collectionRefFilePath, renderedCollectionRef);
-        console.log(`  ✓ Generated collection reference: ${collectionRefFilePath}`);
-    } catch (error: any) {
-        console.error(`  ✗ Error generating collection reference for collection "${collectionId}": ${error.message}`);
-    }
-
-    // --- Generate Query Builder File (Placeholder) ---
-    try {
-        const renderedQueryBuilder = ejs.render(queryBuilderTemplate, queryBuilderData);
-        const queryBuilderFileName = `${fileNameBase}_query.dart`; // e.g., users_query.dart
-        const queryBuilderFilePath = path.join(target.outputDir, queryBuilderFileName);
-        await fs.promises.writeFile(queryBuilderFilePath, renderedQueryBuilder);
-        console.log(`  ✓ Generated query builder: ${queryBuilderFilePath}`);
-    } catch (error: any) {
-        console.error(`  ✗ Error generating query builder for collection "${collectionId}": ${error.message}`);
-    }
-
-    // --- Generate Update Builder File ---
-    try {
-        const renderedUpdateBuilder = ejs.render(updateBuilderTemplate, updateBuilderData);
-        const updateBuilderFileName = `${fileNameBase}_update.dart`; // e.g., users_update.dart
-        const updateBuilderFilePath = path.join(target.outputDir, updateBuilderFileName);
-        await fs.promises.writeFile(updateBuilderFilePath, renderedUpdateBuilder);
-        console.log(`  ✓ Generated update builder: ${updateBuilderFilePath}`);
-    } catch (error: any) {
-        console.error(`  ✗ Error generating update builder for collection "${collectionId}": ${error.message}`);
-    }
-
-    // --- Generate Subcollection Files (Recursive Call or Logic) ---
-    if (collection.subcollections) {
-       console.log(`  - Placeholder: Generate subcollections for ${modelName}`);
-       // TODO: Handle subcollection generation
-    }
+    await generateFilesForDartCollection(collection, target.outputDir, options, templates);
   }
 
-  // --- Generate Core Runtime File (Placeholder) ---
+  // --- Generate Core Runtime File ---
   if (options.generateCore !== false) { // Default to true
     try {
-        // Core template might not need specific data for now
         const renderedCore = ejs.render(coreTemplate, {});
         const coreFileName = `firestore_odm_core.dart`; // Naming convention
         const coreFilePath = path.join(target.outputDir, coreFileName);
@@ -160,6 +85,117 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
   }
 
   console.log(`Dart generation finished for ${target.outputDir}.`);
+}
+
+
+/**
+ * Generates the necessary Dart files for a single collection and recursively calls itself for subcollections.
+ *
+ * @param collection The parsed definition of the collection.
+ * @param outputBaseDir The base directory for the current language output.
+ * @param options Dart generation options.
+ * @param templates Pre-loaded Dart template strings.
+ * @param parentPath Optional path prefix for subcollections (e.g., 'users'). Used for directory structure.
+ */
+async function generateFilesForDartCollection(
+    collection: ParsedCollectionDefinition,
+    outputBaseDir: string,
+    options: DartOptions,
+    templates: DartTemplateStrings,
+    parentPath: string = '' // Base path for top-level collections
+): Promise<void> {
+    const collectionId = collection.collectionId;
+    const modelName = camelToPascalCase(collectionId);
+    const fileNameBase = toSnakeCase(collectionId);
+    // Determine output directory for this specific collection (potentially nested)
+    const currentOutputDir = parentPath ? path.join(outputBaseDir, parentPath) : outputBaseDir;
+    // Ensure nested directory exists
+    if (parentPath) {
+        // Create directory if it doesn't exist, handling potential race conditions safely
+        try {
+            await fs.promises.mkdir(currentOutputDir, { recursive: true });
+        } catch (err: any) {
+            // Ignore error if directory already exists, re-throw otherwise
+            if (err.code !== 'EEXIST') {
+                throw err;
+            }
+        }
+    }
+
+
+    console.log(`  Generating Dart files for collection: ${parentPath ? parentPath + '/' : ''}${collectionId}`);
+
+    // Prepare data objects for templates
+    const commonData = {
+        modelName: modelName,
+        collection: collection,
+        options: options,
+        getDartType: getDartType,
+        capitalizeFirstLetter: capitalizeFirstLetter,
+        camelToPascalCase: camelToPascalCase,
+        toSnakeCase: toSnakeCase,
+        parentPath: parentPath, // Pass parentPath for context if needed by templates
+        isSubcollection: !!parentPath,
+    };
+    const queryBuilderData = { ...commonData, getDartQueryInfoForField: getDartQueryInfoForField };
+    const updateBuilderData = { ...commonData };
+    const collectionRefData = { ...commonData }; // Pass parentPath here too
+
+    // Generate Model File
+    try {
+        const renderedModel = ejs.render(templates.model, commonData);
+        const modelFileName = `${fileNameBase}_data.dart`;
+        const modelFilePath = path.join(currentOutputDir, modelFileName);
+        await fs.promises.writeFile(modelFilePath, renderedModel);
+        console.log(`    ✓ Generated model: ${modelFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating model for collection "${collectionId}": ${error.message}`);
+    }
+
+    // Generate Collection Reference File
+    try {
+        const renderedCollectionRef = ejs.render(templates.collectionRef, collectionRefData);
+        const collectionRefFileName = `${fileNameBase}_collection.dart`;
+        const collectionRefFilePath = path.join(currentOutputDir, collectionRefFileName);
+        await fs.promises.writeFile(collectionRefFilePath, renderedCollectionRef);
+        console.log(`    ✓ Generated collection reference: ${collectionRefFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating collection reference for collection "${collectionId}": ${error.message}`);
+    }
+
+    // Generate Query Builder File
+    try {
+        const renderedQueryBuilder = ejs.render(templates.queryBuilder, queryBuilderData);
+        const queryBuilderFileName = `${fileNameBase}_query.dart`;
+        const queryBuilderFilePath = path.join(currentOutputDir, queryBuilderFileName);
+        await fs.promises.writeFile(queryBuilderFilePath, renderedQueryBuilder);
+        console.log(`    ✓ Generated query builder: ${queryBuilderFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating query builder for collection "${collectionId}": ${error.message}`);
+    }
+
+    // Generate Update Builder File
+    try {
+        const renderedUpdateBuilder = ejs.render(templates.updateBuilder, updateBuilderData);
+        const updateBuilderFileName = `${fileNameBase}_update.dart`;
+        const updateBuilderFilePath = path.join(currentOutputDir, updateBuilderFileName);
+        await fs.promises.writeFile(updateBuilderFilePath, renderedUpdateBuilder);
+        console.log(`    ✓ Generated update builder: ${updateBuilderFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating update builder for collection "${collectionId}": ${error.message}`);
+    }
+
+    // --- Generate Subcollection Files (Recursive Call) ---
+    if (collection.subcollections) {
+        for (const subcollectionId in collection.subcollections) {
+            const subcollection = collection.subcollections[subcollectionId];
+            // Construct the path for the subcollection output (Dart uses simple nesting based on parent collection ID)
+            const subcollectionParentPath = parentPath
+                ? `${parentPath}/${collectionId}` // Nested subcollection path
+                : `${collectionId}`; // Top-level subcollection path
+            await generateFilesForDartCollection(subcollection, outputBaseDir, options, templates, subcollectionParentPath);
+        }
+    }
 }
 
 /**

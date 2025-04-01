@@ -46,6 +46,17 @@
             "referenceTo": "addresses"
         }
       }
+,
+      "subcollections": {
+        "posts": {
+          "description": "Posts created by the user",
+          "fields": {
+            "title": {"type": "string", "required": true},
+            "content": {"type": "string"},
+            "publishedAt": {"type": "timestamp"}
+          }
+        }
+      }
     },
     "addresses": {
         "description": "Stores user addresses",

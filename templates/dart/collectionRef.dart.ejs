@@ -10,6 +10,15 @@ import './<%- toSnakeCase(collection.collectionId) %>_query.dart';
  // Import the generated query builder
 import './<%- toSnakeCase(collection.collectionId) %>_update.dart'; // Import the generated update builder
 
+<%# Generate imports for subcollections %>
+<% if (collection.subcollections) { %>
+<%   Object.keys(collection.subcollections).forEach(subId => { %>
+<%     const subModelName = capitalizeFirstLetter(subId); %>
+<%     const subFileNameBase = toSnakeCase(subId); %>
+import '../<%= collection.collectionId %>/<%= subFileNameBase %>_collection.dart'; // Adjust path for subcollection
+<%   }); %>
+<% } %>
+
 // TODO: Define AddData/UpdateData types if desired (less common in Dart than TS, often handled by method params)
 // For example, using named parameters in `add` and `update` methods.
 
@@ -17,12 +26,27 @@ import './<%- toSnakeCase(collection.collectionId) %>_update.dart'; // Import th
 class <%- modelName %>Collection {
   final FirebaseFirestore firestore;
   late final CollectionReference<<%- modelName %>Data> ref;
+  final DocumentReference? parentRef; // Optional parent ref for subcollections
 
-  <%- modelName %>Collection(this.firestore) {
+  /// Constructor for the collection reference.
+  ///
+  /// [firestore] The Firestore instance.
+  /// [parentRef] Optional DocumentReference of the parent document (for subcollections).
+  <%- modelName %>Collection(this.firestore, [this.parentRef]) {
+    if (parentRef != null) {
+      // Subcollection reference
+      ref = parentRef!.collection('<%- collection.collectionId %>').withConverter<<%- modelName %>Data>(
+            fromFirestore: (snapshot, _) => <%- modelName %>Data.fromSnapshot(snapshot),
+            toFirestore: (<%- modelName %>Data data, _) => data.toJson(),
+          );
+    } else {
+      // Root collection reference
+  
     ref = firestore.collection('<%- collection.collectionId %>').withConverter<<%- modelName %>Data>(
           fromFirestore: (snapshot, _) => <%- modelName %>Data.fromSnapshot(snapshot),
           toFirestore: (<%- modelName %>Data data, _) => data.toJson(),
         );
+    }
   }
 
   /// Returns the DocumentReference for a given ID.
@@ -67,4 +91,22 @@ class <%- modelName %>Collection {
   <%- modelName %>QueryBuilder query() {
     return <%- modelName %>QueryBuilder(firestore, ref);
   }
+
+  // --- Subcollection Accessors ---
+<% if (collection.subcollections) { %>
+<%   Object.keys(collection.subcollections).forEach(subId => { %>
+<%     const subModelName = capitalizeFirstLetter(subId); %>
+  /// Access the '<%- subId %>' subcollection for a specific document.
+  <%- subModelName %>Collection <%- subId %>(String documentId) {
+    // Note: It's crucial that the DocumentReference passed to the subcollection's
+    // constructor is *untyped* (or DocumentReference<Map<String, dynamic>>)
+    // because Firestore subcollection paths don't inherit the parent's converter.
+    final untypedParentDocRef = parentRef != null
+        ? parentRef!.collection('<%- collection.collectionId %>').doc(documentId)
+        : firestore.collection('<%- collection.collectionId %>').doc(documentId);
+
+    return <%- subModelName %>Collection(firestore, untypedParentDocRef);
+  }
+<%   }); %>
+<% } %>
 }

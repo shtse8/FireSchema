@@ -6,6 +6,13 @@ import { FirestoreODMConfig, OutputTarget, TypeScriptOptions } from '../types/co
 import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition, FieldType } from '../types/schema';
 import { capitalizeFirstLetter, camelToPascalCase } from '../utils/naming';
 
+interface TemplateStrings {
+    model: string;
+    collectionRef: string;
+    queryBuilder: string;
+    updateBuilder: string;
+}
+
 /**
  * Generates TypeScript ODM code based on the provided schema and configuration.
  *
@@ -24,6 +31,7 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
   const coreTemplatePath = path.resolve(__dirname, '../../templates/typescript/core.ejs');
   const updateBuilderTemplatePath = path.resolve(__dirname, '../../templates/typescript/updateBuilder.ejs');
 
+  // Pre-load all templates
   if (!fs.existsSync(modelTemplatePath)) {
     throw new Error(`TypeScript model template not found at: ${modelTemplatePath}`);
   }
@@ -39,104 +47,19 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
   if (!fs.existsSync(updateBuilderTemplatePath)) {
     throw new Error(`TypeScript updateBuilder template not found at: ${updateBuilderTemplatePath}`);
   }
-  const modelTemplate = fs.readFileSync(modelTemplatePath, 'utf-8');
-  const collectionRefTemplate = fs.readFileSync(collectionRefTemplatePath, 'utf-8');
-  const queryBuilderTemplate = fs.readFileSync(queryBuilderTemplatePath, 'utf-8');
-  const coreTemplate = fs.readFileSync(coreTemplatePath, 'utf-8');
-  const updateBuilderTemplate = fs.readFileSync(updateBuilderTemplatePath, 'utf-8');
+
+  const templates: TemplateStrings = {
+      model: fs.readFileSync(modelTemplatePath, 'utf-8'),
+      collectionRef: fs.readFileSync(collectionRefTemplatePath, 'utf-8'),
+      queryBuilder: fs.readFileSync(queryBuilderTemplatePath, 'utf-8'),
+      updateBuilder: fs.readFileSync(updateBuilderTemplatePath, 'utf-8'),
+  };
+  const coreTemplate = fs.readFileSync(coreTemplatePath, 'utf-8'); // Core is separate
 
   // Generate files for each collection
   for (const collectionId in schema.collections) {
     const collection = schema.collections[collectionId];
-    const modelName = camelToPascalCase(collectionId); // e.g., users -> Users
-
-    // --- Generate Model File ---
-    const modelData = {
-      modelName: modelName,
-      collection: collection,
-      options: options,
-      // Pass helper functions to the template
-      // Note: We need to pass options to the helper. EJS can call functions with arguments from the data object.
-      // So, we ensure 'options' is in the data object and call getTypeScriptType(field, options) in the template.
-      getTypeScriptType: getTypeScriptType,
-    };
-    // Data specifically for the collectionRef template
-    const collectionRefData = {
-        modelName: modelName,
-        collection: collection,
-        options: options,
-    };
-    // Data for the queryBuilder template (same as collectionRef for now)
-    const queryBuilderData = {
-        modelName: modelName,
-        collection: collection,
-        options: options,
-        // Pass query helper
-        getQueryInfoForField: getQueryInfoForField,
-        // Pass type helper (needed by query helper)
-        getTypeScriptType: getTypeScriptType,
-        // Pass naming helper
-        capitalizeFirstLetter: capitalizeFirstLetter,
-    };
-    // Data for the updateBuilder template
-    const updateBuilderData = {
-        modelName: modelName,
-        collection: collection,
-        options: options,
-        // Pass helpers needed by the template
-        getTypeScriptType: getTypeScriptType,
-        capitalizeFirstLetter: capitalizeFirstLetter,
-    };
-
-    try {
-      const renderedModel = ejs.render(modelTemplate, modelData);
-      const modelFileName = `${collectionId}.types.ts`; // Or model.ts, types.ts? Decide convention
-      const modelFilePath = path.join(target.outputDir, modelFileName);
-      await fs.promises.writeFile(modelFilePath, renderedModel);
-      console.log(`  ✓ Generated model: ${modelFilePath}`);
-    } catch (error: any) {
-      console.error(`  ✗ Error generating model for collection "${collectionId}": ${error.message}`);
-      // Decide if one error should stop the whole process
-    }
-
-    // --- Generate Collection Reference File (Placeholder) ---
-    try {
-        const renderedCollectionRef = ejs.render(collectionRefTemplate, collectionRefData);
-        const collectionRefFileName = `${collectionId}.collection.ts`; // Naming convention
-        const collectionRefFilePath = path.join(target.outputDir, collectionRefFileName);
-        await fs.promises.writeFile(collectionRefFilePath, renderedCollectionRef);
-        console.log(`  ✓ Generated collection reference: ${collectionRefFilePath}`);
-    } catch (error: any) {
-        console.error(`  ✗ Error generating collection reference for collection "${collectionId}": ${error.message}`);
-    }
-
-    // --- Generate Query Builder File ---
-    try {
-        const renderedQueryBuilder = ejs.render(queryBuilderTemplate, queryBuilderData);
-        const queryBuilderFileName = `${collectionId}.query.ts`; // Naming convention
-        const queryBuilderFilePath = path.join(target.outputDir, queryBuilderFileName);
-        await fs.promises.writeFile(queryBuilderFilePath, renderedQueryBuilder);
-        console.log(`  ✓ Generated query builder: ${queryBuilderFilePath}`);
-    } catch (error: any) {
-        console.error(`  ✗ Error generating query builder for collection "${collectionId}": ${error.message}`);
-    }
-
-    // --- Generate Update Builder File ---
-    try {
-        const renderedUpdateBuilder = ejs.render(updateBuilderTemplate, updateBuilderData);
-        const updateBuilderFileName = `${collectionId}.update.ts`; // Naming convention
-        const updateBuilderFilePath = path.join(target.outputDir, updateBuilderFileName);
-        await fs.promises.writeFile(updateBuilderFilePath, renderedUpdateBuilder);
-        console.log(`  ✓ Generated update builder: ${updateBuilderFilePath}`);
-    } catch (error: any) {
-        console.error(`  ✗ Error generating update builder for collection "${collectionId}": ${error.message}`);
-    }
-
-    // --- Generate Subcollection Files (Recursive Call or Logic) ---
-    if (collection.subcollections) {
-       console.log(`  - Placeholder: Generate subcollections for ${modelName}`);
-       // TODO: Handle subcollection generation
-    }
+    await generateFilesForCollection(collection, target.outputDir, options, templates);
   }
 
   // --- Generate Core Runtime File (Placeholder) ---
@@ -162,6 +85,106 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
   console.log(`TypeScript generation finished for ${target.outputDir}.`);
 }
 
+
+/**
+ * Generates the necessary files for a single collection and recursively calls itself for subcollections.
+ *
+ * @param collection The parsed definition of the collection.
+ * @param outputBaseDir The base directory for the current language output.
+ * @param options TypeScript generation options.
+ * @param templates Pre-loaded template strings.
+ * @param parentPath Optional path prefix for subcollections (e.g., 'users/{userId}').
+ */
+async function generateFilesForCollection(
+    collection: ParsedCollectionDefinition,
+    outputBaseDir: string,
+    options: TypeScriptOptions,
+    templates: TemplateStrings,
+    parentPath: string = '' // Base path for top-level collections
+): Promise<void> {
+    const collectionId = collection.collectionId;
+    const modelName = camelToPascalCase(collectionId);
+    // Determine output directory for this specific collection (potentially nested)
+    const currentOutputDir = parentPath ? path.join(outputBaseDir, parentPath) : outputBaseDir;
+    // Ensure nested directory exists (needed before writing files)
+    if (parentPath) {
+        await fs.promises.mkdir(currentOutputDir, { recursive: true });
+    }
+
+    console.log(`  Generating files for collection: ${parentPath ? parentPath + '/' : ''}${collectionId}`);
+
+    // Prepare data objects for templates
+    const commonData = {
+        modelName: modelName,
+        collection: collection,
+        options: options,
+        getTypeScriptType: getTypeScriptType,
+        capitalizeFirstLetter: capitalizeFirstLetter,
+        // Add parentPath or other context if needed by templates
+        isSubcollection: !!parentPath,
+    };
+    const queryBuilderData = { ...commonData, getQueryInfoForField: getQueryInfoForField };
+    const updateBuilderData = { ...commonData }; // Might need specific helpers later
+    const collectionRefData = { ...commonData, parentPath: parentPath }; // Pass parentPath for context
+
+    // Generate Model File
+    try {
+        const renderedModel = ejs.render(templates.model, commonData);
+        const modelFileName = `${collectionId}.types.ts`;
+        const modelFilePath = path.join(currentOutputDir, modelFileName);
+        await fs.promises.writeFile(modelFilePath, renderedModel);
+        console.log(`    ✓ Generated model: ${modelFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating model for collection "${collectionId}": ${error.message}`);
+    }
+
+    // Generate Collection Reference File
+    try {
+        // TODO: Pass subcollection info to collectionRefData if needed by template
+        const renderedCollectionRef = ejs.render(templates.collectionRef, collectionRefData);
+        const collectionRefFileName = `${collectionId}.collection.ts`;
+        const collectionRefFilePath = path.join(currentOutputDir, collectionRefFileName);
+        await fs.promises.writeFile(collectionRefFilePath, renderedCollectionRef);
+        console.log(`    ✓ Generated collection reference: ${collectionRefFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating collection reference for collection "${collectionId}": ${error.message}`);
+    }
+
+    // Generate Query Builder File
+    try {
+        const renderedQueryBuilder = ejs.render(templates.queryBuilder, queryBuilderData);
+        const queryBuilderFileName = `${collectionId}.query.ts`;
+        const queryBuilderFilePath = path.join(currentOutputDir, queryBuilderFileName);
+        await fs.promises.writeFile(queryBuilderFilePath, renderedQueryBuilder);
+        console.log(`    ✓ Generated query builder: ${queryBuilderFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating query builder for collection "${collectionId}": ${error.message}`);
+    }
+
+    // Generate Update Builder File
+    try {
+        const renderedUpdateBuilder = ejs.render(templates.updateBuilder, updateBuilderData);
+        const updateBuilderFileName = `${collectionId}.update.ts`;
+        const updateBuilderFilePath = path.join(currentOutputDir, updateBuilderFileName);
+        await fs.promises.writeFile(updateBuilderFilePath, renderedUpdateBuilder);
+        console.log(`    ✓ Generated update builder: ${updateBuilderFilePath}`);
+    } catch (error: any) {
+        console.error(`    ✗ Error generating update builder for collection "${collectionId}": ${error.message}`);
+    }
+
+    // --- Generate Subcollection Files (Recursive Call) ---
+    if (collection.subcollections) {
+        for (const subcollectionId in collection.subcollections) {
+            const subcollection = collection.subcollections[subcollectionId];
+            // Construct the path for the subcollection output
+            const subcollectionParentPath = parentPath
+                ? `${parentPath}/${collectionId}/{${collectionId}Id}` // Nested subcollection path
+                : `${collectionId}/{${collectionId}Id}`; // Top-level subcollection path
+            // Recursively generate files for the subcollection
+            await generateFilesForCollection(subcollection, outputBaseDir, options, templates, subcollectionParentPath);
+        }
+    }
+}
 
 /**
  * Helper function to determine the TypeScript type string for a given field definition.

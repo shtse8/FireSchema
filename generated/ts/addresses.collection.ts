@@ -20,9 +20,11 @@ import {
   deleteField,
   // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
 } from 'firebase/firestore';
-import { AddressesData } from './addresses.types'; // Import the generated model type
-import { AddressesQueryBuilder } from './addresses.query'; // Import the generated query builder
-import { AddressesUpdateBuilder } from './addresses.update'; // Import the generated update builder
+import { AddressesData } from './addresses.types';
+import { AddressesQueryBuilder } from './addresses.query';
+import { AddressesUpdateBuilder } from './addresses.update';
+
+
 
 // Define types for data manipulation.
 // AddData: Exclude fields that should not be provided on creation (e.g., read-only fields managed by Firestore).
@@ -38,13 +40,26 @@ type AddressesUpdateData = Partial<AddressesAddData>;
  * Typed reference to the 'addresses' collection.
  */
 export class AddressesCollection {
-  public ref: CollectionReference<AddressesData>;
+  public ref: CollectionReference<AddressesData>; // Path: addresses
 
   private firestore: Firestore; // Store firestore instance
+  private parentRef?: DocumentReference<DocumentData>; // Optional parent ref for subcollections
 
-  constructor(firestore: Firestore) {
+  /**
+   * @param firestore The Firestore instance.
+   * @param parentRef Optional DocumentReference of the parent document (for subcollections).
+   */
+  constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
     this.firestore = firestore; // Store firestore instance
+    this.parentRef = parentRef;
+    if (parentRef) {
+      // Subcollection reference
+      this.ref = collection(parentRef, 'addresses') as CollectionReference<AddressesData>;
+    } else {
+      // Root collection reference
+  
     this.ref = collection(firestore, 'addresses') as CollectionReference<AddressesData>;
+    }
   }
 
   /** Returns the DocumentReference for a given ID. */
@@ -92,6 +107,9 @@ export class AddressesCollection {
   query(): AddressesQueryBuilder {
     return new AddressesQueryBuilder(this.firestore, this.ref);
   }
+
+  // --- Subcollection Accessors ---
+
 
   // Example: findByEmail(email: string) { ... }
   // Example: listActiveUsers(limitCount: number) { ... }

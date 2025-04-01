@@ -20,14 +20,9 @@ import {
   deleteField,
   // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
 } from 'firebase/firestore';
-import { UsersData } from './users.types';
-import { UsersQueryBuilder } from './users.query';
-import { UsersUpdateBuilder } from './users.update';
-
-
-
-
-import { PostsCollection } from './users/{usersId}/posts.collection';
+import { PostsData } from './posts.types';
+import { PostsQueryBuilder } from './posts.query';
+import { PostsUpdateBuilder } from './posts.update';
 
 
 
@@ -38,14 +33,14 @@ import { PostsCollection } from './users/{usersId}/posts.collection';
 // Note: For UpdateData, the type should allow FieldValue types (increment, arrayUnion, etc.)
 //       This is complex to type perfectly, so we use Partial<> for now, and users must
 //       ensure they pass the correct FieldValue types where needed.
-type UsersAddData = Omit<UsersData, 'createdAt' /* Add other read-only fields here */>;
-type UsersUpdateData = Partial<UsersAddData>;
+type PostsAddData = Omit<PostsData, 'createdAt' /* Add other read-only fields here */>;
+type PostsUpdateData = Partial<PostsAddData>;
 
 /**
- * Typed reference to the 'users' collection.
+ * Typed reference to the 'posts' collection.
  */
-export class UsersCollection {
-  public ref: CollectionReference<UsersData>; // Path: users
+export class PostsCollection {
+  public ref: CollectionReference<PostsData>; // Path: users/{usersId}/posts
 
   private firestore: Firestore; // Store firestore instance
   private parentRef?: DocumentReference<DocumentData>; // Optional parent ref for subcollections
@@ -59,31 +54,28 @@ export class UsersCollection {
     this.parentRef = parentRef;
     if (parentRef) {
       // Subcollection reference
-      this.ref = collection(parentRef, 'users') as CollectionReference<UsersData>;
+      this.ref = collection(parentRef, 'posts') as CollectionReference<PostsData>;
     } else {
       // Root collection reference
   
-    this.ref = collection(firestore, 'users') as CollectionReference<UsersData>;
+    this.ref = collection(firestore, 'posts') as CollectionReference<PostsData>;
     }
   }
 
   /** Returns the DocumentReference for a given ID. */
-  doc(id: string): DocumentReference<UsersData> {
+  doc(id: string): DocumentReference<PostsData> {
     return doc(this.ref, id);
   }
 
   /** Adds a new document with the given data, returning the new DocumentReference. */
-  async add(data: UsersAddData): Promise<DocumentReference<UsersData>> {
+  async add(data: PostsAddData): Promise<DocumentReference<PostsData>> {
     const dataWithDefaults = { ...data };
     // Automatically add server timestamps for fields configured in the schema
-    if (!dataWithDefaults.createdAt) { // Add timestamp if not explicitly provided
-        (dataWithDefaults as any).createdAt = serverTimestamp();
-    }
     return addDoc(this.ref, dataWithDefaults);
   }
 
   /** Sets the data for a document, overwriting existing data. */
-  async set(id: string, data: UsersAddData): Promise<void> {
+  async set(id: string, data: PostsAddData): Promise<void> {
     // Note: set might need its own data type if it should behave differently than add
     await setDoc(this.doc(id), data);
   }
@@ -93,8 +85,8 @@ export class UsersCollection {
    * @param id The ID of the document to update.
    * @returns A new UpdateBuilder instance.
    */
-  update(id: string): UsersUpdateBuilder {
-    return new UsersUpdateBuilder(this.doc(id));
+  update(id: string): PostsUpdateBuilder {
+    return new PostsUpdateBuilder(this.doc(id));
   }
 
   /** Deletes a document. */
@@ -103,7 +95,7 @@ export class UsersCollection {
   }
 
   /** Reads a single document. */
-  async get(id: string): Promise<UsersData | undefined> {
+  async get(id: string): Promise<PostsData | undefined> {
     const snapshot = await getDoc(this.doc(id));
     return snapshot.exists() ? snapshot.data() : undefined;
   }
@@ -112,23 +104,11 @@ export class UsersCollection {
    * Creates a new QueryBuilder instance for this collection.
    * @returns A new QueryBuilder instance.
    */
-  query(): UsersQueryBuilder {
-    return new UsersQueryBuilder(this.firestore, this.ref);
+  query(): PostsQueryBuilder {
+    return new PostsQueryBuilder(this.firestore, this.ref);
   }
 
   // --- Subcollection Accessors ---
-
-
-
-  /**
-   * Access the 'posts' subcollection for a specific document.
-   * @param documentId The ID of the parent 'users' document.
-   * @returns A typed reference to the 'posts' subcollection.
-   */
-  posts(documentId: string): PostsCollection {
-    return new PostsCollection(this.firestore, this.doc(documentId));
-  }
-
 
 
   // Example: findByEmail(email: string) { ... }

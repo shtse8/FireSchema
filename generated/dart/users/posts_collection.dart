@@ -5,75 +5,69 @@
 // ignore_for_file: unused_import, unused_local_variable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import './users_data.dart'; // Import the generated model type
-import './users_query.dart';
+import './posts_data.dart'; // Import the generated model type
+import './posts_query.dart';
  // Import the generated query builder
-import './users_update.dart'; // Import the generated update builder
+import './posts_update.dart'; // Import the generated update builder
 
-
-
-
-
-
-import '../users/posts_collection.dart'; // Adjust path for subcollection
 
 
 
 // TODO: Define AddData/UpdateData types if desired (less common in Dart than TS, often handled by method params)
 // For example, using named parameters in `add` and `update` methods.
 
-/// Typed reference and utilities for the 'users' collection.
-class UsersCollection {
+/// Typed reference and utilities for the 'posts' collection.
+class PostsCollection {
   final FirebaseFirestore firestore;
-  late final CollectionReference<UsersData> ref;
+  late final CollectionReference<PostsData> ref;
   final DocumentReference? parentRef; // Optional parent ref for subcollections
 
   /// Constructor for the collection reference.
   ///
   /// [firestore] The Firestore instance.
   /// [parentRef] Optional DocumentReference of the parent document (for subcollections).
-  UsersCollection(this.firestore, [this.parentRef]) {
+  PostsCollection(this.firestore, [this.parentRef]) {
     if (parentRef != null) {
       // Subcollection reference
-      ref = parentRef!.collection('users').withConverter<UsersData>(
-            fromFirestore: (snapshot, _) => UsersData.fromSnapshot(snapshot),
-            toFirestore: (UsersData data, _) => data.toJson(),
+      ref = parentRef!.collection('posts').withConverter<PostsData>(
+            fromFirestore: (snapshot, _) => PostsData.fromSnapshot(snapshot),
+            toFirestore: (PostsData data, _) => data.toJson(),
           );
     } else {
       // Root collection reference
   
-    ref = firestore.collection('users').withConverter<UsersData>(
-          fromFirestore: (snapshot, _) => UsersData.fromSnapshot(snapshot),
-          toFirestore: (UsersData data, _) => data.toJson(),
+    ref = firestore.collection('posts').withConverter<PostsData>(
+          fromFirestore: (snapshot, _) => PostsData.fromSnapshot(snapshot),
+          toFirestore: (PostsData data, _) => data.toJson(),
         );
     }
   }
 
   /// Returns the DocumentReference for a given ID.
-  DocumentReference<UsersData> doc(String id) {
+  DocumentReference<PostsData> doc(String id) {
     return ref.doc(id);
   }
 
   /// Adds a new document with the given data, returning the new DocumentReference.
-  Future<DocumentReference<UsersData>> add(UsersData data) async {
+  Future<DocumentReference<PostsData>> add(PostsData data) async {
     // TODO: Handle default values like serverTimestamp automatically?
     //       This might involve creating a separate 'AddData' type or modifying 'toJson'.
     return ref.add(data);
   }
 
   /// Sets the data for a document, overwriting existing data.
-  Future<void> set(String id, UsersData data) async {
+  Future<void> set(String id, PostsData data) async {
     // TODO: Consider if 'set' needs different data handling than 'add'.
     await doc(id).set(data);
   }
 
   /// Creates a new UpdateBuilder instance for the document with the given ID.
   /// Use the builder to define fields to update and then call commit().
-  UsersUpdateBuilder update(String id) {
+  PostsUpdateBuilder update(String id) {
     // Note: We pass the typed DocumentReference from this class.
     // The UpdateBuilder will use the underlying untyped reference for the actual update operation
     // because the update data might contain FieldValue sentinel values.
-    return UsersUpdateBuilder(doc(id));
+    return PostsUpdateBuilder(doc(id));
   }
 
   /// Deletes a document.
@@ -82,31 +76,16 @@ class UsersCollection {
   }
 
   /// Reads a single document.
-  Future<UsersData?> get(String id) async {
+  Future<PostsData?> get(String id) async {
     final snapshot = await doc(id).get();
     return snapshot.data(); // Returns typed data directly thanks to withConverter
   }
 
   /// Creates a new QueryBuilder instance for this collection.
-  UsersQueryBuilder query() {
-    return UsersQueryBuilder(firestore, ref);
+  PostsQueryBuilder query() {
+    return PostsQueryBuilder(firestore, ref);
   }
 
   // --- Subcollection Accessors ---
-
-
-
-  /// Access the 'posts' subcollection for a specific document.
-  PostsCollection posts(String documentId) {
-    // Note: It's crucial that the DocumentReference passed to the subcollection's
-    // constructor is *untyped* (or DocumentReference<Map<String, dynamic>>)
-    // because Firestore subcollection paths don't inherit the parent's converter.
-    final untypedParentDocRef = parentRef != null
-        ? parentRef!.collection('users').doc(documentId)
-        : firestore.collection('users').doc(documentId);
-
-    return PostsCollection(firestore, untypedParentDocRef);
-  }
-
 
 }

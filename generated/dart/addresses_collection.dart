@@ -10,6 +10,9 @@ import './addresses_query.dart';
  // Import the generated query builder
 import './addresses_update.dart'; // Import the generated update builder
 
+
+
+
 // TODO: Define AddData/UpdateData types if desired (less common in Dart than TS, often handled by method params)
 // For example, using named parameters in `add` and `update` methods.
 
@@ -17,12 +20,27 @@ import './addresses_update.dart'; // Import the generated update builder
 class AddressesCollection {
   final FirebaseFirestore firestore;
   late final CollectionReference<AddressesData> ref;
+  final DocumentReference? parentRef; // Optional parent ref for subcollections
 
-  AddressesCollection(this.firestore) {
+  /// Constructor for the collection reference.
+  ///
+  /// [firestore] The Firestore instance.
+  /// [parentRef] Optional DocumentReference of the parent document (for subcollections).
+  AddressesCollection(this.firestore, [this.parentRef]) {
+    if (parentRef != null) {
+      // Subcollection reference
+      ref = parentRef!.collection('addresses').withConverter<AddressesData>(
+            fromFirestore: (snapshot, _) => AddressesData.fromSnapshot(snapshot),
+            toFirestore: (AddressesData data, _) => data.toJson(),
+          );
+    } else {
+      // Root collection reference
+  
     ref = firestore.collection('addresses').withConverter<AddressesData>(
           fromFirestore: (snapshot, _) => AddressesData.fromSnapshot(snapshot),
           toFirestore: (AddressesData data, _) => data.toJson(),
         );
+    }
   }
 
   /// Returns the DocumentReference for a given ID.
@@ -67,4 +85,7 @@ class AddressesCollection {
   AddressesQueryBuilder query() {
     return AddressesQueryBuilder(firestore, ref);
   }
+
+  // --- Subcollection Accessors ---
+
 }

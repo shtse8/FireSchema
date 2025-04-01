@@ -20,9 +20,16 @@ import {
   deleteField,
   // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
 } from 'firebase/firestore';
-import { <%- modelName %>Data } from './<%- collection.collectionId %>.types'; // Import the generated model type
-import { <%- modelName %>QueryBuilder } from './<%- collection.collectionId %>.query'; // Import the generated query builder
-import { <%- modelName %>UpdateBuilder } from './<%- collection.collectionId %>.update'; // Import the generated update builder
+import { <%- modelName %>Data } from './<%= collection.collectionId %>.types';
+import { <%- modelName %>QueryBuilder } from './<%= collection.collectionId %>.query';
+import { <%- modelName %>UpdateBuilder } from './<%= collection.collectionId %>.update';
+<%# Generate imports for subcollections %>
+<% if (collection.subcollections) { %>
+<%   Object.keys(collection.subcollections).forEach(subId => { %>
+<%     const subModelName = capitalizeFirstLetter(subId); %>
+import { <%- subModelName %>Collection } from './<%= collection.collectionId %>/{<%= collection.collectionId %>Id}/<%= subId %>.collection';
+<%   }); %>
+<% } %>
 
 // Define types for data manipulation.
 // AddData: Exclude fields that should not be provided on creation (e.g., read-only fields managed by Firestore).
@@ -38,13 +45,26 @@ type <%- modelName %>UpdateData = Partial<<%- modelName %>AddData>;
  * Typed reference to the '<%- collection.collectionId %>' collection.
  */
 export class <%- modelName %>Collection {
-  public ref: CollectionReference<<%- modelName %>Data>;
+  public ref: CollectionReference<<%- modelName %>Data>; // Path: <%- parentPath ? parentPath + '/' : '' %><%- collection.collectionId %>
 
   private firestore: Firestore; // Store firestore instance
+  private parentRef?: DocumentReference<DocumentData>; // Optional parent ref for subcollections
 
-  constructor(firestore: Firestore) {
+  /**
+   * @param firestore The Firestore instance.
+   * @param parentRef Optional DocumentReference of the parent document (for subcollections).
+   */
+  constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
     this.firestore = firestore; // Store firestore instance
+    this.parentRef = parentRef;
+    if (parentRef) {
+      // Subcollection reference
+      this.ref = collection(parentRef, '<%- collection.collectionId %>') as CollectionReference<<%- modelName %>Data>;
+    } else {
+      // Root collection reference
+  
     this.ref = collection(firestore, '<%- collection.collectionId %>') as CollectionReference<<%- modelName %>Data>;
+    }
   }
 
   /** Returns the DocumentReference for a given ID. */
@@ -99,6 +119,21 @@ export class <%- modelName %>Collection {
   query(): <%- modelName %>QueryBuilder {
     return new <%- modelName %>QueryBuilder(this.firestore, this.ref);
   }
+
+  // --- Subcollection Accessors ---
+<% if (collection.subcollections) { %>
+<%   Object.keys(collection.subcollections).forEach(subId => { %>
+<%     const subModelName = capitalizeFirstLetter(subId); %>
+  /**
+   * Access the '<%- subId %>' subcollection for a specific document.
+   * @param documentId The ID of the parent '<%- collection.collectionId %>' document.
+   * @returns A typed reference to the '<%- subId %>' subcollection.
+   */
+  <%- subId %>(documentId: string): <%- subModelName %>Collection {
+    return new <%- subModelName %>Collection(this.firestore, this.doc(documentId));
+  }
+<%   }); %>
+<% } %>
 
   // Example: findByEmail(email: string) { ... }
   // Example: listActiveUsers(limitCount: number) { ... }
