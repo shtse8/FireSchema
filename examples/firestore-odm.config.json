@@ -1,0 +1,26 @@
+{
+  "schema": "./firestore.schema.json",
+  "outputs": [
+    {
+      "language": "typescript",
+      "outputDir": "../generated/ts",
+      "options": {
+        "generateCore": true,
+        "dateTimeType": "Timestamp"
+      }
+    }
+,
+    {
+      "language": "dart",
+      "outputDir": "../generated/dart",
+      "options": {
+        "generateCore": true,
+        "nullSafety": true
+      }
+    }
+
+  ],
+  "generatorOptions": {
+    "logLevel": "info"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Firestore ODM Schema Definition",
+  "description": "Defines the valid structure for a firestore.schema.json file used by the firestore-odm generator.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "Version of the schema definition file itself (e.g., '1.0.0').",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "collections": {
+      "type": "object",
+      "description": "Root-level collections in Firestore.",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-zA-Z0-9_\\-]+$": { "$ref": "#/definitions/collection" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["schemaVersion", "collections"],
+  "definitions": {
+    "collection": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "object",
+          "description": "Fields within documents of this collection.",
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-zA-Z0-9_]+$": { "$ref": "#/definitions/field" }
+          },
+          "additionalProperties": false
+        },
+        "subcollections": {
+          "type": "object",
+          "description": "Subcollections nested under documents.",
+          "patternProperties": {
+            "^[a-zA-Z0-9_\\-]+$": { "$ref": "#/definitions/collection" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["fields"]
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "type": {
+          "enum": [
+            "string", "number", "boolean", "timestamp", "geopoint",
+            "reference", "array", "map"
+          ]
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "defaultValue": {
+          "description": "Default value. Type depends on the field 'type'. Special string 'serverTimestamp' allowed for 'timestamp'."        },
+        "referenceTo": {
+          "type": "string",
+          "description": "Path to the referenced collection (e.g., 'users', 'products/{productId}/reviews'). Required if type is 'reference'."
+        },
+        "items": {
+          "$ref": "#/definitions/field",
+          "description": "Definition for items if type is 'array'. Required if type is 'array'."
+        },
+        "properties": {
+          "type": "object",
+          "description": "Structure definition if type is 'map'. Required if type is 'map'.",
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-zA-Z0-9_]+$": { "$ref": "#/definitions/field" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["type"],
+      "if": { "properties": { "type": { "const": "reference" } } },
+      "then": { "required": ["type", "referenceTo"] },
+      "if": { "properties": { "type": { "const": "array" } } },
+      "then": { "required": ["type", "items"] },
+      "if": { "properties": { "type": { "const": "map" } } },
+      "then": { "required": ["type", "properties"] }    }
+  }
+}

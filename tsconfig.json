@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext", // Use modern JavaScript features
+    "module": "CommonJS", // Standard module system for Node.js CLI tools
+    "outDir": "./dist", // Output directory for compiled JavaScript
+    "rootDir": "./src", // Source directory for TypeScript files
+    "strict": true, // Enable all strict type-checking options
+    "esModuleInterop": true, // Enables compatibility with CommonJS modules
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "forceConsistentCasingInFileNames": true, // Ensure consistent file casing
+    "resolveJsonModule": true, // Allow importing JSON files
+    "declaration": true // Generate corresponding '.d.ts' file
+  },
+  "include": ["src/**/*"], // Files to include in compilation
+  "exclude": ["node_modules", "**/*.spec.ts"] // Files/directories to exclude
+}

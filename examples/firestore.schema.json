@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1.0.0",
+  "collections": {
+    "users": {
+      "description": "Stores user profile information.",
+      "fields": {
+        "displayName": {
+          "type": "string",
+          "required": true,
+          "description": "User's public display name"
+        },
+        "email": {
+          "type": "string",
+          "required": true
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "defaultValue": "serverTimestamp",
+          "description": "Timestamp when the user was created"
+        },
+        "lastLogin": {
+          "type": "timestamp",
+          "required": false
+        },
+        "age": {
+          "type": "number"
+        },
+        "isActive": {
+          "type": "boolean",
+          "defaultValue": true
+        },
+        "settings": {
+          "type": "map",
+          "required": false,
+          "properties": {
+            "theme": { "type": "string", "defaultValue": "light" },
+            "notificationsEnabled": { "type": "boolean", "defaultValue": true }
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "primaryAddressRef": {
+            "type": "reference",
+            "referenceTo": "addresses"
+        }
+      }
+    },
+    "addresses": {
+        "description": "Stores user addresses",
+        "fields": {
+            "street": {"type": "string", "required": true},
+            "city": {"type": "string", "required": true},
+            "zip": {"type": "string"}
+        }
+    }
+  }
+}
