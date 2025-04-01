@@ -78,8 +78,25 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
 
   // --- Generate package.json (Optional) ---
   if (target.package) {
-    console.log(`  - Placeholder: Generate package.json`);
-    // TODO: Create package.json content based on target.package info
+    try {
+        const packageJsonContent = {
+            name: target.package.name,
+            version: target.package.version || '0.1.0',
+            description: target.package.description || `Generated Firestore ODM for ${target.package.name}`,
+            // Add main/types entry points? Maybe point to core.ts?
+            // main: './core.js', // Assuming core.ts is compiled
+            // types: './core.d.ts',
+            // Add peer dependencies?
+            // peerDependencies: {
+            //     "firebase": "^9.0.0 || ^10.0.0 || ^11.0.0" // Example range
+            // }
+        };
+        const packageJsonPath = path.join(target.outputDir, 'package.json');
+        await fs.promises.writeFile(packageJsonPath, JSON.stringify(packageJsonContent, null, 2));
+        console.log(`  ✓ Generated package.json: ${packageJsonPath}`);
+    } catch (error: any) {
+        console.error(`  ✗ Error generating package.json: ${error.message}`);
+    }
   }
 
   console.log(`TypeScript generation finished for ${target.outputDir}.`);

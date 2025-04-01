@@ -80,8 +80,39 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
 
   // --- Generate pubspec.yaml (Optional) ---
   if (target.package) {
-    console.log(`  - Placeholder: Generate pubspec.yaml`);
-    // TODO: Create pubspec.yaml content based on target.package info
+    try {
+        // Basic pubspec content
+        const pubspecContent = `
+name: ${target.package.name}
+description: ${target.package.description || `Generated Firestore ODM for ${target.package.name}`}
+version: ${target.package.version || '0.1.0'}
+# repository: # Optional: Add repository URL if available
+
+environment:
+  sdk: '>=2.17.0 <4.0.0' # Example SDK constraint, adjust as needed
+  flutter: '>=1.17.0' # Optional: if primarily for Flutter
+
+dependencies:
+  flutter: # Optional: if primarily for Flutter
+    sdk: flutter
+  cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
+  # Add other necessary dependencies if the generated code requires them
+
+dev_dependencies:
+  flutter_test: # Optional: if primarily for Flutter
+    sdk: flutter
+  flutter_lints: ^2.0.0 # Example linter
+
+# For information on the generic Dart part of this file, see
+# https://dart.dev/tools/pub/pubspec
+`.trimStart(); // Remove leading newline
+
+        const pubspecPath = path.join(target.outputDir, 'pubspec.yaml');
+        await fs.promises.writeFile(pubspecPath, pubspecContent);
+        console.log(`  ✓ Generated pubspec.yaml: ${pubspecPath}`);
+    } catch (error: any) {
+        console.error(`  ✗ Error generating pubspec.yaml: ${error.message}`);
+    }
   }
 
   console.log(`Dart generation finished for ${target.outputDir}.`);

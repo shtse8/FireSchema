@@ -4,6 +4,11 @@
     {
       "language": "typescript",
       "outputDir": "../generated/ts",
+      "package": {
+        "name": "@my-project/firestore-models-ts",
+        "version": "0.1.0",
+        "description": "Generated TS models for Firestore"
+      },
       "options": {
         "generateCore": true,
         "dateTimeType": "Timestamp"
@@ -13,6 +18,11 @@
     {
       "language": "dart",
       "outputDir": "../generated/dart",
+      "package": {
+        "name": "my_project_firestore_models_dart",
+        "version": "0.1.0",
+        "description": "Generated Dart models for Firestore"
+      },
       "options": {
         "generateCore": true,
         "nullSafety": true
