@@ -29,7 +29,7 @@ class UsersData {
   /// tags (array)
   final List<String>? tags;
   /// primaryAddressRef (reference)
-  final DocumentReference<AddressesData>? primaryAddressRef;
+  final DocumentReference<Map<String, dynamic>>? primaryAddressRef;
 
   const UsersData({
     required this.displayName,
@@ -47,48 +47,184 @@ class UsersData {
   factory UsersData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
-        throw Exception("Document data was null!"); // Or handle differently
+        throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
-    return UsersData(
-      displayName: data['displayName'] as String, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      email: data['email'] as String, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      createdAt: data['createdAt'] as Timestamp?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      lastLogin: data['lastLogin'] as Timestamp?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      age: data['age'] as num?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      isActive: data['isActive'] as bool?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      settings: data['settings'] as Map<String, dynamic>?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      tags: data['tags'] as List<String>?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      primaryAddressRef: data['primaryAddressRef'] as DocumentReference<AddressesData>?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-    );
+    return UsersData.fromJson(data); // Reuse fromJson logic
   }
 
    /// Creates a UsersData instance from a Map.
   factory UsersData.fromJson(Map<String, dynamic> data) {
      return UsersData(
-      displayName: data['displayName'] as String, // TODO: Add type casting/parsing
-      email: data['email'] as String, // TODO: Add type casting/parsing
-      createdAt: data['createdAt'] as Timestamp?, // TODO: Add type casting/parsing
-      lastLogin: data['lastLogin'] as Timestamp?, // TODO: Add type casting/parsing
-      age: data['age'] as num?, // TODO: Add type casting/parsing
-      isActive: data['isActive'] as bool?, // TODO: Add type casting/parsing
-      settings: data['settings'] as Map<String, dynamic>?, // TODO: Add type casting/parsing
-      tags: data['tags'] as List<String>?, // TODO: Add type casting/parsing
-      primaryAddressRef: data['primaryAddressRef'] as DocumentReference<AddressesData>?, // TODO: Add type casting/parsing
+
+
+
+
+
+
+
+
+      displayName: data['displayName'] as String? ?? (throw Exception("Missing required field: displayName in $data")),
+
+
+
+
+
+
+
+
+      email: data['email'] as String? ?? (throw Exception("Missing required field: email in $data")),
+
+
+
+
+
+
+
+
+
+      createdAt: data['createdAt'] as Timestamp?,
+
+
+
+
+
+
+
+
+
+      lastLogin: data['lastLogin'] as Timestamp?,
+
+
+
+
+
+
+
+
+      age: data['age'] as num?,
+
+
+
+
+
+
+
+
+      isActive: data['isActive'] as bool?,
+
+
+
+
+
+
+
+
+      settings: data['settings'] as Map<String, dynamic>?,
+
+
+
+
+
+
+
+
+
+      tags: (data['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+
+
+
+
+
+
+
+      primaryAddressRef: data['primaryAddressRef'] as DocumentReference<Map<String, dynamic>>?,
     );
   }
 
   /// Converts this UsersData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-      'displayName': displayName, // TODO: Handle nested toJson for maps/lists/refs?
-      'email': email, // TODO: Handle nested toJson for maps/lists/refs?
-      'createdAt': createdAt, // TODO: Handle nested toJson for maps/lists/refs?
-      'lastLogin': lastLogin, // TODO: Handle nested toJson for maps/lists/refs?
-      'age': age, // TODO: Handle nested toJson for maps/lists/refs?
-      'isActive': isActive, // TODO: Handle nested toJson for maps/lists/refs?
-      'settings': settings, // TODO: Handle nested toJson for maps/lists/refs?
-      'tags': tags, // TODO: Handle nested toJson for maps/lists/refs?
-      'primaryAddressRef': primaryAddressRef, // TODO: Handle nested toJson for maps/lists/refs?
+
+
+
+
+
+
+
+
+      'displayName': displayName,
+
+
+
+
+
+
+
+
+      'email': email,
+
+
+
+
+
+
+
+
+      'createdAt': createdAt,
+
+
+
+
+
+
+
+
+      'lastLogin': lastLogin,
+
+
+
+
+
+
+
+
+      'age': age,
+
+
+
+
+
+
+
+
+      'isActive': isActive,
+
+
+
+
+
+
+
+
+      'settings': settings,
+
+
+
+
+
+
+
+
+      'tags': tags,
+
+
+
+
+
+
+
+
+      'primaryAddressRef': primaryAddressRef,
     };
   }
 
@@ -102,7 +238,7 @@ class UsersData {
     bool? isActive,
     Map<String, dynamic>? settings,
     List<String>? tags,
-    DocumentReference<AddressesData>? primaryAddressRef,
+    DocumentReference<Map<String, dynamic>>? primaryAddressRef,
   }) {
     return UsersData(
       displayName: displayName ?? this.displayName,

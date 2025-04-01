@@ -10,22 +10,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 <%# Helper function to get Dart type - defined within the template for simplicity %>
 <%_
 const getDartType = (field, options) => {
+  // TODO: Add option for DateTime vs Timestamp
   switch (field.type) {
     case 'string': return 'String';
     case 'number': return 'num'; // Or double/int based on further schema info?
     case 'boolean': return 'bool';
-    case 'timestamp': return 'Timestamp'; // Or DateTime if configured
-    case 'geopoint': return 'GeoPoint';
+    case 'timestamp': return 'Timestamp'; // from cloud_firestore
+    case 'geopoint': return 'GeoPoint'; // from cloud_firestore
     case 'reference':
       const refModelName = field.referenceTo ? camelToPascalCase(field.referenceTo) + 'Data' : 'DocumentSnapshot';
-      return `DocumentReference<${refModelName}>`; // Assumes ModelData type exists
+      // DocumentReference itself isn't generic in the same way in Dart firestore client.
+      return `DocumentReference<Map<String, dynamic>>`; // Or DocumentReference?
     case 'array':
       if (!field.items) return 'List<dynamic>';
       return `List<${getDartType(field.items, options)}>`;
     case 'map':
       if (!field.properties) return 'Map<String, dynamic>';
-      // For maps, generate inline or reference another class? For now, dynamic map.
-      return 'Map<String, dynamic>'; // TODO: Generate typed map if possible
+      // TODO: Generate typed map class if possible/desired
+      return 'Map<String, dynamic>';
     default: return 'dynamic';
   }
 };
@@ -49,20 +51,39 @@ class <%- modelName %>Data {
   factory <%- modelName %>Data.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
-        throw Exception("Document data was null!"); // Or handle differently
+        throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
-    return <%- modelName %>Data(
-<% Object.values(collection.fields).forEach(field => { -%>
-      <%- field.fieldName %>: data['<%- field.fieldName %>'] as <%- getDartType(field, options) %><%- field.required ? '' : '?' %>, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-<% }); -%>
-    );
+    return <%- modelName %>Data.fromJson(data); // Reuse fromJson logic
   }
 
    /// Creates a <%- modelName %>Data instance from a Map.
   factory <%- modelName %>Data.fromJson(Map<String, dynamic> data) {
      return <%- modelName %>Data(
 <% Object.values(collection.fields).forEach(field => { -%>
-      <%- field.fieldName %>: data['<%- field.fieldName %>'] as <%- getDartType(field, options) %><%- field.required ? '' : '?' %>, // TODO: Add type casting/parsing
+<%   const dartType = getDartType(field, options); %>
+<%   const isNullable = !field.required; %>
+<%   const fieldAccess = `data['${field.fieldName}']`; %>
+<%   let parsingLogic; %>
+<%   if (field.type === 'array' && field.items) { %>
+<%     const itemType = getDartType(field.items, options); %>
+<%     // Handle list parsing with type casting for items %>
+<%     parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`; %>
+<%   } else if (field.type === 'map') { %>
+<%     // Basic map parsing, TODO: Needs recursive parsing for nested typed maps %>
+<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
+<%   } else if (field.type === 'timestamp') { %>
+<%     // Timestamps are handled directly by Firestore SDK types when reading from snapshot %>
+<%     // If reading from generic JSON, might need Timestamp.fromDate(DateTime.parse(value)) %>
+<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
+<%   } else if (field.type === 'geopoint') { %>
+<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
+<%   } else if (field.type === 'reference') { %>
+<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
+<%   } else { %>
+<%     // Default casting for primitives (String, num, bool) %>
+<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
+<%   } %>
+      <%- field.fieldName %>: <%- parsingLogic %><%- isNullable ? '' : ` ?? (throw Exception("Missing required field: ${field.fieldName} in $data"))` %>,
 <% }); -%>
     );
   }
@@ -71,7 +92,15 @@ class <%- modelName %>Data {
   Map<String, dynamic> toJson() {
     return {
 <% Object.values(collection.fields).forEach(field => { -%>
-      '<%- field.fieldName %>': <%- field.fieldName %>, // TODO: Handle nested toJson for maps/lists/refs?
+<%   let valueAccess = field.fieldName; %>
+<%   // TODO: Add recursive toJson calls for nested maps/lists if they have toJson methods %>
+<%   // Example for a list of objects with toJson: %>
+<%   // if (field.type === 'array' && field.items && field.items.type === 'map') { %>
+<%   //   valueAccess = `${field.fieldName}?.map((e) => e.toJson()).toList()`; %>
+<%   // } else if (field.type === 'map') { %>
+<%   //   valueAccess = `${field.fieldName}?.toJson()`; %>
+<%   // } %>
+      '<%- field.fieldName %>': <%- valueAccess %>,
 <% }); -%>
     };
   }

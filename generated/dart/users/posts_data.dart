@@ -29,30 +29,75 @@ class PostsData {
   factory PostsData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
-        throw Exception("Document data was null!"); // Or handle differently
+        throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
-    return PostsData(
-      title: data['title'] as String, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      content: data['content'] as String?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      publishedAt: data['publishedAt'] as Timestamp?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-    );
+    return PostsData.fromJson(data); // Reuse fromJson logic
   }
 
    /// Creates a PostsData instance from a Map.
   factory PostsData.fromJson(Map<String, dynamic> data) {
      return PostsData(
-      title: data['title'] as String, // TODO: Add type casting/parsing
-      content: data['content'] as String?, // TODO: Add type casting/parsing
-      publishedAt: data['publishedAt'] as Timestamp?, // TODO: Add type casting/parsing
+
+
+
+
+
+
+
+
+      title: data['title'] as String? ?? (throw Exception("Missing required field: title in $data")),
+
+
+
+
+
+
+
+
+      content: data['content'] as String?,
+
+
+
+
+
+
+
+
+
+      publishedAt: data['publishedAt'] as Timestamp?,
     );
   }
 
   /// Converts this PostsData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-      'title': title, // TODO: Handle nested toJson for maps/lists/refs?
-      'content': content, // TODO: Handle nested toJson for maps/lists/refs?
-      'publishedAt': publishedAt, // TODO: Handle nested toJson for maps/lists/refs?
+
+
+
+
+
+
+
+
+      'title': title,
+
+
+
+
+
+
+
+
+      'content': content,
+
+
+
+
+
+
+
+
+      'publishedAt': publishedAt,
     };
   }
 

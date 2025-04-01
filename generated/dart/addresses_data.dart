@@ -29,30 +29,74 @@ class AddressesData {
   factory AddressesData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
-        throw Exception("Document data was null!"); // Or handle differently
+        throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
-    return AddressesData(
-      street: data['street'] as String, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      city: data['city'] as String, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-      zip: data['zip'] as String?, // TODO: Add type casting/parsing for complex types (Timestamp, Ref, Map, List<T>)
-    );
+    return AddressesData.fromJson(data); // Reuse fromJson logic
   }
 
    /// Creates a AddressesData instance from a Map.
   factory AddressesData.fromJson(Map<String, dynamic> data) {
      return AddressesData(
-      street: data['street'] as String, // TODO: Add type casting/parsing
-      city: data['city'] as String, // TODO: Add type casting/parsing
-      zip: data['zip'] as String?, // TODO: Add type casting/parsing
+
+
+
+
+
+
+
+
+      street: data['street'] as String? ?? (throw Exception("Missing required field: street in $data")),
+
+
+
+
+
+
+
+
+      city: data['city'] as String? ?? (throw Exception("Missing required field: city in $data")),
+
+
+
+
+
+
+
+
+      zip: data['zip'] as String?,
     );
   }
 
   /// Converts this AddressesData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-      'street': street, // TODO: Handle nested toJson for maps/lists/refs?
-      'city': city, // TODO: Handle nested toJson for maps/lists/refs?
-      'zip': zip, // TODO: Handle nested toJson for maps/lists/refs?
+
+
+
+
+
+
+
+
+      'street': street,
+
+
+
+
+
+
+
+
+      'city': city,
+
+
+
+
+
+
+
+
+      'zip': zip,
     };
   }
 
