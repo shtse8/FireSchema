@@ -15,17 +15,19 @@ Currently supports generating code for:
 - **Schema-Driven:** Define your Firestore collections, fields, and basic types
   using standard JSON Schema.
 - **Strongly-Typed:** Generates typed model interfaces/classes, collection
-  references, and query builders.
+  references, query builders, and update builders.
 - **Multi-Language:** Supports TypeScript and Dart code generation from a single
   schema.
 - **Core Runtime Included:** Generates necessary base code (helpers, type
   re-exports) directly into your project, avoiding extra dependencies.
 - **Basic CRUD & Queries:** Generated code includes methods for document
-  manipulation (`add`, `set`, `update`, `delete`, `get`) and basic querying
-  (`where`, `orderBy`, `limit`).
+  manipulation (`add`, `set`, `update`, `delete`, `get`) and querying
+  (`where<Field>`, `orderBy`, `limit`, pagination/cursors).
 - **Atomic Operations:** Supports Firestore atomic operations like
-  `serverTimestamp`, `increment`, `arrayUnion`, `arrayRemove`, `deleteField`
-  (via standard Firebase SDK usage).
+  `serverTimestamp`, `increment`, `arrayUnion`, `arrayRemove`, `deleteField` via
+  type-safe update builders.
+- **Subcollection Support:** Generates code for arbitrarily nested
+  subcollections.
 
 ## Installation
 
@@ -61,7 +63,8 @@ _(Note: Requires Node.js and npm)_
    ```
 
 4. **Use Generated Code:** Import and use the generated classes (models,
-   collection references, query builders) in your TypeScript or Dart project.
+   collection references, query builders, update builders) in your TypeScript or
+   Dart project.
 
 ## Using the Generated Code
 
@@ -74,11 +77,9 @@ assuming you have initialized the Firebase Admin SDK (Node.js/TypeScript) or
 ```typescript
 import { cert, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import {
-  UsersCollection,
-  UsersData,
-} from "./generated/firestore-ts/users.collection"; // Adjust path
-import { increment, serverTimestamp } from "./generated/firestore-ts/core"; // Import from generated core
+import { UsersCollection } from "./generated/firestore-ts/users.collection"; // Adjust path
+// Types and FieldValues can often be imported from core.ts
+import { increment, serverTimestamp } from "./generated/firestore-ts/core";
 
 // Initialize Firebase Admin (example)
 // initializeApp({ credential: cert(serviceAccount) });
@@ -89,16 +90,15 @@ const usersCollection = new UsersCollection(firestore);
 
 async function runExample() {
   try {
-    // Add a new user
+    // Add a new user (only required fields needed if others have defaults)
     const newUserRef = await usersCollection.add({
       displayName: "Alice", // Required
       email: "alice@example.com", // Required
-      // createdAt is handled automatically by serverTimestamp default
+      // createdAt is optional due to defaultValue: serverTimestamp
+      // isActive is optional due to defaultValue: true
       age: 30,
-      isActive: true,
       tags: ["beta", "tester"],
       settings: { theme: "dark", notificationsEnabled: false },
-      // primaryAddressRef: // Assign a DocumentReference<AddressesData>
     });
     console.log("Added user with ID:", newUserRef.id);
 
@@ -110,8 +110,8 @@ async function runExample() {
 
     // Update a user using the type-safe UpdateBuilder
     await usersCollection.update(newUserRef.id)
-      a.ncrementAge(1),
-      .setLastLoginToSserverTimestamp()
+      .incrementAge(1)
+      .setLastLoginToServerTimestamp() // Use specific method for server timestamp
       // Note: Updating nested fields like 'settings.theme' directly isn't
       // supported by the builder yet, requires reading the doc first or enhancing the builder.
       .commit();
@@ -119,8 +119,8 @@ async function runExample() {
 
     // Query users (Type-safe where methods)
     const activeUsers = await usersCollection.query()
-      .whereIsActive("==", true)
-      .whereAge(">=", 30)
+      .whereIsActive("==", true) // Operator restricted based on boolean type
+      .whereAge(">=", 30) // Operator restricted based on number type
       .orderBy("displayName")
       .limit(10)
       .get();
@@ -130,9 +130,14 @@ async function runExample() {
 
     // Query using array-contains
     const betaTesters = await usersCollection.query()
-      .whereTags("array-contains", "beta")
+      .whereTags("array-contains", "beta") // Operator restricted based on array type
       .get();
     console.log(`Found ${betaTesters.length} beta testers.`);
+
+    // Access a subcollection
+    const userPosts = usersCollection.posts(newUserRef.id);
+    await userPosts.add({ title: "My First Post", content: "Hello world!" });
+    console.log("Added post to subcollection.");
   } catch (error) {
     console.error("Error running example:", error);
   }
@@ -146,9 +151,10 @@ runExample();
 ```dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 // Adjust path based on your project structure and outputDir
-import 'generated/firestore_dart/users_collection.dart'; 
+import 'generated/firestore_dart/users_collection.dart';
 import 'generated/firestore_dart/users_data.dart';
-import 'generated/firestore_dart/firestore_odm_core.dart'; // Provides FieldValue etc.
+// Core file re-exports common types like FieldValue
+import 'generated/firestore_dart/firestore_odm_core.dart';
 
 void main() async {
   // Assume Firebase is initialized
@@ -156,19 +162,21 @@ void main() async {
 
   // Get a typed collection reference
   final usersCollection = UsersCollection(firestore);
+  final String bobId = 'some-bob-id'; // Assume we have an ID
 
   try {
-    // Add a new user (using the generated data class)
+    // Add a new user (using the generated data class constructor)
+    // Only fields required in schema AND without a defaultValue are required here.
     final newUser = UsersData(
       displayName: 'Bob',
       email: 'bob@example.com',
-      // createdAt will be null unless handled by serverTimestamp logic (TODO in template)
+      // createdAt is optional (has serverTimestamp default)
+      // isActive is optional (has boolean default)
       age: 42,
-      isActive: true,
       tags: ['alpha'],
       settings: {'theme': 'system'},
-      // primaryAddressRef: // Assign a DocumentReference<AddressesData>
     );
+    // The add method handles applying serverTimestamp if createdAt is null
     final newUserRef = await usersCollection.add(newUser);
     print('Added user with ID: ${newUserRef.id}');
 
@@ -181,18 +189,17 @@ void main() async {
     // Update a user using the type-safe UpdateBuilder
     await usersCollection.update(newUserRef.id)
       .incrementAge(1)
-      // Note: Dart UpdateBuilder doesn't yet have set<Field>ToServerTimestamp()
-      // Need to use setLastLogin(FieldValue.serverTimestamp()) or enhance builder
-      .setLastLogin(FieldValue.serverTimestamp())
+      // Use the specific method for server timestamp
+      .setLastLoginToServerTimestamp()
       // Note: Updating nested fields like 'settings.theme' directly isn't
-      // supported by the builder yet, requires reading the doc first or enhancing the builder.
+      // supported by the builder yet.
       .commit();
     print('Updated user age and last login via UpdateBuilder.');
 
-    // Query users (using the generated QueryBuilder)
+    // Query users (using the generated QueryBuilder with type-safe where methods)
     final activeUsers = await usersCollection.query()
-        .where('isActive', isEqualTo: true)
-        .where('age', isGreaterThanOrEqualTo: 40)
+        .whereIsActive(isEqualTo: true) // Named param for operator
+        .whereAge(isGreaterThanOrEqualTo: 40) // Named param for operator
         .orderBy('displayName')
         .limit(10)
         .get();
@@ -202,9 +209,23 @@ void main() async {
 
     // Query using array-contains
     final alphaTesters = await usersCollection.query()
-        .where('tags', arrayContains: 'alpha')
+        .whereTags(arrayContains: 'alpha') // Named param for operator
         .get();
     print('Found ${alphaTesters.length} alpha testers.');
+
+    // Pagination / Cursor Example
+    final firstPage = await usersCollection.query().orderBy('age').limit(5).get();
+    if (firstPage.isNotEmpty) {
+        // final lastDocSnapshot = await usersCollection.doc(firstPage.last.id).get(); // Need ID for snapshot
+        // final nextPage = await usersCollection.query().orderBy('age').startAfterDocument(lastDocSnapshot).limit(5).get();
+        print('Pagination methods (startAt, startAfter, etc.) are available.');
+    }
+
+    // Access a subcollection
+    final userPosts = usersCollection.posts(newUserRef.id);
+    await userPosts.add(PostsData(title: 'My Dart Post', content: 'Hello Dart!'));
+    print('Added post to subcollection.');
+
 
   } catch (e) {
     print('Error running example: $e');
@@ -259,10 +280,11 @@ FireSchema uses JSON Schema (`draft-07`) to define collections and fields.
       - If `type` is `reference`, add `referenceTo` (string path to the
         referenced collection).
       - If `type` is `array`, add `items` (another field object defining the
-        (Supports arbitrarily deep nesting). array element type).
+        array element type).
       - If `type` is `map`, add `properties` (object defining the map structure,
         similar to `fields`).
-  - **`subcollections`:** Similar structure to the root `collections` object.
+  - **`subcollections`:** Similar structure to the root `collections` object
+    (Supports arbitrarily deep nesting).
 
 _(Refer to `src/schema-definition.json` for the formal validation schema and
 `examples/firestore.schema.json` for a practical example.)_
