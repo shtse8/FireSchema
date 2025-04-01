@@ -39,6 +39,9 @@
        (`<ModelName>UpdateBuilder`).
    - **Core File:** `core.ts` (re-exports common types/functions).
    - **Naming:** PascalCase for classes, camelCase for filenames (by default).
+   - **Subcollections:** Generated in nested directories reflecting the path
+     (e.g., `users/{userId}/posts.collection.ts`). Parent collection class
+     includes accessor methods.
 
 2. **Dart:**
    - **Dependencies:** Relies on the `cloud_firestore` package being installed
@@ -54,6 +57,9 @@
        (`<ModelName>UpdateBuilder`).
    - **Core File:** `firestore_odm_core.dart` (exports common types/functions).
    - **Naming:** PascalCase for classes, snake_case for filenames.
+   - **Subcollections:** Generated in nested directories (e.g.,
+     `users/posts_collection.dart`). Parent collection class includes accessor
+     methods.
 
 **Development Environment:**
 

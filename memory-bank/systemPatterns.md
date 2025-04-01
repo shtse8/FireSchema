@@ -41,10 +41,13 @@ graph LR
    `src/generators/dart.ts` contain the logic specific to each language,
    including:
    - Loading the correct templates.
-   - Preparing the data object to be passed to EJS (including schema details,
-     configuration options, and helper functions).
+   - Preparing the data object to be passed to EJS.
    - Rendering templates using EJS.
    - Writing the generated files to the specified output directory.
+   - **Recursive Structure:** Each generator uses a helper function (e.g.,
+     `generateFilesForCollection`) that processes a single collection and calls
+     itself recursively for any defined subcollections, ensuring nested
+     generation.
 7. **Helper Functions:** Utility functions (e.g., naming conventions in
    `src/utils/naming.ts`, type generation helpers within generator files) are
    used to assist template rendering and maintain consistency.
