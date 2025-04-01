@@ -259,7 +259,7 @@ FireSchema uses JSON Schema (`draft-07`) to define collections and fields.
       - If `type` is `reference`, add `referenceTo` (string path to the
         referenced collection).
       - If `type` is `array`, add `items` (another field object defining the
-        array element type).
+        (Supports arbitrarily deep nesting). array element type).
       - If `type` is `map`, add `properties` (object defining the map structure,
         similar to `fields`).
   - **`subcollections`:** Similar structure to the root `collections` object.
