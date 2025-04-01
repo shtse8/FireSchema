@@ -12,7 +12,12 @@ import {
   orderBy,
   limit,
   getDocs,
-  // Add other query-related imports as needed (startAt, endAt, etc.)
+  limitToLast,
+  startAt,
+  startAfter,
+  endAt,
+  endBefore,
+  DocumentSnapshot, // Needed for cursor methods
 } from 'firebase/firestore';
 import { PostsData } from './posts.types';
 
@@ -112,7 +117,109 @@ export class PostsQueryBuilder {
     return this;
   }
 
-  // TODO: Add limitToLast, startAt, startAfter, endAt, endBefore methods
+  /**
+   * Adds a limitToLast clause to the query.
+   * Must be used with at least one orderBy clause.
+   *
+   * @param limitCount The maximum number of documents to return from the end.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  limitToLast(limitCount: number): this {
+    this.constraints.push(limitToLast(limitCount));
+    return this;
+  }
+
+  /**
+   * Creates a query constraint that modifies the query to start at the provided document
+   * (inclusive). The starting position is relative to the order of the query.
+   * The document must contain all of the fields provided in the orderBy clauses.
+   *
+   * @param snapshot The snapshot of the document to start at.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  startAt(snapshot: DocumentSnapshot<PostsData>): this;
+  /**
+   * Creates a query constraint that modifies the query to start at the provided fields
+   * (inclusive). The starting position is relative to the order of the query.
+   *
+   * @param fieldValues The field values to start this query at, in order
+   * of the query's order by clauses.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  startAt(...fieldValues: any[]): this;
+  startAt(...args: any[]): this {
+    this.constraints.push(startAt(...args));
+    return this;
+  }
+
+  /**
+   * Creates a query constraint that modifies the query to start after the provided document
+   * (exclusive). The starting position is relative to the order of the query.
+   * The document must contain all of the fields provided in the orderBy clauses.
+   *
+   * @param snapshot The snapshot of the document to start after.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  startAfter(snapshot: DocumentSnapshot<PostsData>): this;
+  /**
+   * Creates a query constraint that modifies the query to start after the provided fields
+   * (exclusive). The starting position is relative to the order of the query.
+   *
+   * @param fieldValues The field values to start this query after, in order
+   * of the query's order by clauses.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  startAfter(...fieldValues: any[]): this;
+  startAfter(...args: any[]): this {
+    this.constraints.push(startAfter(...args));
+    return this;
+  }
+
+  /**
+   * Creates a query constraint that modifies the query to end before the provided document
+   * (exclusive). The ending position is relative to the order of the query.
+   * The document must contain all of the fields provided in the orderBy clauses.
+   *
+   * @param snapshot The snapshot of the document to end before.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  endBefore(snapshot: DocumentSnapshot<PostsData>): this;
+  /**
+   * Creates a query constraint that modifies the query to end before the provided fields
+   * (exclusive). The ending position is relative to the order of the query.
+   *
+   * @param fieldValues The field values to end this query before, in order
+   * of the query's order by clauses.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  endBefore(...fieldValues: any[]): this;
+  endBefore(...args: any[]): this {
+    this.constraints.push(endBefore(...args));
+    return this;
+  }
+
+  /**
+   * Creates a query constraint that modifies the query to end at the provided document
+   * (inclusive). The ending position is relative to the order of the query.
+   * The document must contain all of the fields provided in the orderBy clauses.
+   *
+   * @param snapshot The snapshot of the document to end at.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  endAt(snapshot: DocumentSnapshot<PostsData>): this;
+  /**
+   * Creates a query constraint that modifies the query to end at the provided fields
+   * (inclusive). The ending position is relative to the order of the query.
+   *
+   * @param fieldValues The field values to end this query at, in order
+   * of the query's order by clauses.
+   * @returns The QueryBuilder instance for chaining.
+   */
+  endAt(...fieldValues: any[]): this;
+  endAt(...args: any[]): this {
+    this.constraints.push(endAt(...args));
+    return this;
+  }
 
   /**
    * Executes the query and returns the matching documents.

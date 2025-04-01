@@ -111,6 +111,69 @@ class PostsQueryBuilder {
      return PostsQueryBuilder._(firestore, collectionRef, newQuery);
   }
 
+
+  /// Adds a limitToLast clause to the query.
+  PostsQueryBuilder limitToLast(int limit) {
+     final newQuery = _query.limitToLast(limit);
+     return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start at the provided document
+  /// (inclusive). The starting position is relative to the order of the query.
+  PostsQueryBuilder startAtDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.startAtDocument(documentSnapshot);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start at the provided fields
+  /// (inclusive). The starting position is relative to the order of the query.
+  PostsQueryBuilder startAt(List<Object?> fieldValues) {
+    final newQuery = _query.startAt(fieldValues);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start after the provided document
+  /// (exclusive). The starting position is relative to the order of the query.
+  PostsQueryBuilder startAfterDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.startAfterDocument(documentSnapshot);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start after the provided fields
+  /// (exclusive). The starting position is relative to the order of the query.
+  PostsQueryBuilder startAfter(List<Object?> fieldValues) {
+    final newQuery = _query.startAfter(fieldValues);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end before the provided document
+  /// (exclusive). The ending position is relative to the order of the query.
+  PostsQueryBuilder endBeforeDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.endBeforeDocument(documentSnapshot);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end before the provided fields
+  /// (exclusive). The ending position is relative to the order of the query.
+  PostsQueryBuilder endBefore(List<Object?> fieldValues) {
+    final newQuery = _query.endBefore(fieldValues);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end at the provided document
+  /// (inclusive). The ending position is relative to the order of the query.
+  PostsQueryBuilder endAtDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.endAtDocument(documentSnapshot);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end at the provided fields
+  /// (inclusive). The ending position is relative to the order of the query.
+  PostsQueryBuilder endAt(List<Object?> fieldValues) {
+    final newQuery = _query.endAt(fieldValues);
+    return PostsQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
   // TODO: Add limitToLast, startAt, startAfter, endAt, endBefore methods
 
   /// Executes the query and returns the matching documents.

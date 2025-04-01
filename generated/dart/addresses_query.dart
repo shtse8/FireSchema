@@ -111,6 +111,69 @@ class AddressesQueryBuilder {
      return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
   }
 
+
+  /// Adds a limitToLast clause to the query.
+  AddressesQueryBuilder limitToLast(int limit) {
+     final newQuery = _query.limitToLast(limit);
+     return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start at the provided document
+  /// (inclusive). The starting position is relative to the order of the query.
+  AddressesQueryBuilder startAtDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.startAtDocument(documentSnapshot);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start at the provided fields
+  /// (inclusive). The starting position is relative to the order of the query.
+  AddressesQueryBuilder startAt(List<Object?> fieldValues) {
+    final newQuery = _query.startAt(fieldValues);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start after the provided document
+  /// (exclusive). The starting position is relative to the order of the query.
+  AddressesQueryBuilder startAfterDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.startAfterDocument(documentSnapshot);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to start after the provided fields
+  /// (exclusive). The starting position is relative to the order of the query.
+  AddressesQueryBuilder startAfter(List<Object?> fieldValues) {
+    final newQuery = _query.startAfter(fieldValues);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end before the provided document
+  /// (exclusive). The ending position is relative to the order of the query.
+  AddressesQueryBuilder endBeforeDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.endBeforeDocument(documentSnapshot);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end before the provided fields
+  /// (exclusive). The ending position is relative to the order of the query.
+  AddressesQueryBuilder endBefore(List<Object?> fieldValues) {
+    final newQuery = _query.endBefore(fieldValues);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end at the provided document
+  /// (inclusive). The ending position is relative to the order of the query.
+  AddressesQueryBuilder endAtDocument(DocumentSnapshot documentSnapshot) {
+    final newQuery = _query.endAtDocument(documentSnapshot);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
+  /// Creates a query constraint that modifies the query to end at the provided fields
+  /// (inclusive). The ending position is relative to the order of the query.
+  AddressesQueryBuilder endAt(List<Object?> fieldValues) {
+    final newQuery = _query.endAt(fieldValues);
+    return AddressesQueryBuilder._(firestore, collectionRef, newQuery);
+  }
+
   // TODO: Add limitToLast, startAt, startAfter, endAt, endBefore methods
 
   /// Executes the query and returns the matching documents.
