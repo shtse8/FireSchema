@@ -50,9 +50,15 @@ class PostsCollection {
 
   /// Adds a new document with the given data, returning the new DocumentReference.
   Future<DocumentReference<PostsData>> add(PostsData data) async {
-    // TODO: Handle default values like serverTimestamp automatically?
-    //       This might involve creating a separate 'AddData' type or modifying 'toJson'.
-    return ref.add(data);
+    final Map<String, dynamic> json = data.toJson();
+    // Apply server timestamps if the corresponding field is null
+    // Use the untyped reference to add data with FieldValue placeholders
+    final newDocRef = await ref.firestore.collection(ref.path).add(json);
+    // Return a typed reference
+    return newDocRef.withConverter< PostsData>(
+      fromFirestore: ref.converter.fromFirestore,
+      toFirestore: ref.converter.toFirestore,
+    );
   }
 
   /// Sets the data for a document, overwriting existing data.

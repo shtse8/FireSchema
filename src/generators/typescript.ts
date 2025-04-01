@@ -125,7 +125,11 @@ async function generateFilesForCollection(
     };
     const queryBuilderData = { ...commonData, getQueryInfoForField: getQueryInfoForField };
     const updateBuilderData = { ...commonData }; // Might need specific helpers later
-    const collectionRefData = { ...commonData, parentPath: parentPath }; // Pass parentPath for context
+
+    const collectionRefData = {
+        ...commonData,
+        parentPath: parentPath,
+    };
 
     // Generate Model File
     try {

@@ -18,6 +18,7 @@ import {
   arrayUnion,
   arrayRemove,
   deleteField,
+  DocumentData, // Added for parentRef typing
   // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
 } from 'firebase/firestore';
 import { UsersData } from './users.types';
@@ -32,13 +33,22 @@ import { PostsCollection } from './users/{usersId}/posts.collection';
 
 
 // Define types for data manipulation.
-// AddData: Exclude fields that should not be provided on creation (e.g., read-only fields managed by Firestore).
+// AddData: Makes fields optional if they have a default value or are not required.
+type UsersAddData = {
+  displayName: UsersData['displayName'];
+  email: UsersData['email'];
+  createdAt?: UsersData['createdAt'];
+  lastLogin?: UsersData['lastLogin'];
+  age?: UsersData['age'];
+  isActive?: UsersData['isActive'];
+  settings?: UsersData['settings'];
+  tags?: UsersData['tags'];
+  primaryAddressRef?: UsersData['primaryAddressRef'];
+};
 // UpdateData: Make all fields optional for partial updates.
-// TODO: Refine which fields are Omitted based on schema (e.g., fields with defaultValue: serverTimestamp?)
 // Note: For UpdateData, the type should allow FieldValue types (increment, arrayUnion, etc.)
 //       This is complex to type perfectly, so we use Partial<> for now, and users must
 //       ensure they pass the correct FieldValue types where needed.
-type UsersAddData = Omit<UsersData, 'createdAt' /* Add other read-only fields here */>;
 type UsersUpdateData = Partial<UsersAddData>;
 
 /**
@@ -62,8 +72,7 @@ export class UsersCollection {
       this.ref = collection(parentRef, 'users') as CollectionReference<UsersData>;
     } else {
       // Root collection reference
-  
-    this.ref = collection(firestore, 'users') as CollectionReference<UsersData>;
+      this.ref = collection(firestore, 'users') as CollectionReference<UsersData>;
     }
   }
 
@@ -76,16 +85,19 @@ export class UsersCollection {
   async add(data: UsersAddData): Promise<DocumentReference<UsersData>> {
     const dataWithDefaults = { ...data };
     // Automatically add server timestamps for fields configured in the schema
-    if (!dataWithDefaults.createdAt) { // Add timestamp if not explicitly provided
+    // If 'createdAt' wasn't provided, add the serverTimestamp default
+    if (dataWithDefaults.createdAt === undefined) {
         (dataWithDefaults as any).createdAt = serverTimestamp();
     }
-    return addDoc(this.ref, dataWithDefaults);
+    // TODO: Handle other non-serverTimestamp default values if needed
+    return addDoc(this.ref, dataWithDefaults as UsersData); // Cast needed as defaults are added
   }
 
   /** Sets the data for a document, overwriting existing data. */
   async set(id: string, data: UsersAddData): Promise<void> {
     // Note: set might need its own data type if it should behave differently than add
-    await setDoc(this.doc(id), data);
+    // Also, set doesn't automatically apply defaults like add does.
+    await setDoc(this.doc(id), data as UsersData); // Cast needed as AddData is slightly different
   }
 
   /**
@@ -126,7 +138,8 @@ export class UsersCollection {
    * @returns A typed reference to the 'posts' subcollection.
    */
   posts(documentId: string): PostsCollection {
-    return new PostsCollection(this.firestore, this.doc(documentId));
+    // Pass the untyped parent document reference
+    return new PostsCollection(this.firestore, this.ref.doc(documentId));
   }
 
 

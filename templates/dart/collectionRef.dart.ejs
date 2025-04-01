@@ -56,9 +56,22 @@ class <%- modelName %>Collection {
 
   /// Adds a new document with the given data, returning the new DocumentReference.
   Future<DocumentReference<<%- modelName %>Data>> add(<%- modelName %>Data data) async {
-    // TODO: Handle default values like serverTimestamp automatically?
-    //       This might involve creating a separate 'AddData' type or modifying 'toJson'.
-    return ref.add(data);
+    final Map<String, dynamic> json = data.toJson();
+    // Apply server timestamps if the corresponding field is null
+<% Object.values(collection.fields).forEach(field => { -%>
+<%   if (field.defaultValue === 'serverTimestamp') { -%>
+    if (data.<%- field.fieldName %> == null) {
+      json['<%- field.fieldName %>'] = FieldValue.serverTimestamp();
+    }
+<%   } -%>
+<% }); -%>
+    // Use the untyped reference to add data with FieldValue placeholders
+    final newDocRef = await ref.firestore.collection(ref.path).add(json);
+    // Return a typed reference
+    return newDocRef.withConverter< <%- modelName %>Data>(
+      fromFirestore: ref.converter.fromFirestore,
+      toFirestore: ref.converter.toFirestore,
+    );
   }
 
   /// Sets the data for a document, overwriting existing data.

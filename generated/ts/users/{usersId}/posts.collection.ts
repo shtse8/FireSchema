@@ -18,6 +18,7 @@ import {
   arrayUnion,
   arrayRemove,
   deleteField,
+  DocumentData, // Added for parentRef typing
   // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
 } from 'firebase/firestore';
 import { PostsData } from './posts.types';
@@ -27,13 +28,16 @@ import { PostsUpdateBuilder } from './posts.update';
 
 
 // Define types for data manipulation.
-// AddData: Exclude fields that should not be provided on creation (e.g., read-only fields managed by Firestore).
+// AddData: Makes fields optional if they have a default value or are not required.
+type PostsAddData = {
+  title: PostsData['title'];
+  content?: PostsData['content'];
+  publishedAt?: PostsData['publishedAt'];
+};
 // UpdateData: Make all fields optional for partial updates.
-// TODO: Refine which fields are Omitted based on schema (e.g., fields with defaultValue: serverTimestamp?)
 // Note: For UpdateData, the type should allow FieldValue types (increment, arrayUnion, etc.)
 //       This is complex to type perfectly, so we use Partial<> for now, and users must
 //       ensure they pass the correct FieldValue types where needed.
-type PostsAddData = Omit<PostsData, 'createdAt' /* Add other read-only fields here */>;
 type PostsUpdateData = Partial<PostsAddData>;
 
 /**
@@ -57,8 +61,7 @@ export class PostsCollection {
       this.ref = collection(parentRef, 'posts') as CollectionReference<PostsData>;
     } else {
       // Root collection reference
-  
-    this.ref = collection(firestore, 'posts') as CollectionReference<PostsData>;
+      this.ref = collection(firestore, 'posts') as CollectionReference<PostsData>;
     }
   }
 
@@ -71,13 +74,15 @@ export class PostsCollection {
   async add(data: PostsAddData): Promise<DocumentReference<PostsData>> {
     const dataWithDefaults = { ...data };
     // Automatically add server timestamps for fields configured in the schema
-    return addDoc(this.ref, dataWithDefaults);
+    // TODO: Handle other non-serverTimestamp default values if needed
+    return addDoc(this.ref, dataWithDefaults as PostsData); // Cast needed as defaults are added
   }
 
   /** Sets the data for a document, overwriting existing data. */
   async set(id: string, data: PostsAddData): Promise<void> {
     // Note: set might need its own data type if it should behave differently than add
-    await setDoc(this.doc(id), data);
+    // Also, set doesn't automatically apply defaults like add does.
+    await setDoc(this.doc(id), data as PostsData); // Cast needed as AddData is slightly different
   }
 
   /**

@@ -18,6 +18,7 @@ import {
   arrayUnion,
   arrayRemove,
   deleteField,
+  DocumentData, // Added for parentRef typing
   // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
 } from 'firebase/firestore';
 import { AddressesData } from './addresses.types';
@@ -27,13 +28,16 @@ import { AddressesUpdateBuilder } from './addresses.update';
 
 
 // Define types for data manipulation.
-// AddData: Exclude fields that should not be provided on creation (e.g., read-only fields managed by Firestore).
+// AddData: Makes fields optional if they have a default value or are not required.
+type AddressesAddData = {
+  street: AddressesData['street'];
+  city: AddressesData['city'];
+  zip?: AddressesData['zip'];
+};
 // UpdateData: Make all fields optional for partial updates.
-// TODO: Refine which fields are Omitted based on schema (e.g., fields with defaultValue: serverTimestamp?)
 // Note: For UpdateData, the type should allow FieldValue types (increment, arrayUnion, etc.)
 //       This is complex to type perfectly, so we use Partial<> for now, and users must
 //       ensure they pass the correct FieldValue types where needed.
-type AddressesAddData = Omit<AddressesData, 'createdAt' /* Add other read-only fields here */>;
 type AddressesUpdateData = Partial<AddressesAddData>;
 
 /**
@@ -57,8 +61,7 @@ export class AddressesCollection {
       this.ref = collection(parentRef, 'addresses') as CollectionReference<AddressesData>;
     } else {
       // Root collection reference
-  
-    this.ref = collection(firestore, 'addresses') as CollectionReference<AddressesData>;
+      this.ref = collection(firestore, 'addresses') as CollectionReference<AddressesData>;
     }
   }
 
@@ -71,13 +74,15 @@ export class AddressesCollection {
   async add(data: AddressesAddData): Promise<DocumentReference<AddressesData>> {
     const dataWithDefaults = { ...data };
     // Automatically add server timestamps for fields configured in the schema
-    return addDoc(this.ref, dataWithDefaults);
+    // TODO: Handle other non-serverTimestamp default values if needed
+    return addDoc(this.ref, dataWithDefaults as AddressesData); // Cast needed as defaults are added
   }
 
   /** Sets the data for a document, overwriting existing data. */
   async set(id: string, data: AddressesAddData): Promise<void> {
     // Note: set might need its own data type if it should behave differently than add
-    await setDoc(this.doc(id), data);
+    // Also, set doesn't automatically apply defaults like add does.
+    await setDoc(this.doc(id), data as AddressesData); // Cast needed as AddData is slightly different
   }
 
   /**
