@@ -92,15 +92,15 @@ describe('FireSchema Generator', () => {
     fs.mkdirSync(testOutputDir, { recursive: true });
     fs.writeFileSync(testConfigPath, JSON.stringify(testConfig, null, 2));
     fs.writeFileSync(testSchemaPath, JSON.stringify(testSchema, null, 2));
-    // Clean previous generated output if it exists
-    const generatedTsDir = path.resolve(path.dirname(testConfigPath), testConfig.outputs[0].outputDir);
-    if (fs.existsSync(generatedTsDir)) {
-      fs.rmSync(generatedTsDir, { recursive: true, force: true });
-    }
-    const generatedDartDir = path.resolve(path.dirname(testConfigPath), testConfig.outputs[1].outputDir);
-     if (fs.existsSync(generatedDartDir)) {
-      fs.rmSync(generatedDartDir, { recursive: true, force: true });
-    }
+    // Clean previous generated output if it exists (Temporarily disabled due to EBUSY errors)
+    // const generatedTsDir = path.resolve(path.dirname(testConfigPath), testConfig.outputs[0].outputDir);
+    // if (fs.existsSync(generatedTsDir)) {
+    //   fs.rmSync(generatedTsDir, { recursive: true, force: true });
+    // }
+    // const generatedDartDir = path.resolve(path.dirname(testConfigPath), testConfig.outputs[1].outputDir);
+    //  if (fs.existsSync(generatedDartDir)) {
+    //   fs.rmSync(generatedDartDir, { recursive: true, force: true });
+    // }
   });
 
   // Teardown: Remove test files and output dir

@@ -17,6 +17,15 @@ interface TemplateStrings {
     updateBuilder: string;
 }
 
+// Add this interface definition near the top with other interfaces
+interface UpdateMethodDefinition {
+  methodName: string; // e.g., setUserName, setAddressStreet
+  fieldPath: string;  // e.g., 'userName', 'address.street'
+  fieldType: string;  // e.g., 'string', 'number | FieldValue' (Type for the set method value)
+  fieldNameCamelCase: string; // e.g. 'userName', 'street' (The last part of the path)
+  originalField: ParsedFieldDefinition; // Include the original field definition for type checks
+}
+
 /**
  * Generates TypeScript ODM code based on the provided schema and configuration.
  *
@@ -162,7 +171,19 @@ async function generateFilesForCollection(
         isSubcollection: !!parentPath,
     };
     const queryBuilderData = { ...commonData, getQueryInfoForField: getQueryInfoForField };
-    const updateBuilderData = { ...commonData }; // Might need specific helpers later
+    // Generate the list of all possible update methods, including nested ones
+    const updateMethods = getUpdateMethodsForFields(collection.fields, options);
+    // Explicitly build the data object for the update builder template
+    const updateBuilderData = {
+        modelName: commonData.modelName,
+        collection: commonData.collection,
+        options: commonData.options,
+        getTypeScriptType: commonData.getTypeScriptType,
+        capitalizeFirstLetter: commonData.capitalizeFirstLetter,
+        camelToPascalCase: commonData.camelToPascalCase,
+        isSubcollection: commonData.isSubcollection,
+        updateMethods: updateMethods // Ensure this is included
+    };
 
     const collectionRefData = {
         ...commonData,
@@ -195,6 +216,7 @@ async function generateFilesForCollection(
     // Generate Query Builder File
     try {
         const renderedQueryBuilder = ejs.render(templates.queryBuilder, queryBuilderData);
+
         const queryBuilderFileName = `${collectionId}.query.ts`;
         const queryBuilderFilePath = path.join(currentOutputDir, queryBuilderFileName);
         await fs.promises.writeFile(queryBuilderFilePath, renderedQueryBuilder);
@@ -324,4 +346,52 @@ function getQueryInfoForField(field: ParsedFieldDefinition, options: TypeScriptO
     }
 
     return queryInfos;
+}
+
+// Add this recursive helper function somewhere in the file, e.g., after getTypeScriptType
+/**
+ * Recursively generates a list of update method definitions for all fields,
+ * including nested fields within maps.
+ */
+function getUpdateMethodsForFields(
+    fields: Record<string, ParsedFieldDefinition>,
+    options: TypeScriptOptions,
+    currentPath: string = '', // Tracks the dot-notation path
+    methodPrefix: string = 'set' // Tracks the method name prefix
+): UpdateMethodDefinition[] {
+    let methods: UpdateMethodDefinition[] = [];
+
+    for (const fieldName in fields) {
+        const field = fields[fieldName];
+        const fieldPath = currentPath ? `${currentPath}.${fieldName}` : fieldName;
+        // Use capitalizeFirstLetter only for the *part* being added to the prefix
+        const pascalFieldNamePart = capitalizeFirstLetter(fieldName);
+        // Construct the full method name by appending the capitalized part
+        const methodName = `${methodPrefix}${pascalFieldNamePart}`;
+        const fieldType = getTypeScriptType(field, options);
+
+        // Add method for the current field
+        methods.push({
+            methodName: methodName,
+            fieldPath: fieldPath,
+            // Allow FieldValue types for updates in the 'set' method
+            fieldType: `${fieldType} | FieldValue`,
+            fieldNameCamelCase: fieldName, // Keep original camelCase for parameter name
+            originalField: field // Store the original field definition
+        });
+
+        // If it's a map with properties, recurse
+        if (field.type === 'map' && field.properties) {
+            // Pass the generated method name as the new prefix for nested fields
+            const nestedMethods = getUpdateMethodsForFields(
+                field.properties,
+                options,
+                fieldPath, // Pass the current path down
+                methodName // Pass the current method name as prefix for nested methods
+            );
+            methods = methods.concat(nestedMethods);
+        }
+    }
+
+    return methods;
 }

@@ -15,7 +15,7 @@ import {
   // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseUpdateBuilder } from '@shtse8/fireschema-runtime'; // Adjust path/package name as needed
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
 import { TagsData } from './tags.types.js';
@@ -42,9 +42,16 @@ export class TagsUpdateBuilder extends BaseUpdateBuilder<TagsData> {
 
 
   /** Sets the value for the 'label' field. */
-  setLabel(value: string): this {
+  setLabel(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('label', value);
   }
+
+
+
+
+
+
 
 
   // --- End Field Setters ---

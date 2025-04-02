@@ -15,7 +15,7 @@ import {
   // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseUpdateBuilder } from '@shtse8/fireschema-runtime'; // Adjust path/package name as needed
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
 import { ItemsData } from './items.types.js';
@@ -48,32 +48,59 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
 
   /** Sets the value for the 'name' field. */
-  setName(value: string): this {
+  setName(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('name', value);
   }
 
 
+
+
+
+
+
+
+
+
+
   /** Sets the value for the 'value' field. */
-  setValue(value: number): this {
+  setValue(value: number | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('value', value);
   }
 
+
+
   /** Atomically increments the 'value' field. */
-  incrementValue(value: number): this {
+  incrementValue(value: number): this { // Remove 'set' prefix for atomic ops
     return this._increment('value', value);
   }
+
+
+
+
   /** Deletes the 'value' field. */
-  deleteValue(): this {
+  deleteValue(): this { // Remove 'set' prefix
     return this._deleteField('value');
   }
 
+
+
+
+
+
   /** Sets the value for the 'createdAt' field. */
-  setCreatedAt(value: Timestamp): this {
+  setCreatedAt(value: Timestamp | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('createdAt', value);
   }
 
+
+
+
+
   /** Sets the 'createdAt' field to the server timestamp. */
-  setCreatedAtToServerTimestamp(): this {
+  setCreatedAtToServerTimestamp(): this { // Keep 'set' prefix for this specific operation
     return this._serverTimestamp('createdAt');
   }
 
@@ -82,8 +109,31 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
 
 
+
+  /** Sets the value for the 'address' field. */
+  setAddress(value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } } | FieldValue): this {
+    // Use the pre-calculated field path and method name
+    return this._set('address', value);
+  }
+
+
+
+
+
+
+  /** Deletes the 'address' field. */
+  deleteAddress(): this { // Remove 'set' prefix
+    return this._deleteField('address');
+  }
+
+
+
+
+
+
   /** Sets the value for the 'address.street' field. */
-  setAddress_Street(value: string): this {
+  setAddressStreet(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('address.street', value);
   }
 
@@ -92,8 +142,14 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
 
 
+
+
+
+
+
   /** Sets the value for the 'address.city' field. */
-  setAddress_City(value: string): this {
+  setAddressCity(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('address.city', value);
   }
 
@@ -102,13 +158,24 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
 
 
+
+
+
+
+
   /** Sets the value for the 'address.zip' field. */
-  setAddress_Zip(value: string): this {
+  setAddressZip(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('address.zip', value);
   }
 
+
+
+
+
+
   /** Deletes the 'address.zip' field. */
-  deleteAddress_Zip(): this {
+  deleteAddressZip(): this { // Remove 'set' prefix
     return this._deleteField('address.zip');
   }
 
@@ -116,13 +183,20 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
 
 
+
   /** Sets the value for the 'address.coords' field. */
-  setAddress_Coords(value: { lat: number; lon: number }): this {
+  setAddressCoords(value: { lat: number; lon: number } | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('address.coords', value);
   }
 
+
+
+
+
+
   /** Deletes the 'address.coords' field. */
-  deleteAddress_Coords(): this {
+  deleteAddressCoords(): this { // Remove 'set' prefix
     return this._deleteField('address.coords');
   }
 
@@ -130,13 +204,17 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
 
 
+
   /** Sets the value for the 'address.coords.lat' field. */
-  setAddress_Coords_Lat(value: number): this {
+  setAddressCoordsLat(value: number | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('address.coords.lat', value);
   }
 
+
+
   /** Atomically increments the 'address.coords.lat' field. */
-  incrementAddress_Coords_Lat(value: number): this {
+  incrementAddressCoordsLat(value: number): this { // Remove 'set' prefix for atomic ops
     return this._increment('address.coords.lat', value);
   }
 
@@ -144,15 +222,23 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
 
 
+
+
+
+
   /** Sets the value for the 'address.coords.lon' field. */
-  setAddress_Coords_Lon(value: number): this {
+  setAddressCoordsLon(value: number | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('address.coords.lon', value);
   }
 
+
+
   /** Atomically increments the 'address.coords.lon' field. */
-  incrementAddress_Coords_Lon(value: number): this {
+  incrementAddressCoordsLon(value: number): this { // Remove 'set' prefix for atomic ops
     return this._increment('address.coords.lon', value);
   }
+
 
 
 
