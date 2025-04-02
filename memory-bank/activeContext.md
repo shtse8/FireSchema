@@ -198,6 +198,14 @@ generating all logic directly. **(Completed)**
   - Updated example schema (`examples/firestore.schema.json`) to include these
     properties for testing.
   - Verified generated code passes `dart analyze`.
+- **TypeScript Model Validation Documentation:**
+  - Updated TypeScript model template (`templates/typescript/model.ejs`) to add
+    TSDoc comments (`@minimum`, `@maximum`) for number fields based on schema
+    properties.
+  - Updated `schemaLoader.ts` and `ParsedFieldDefinition` type to correctly
+    parse and pass validation properties (`minLength`, `maxLength`, `pattern`,
+    `minimum`, `maximum`) to templates.
+  - Verified TSDoc comments are generated correctly in the output.
 - **Generator Error Handling:**
   - Updated `configLoader.ts` to throw an error if the resolved schema file path
     does not exist.

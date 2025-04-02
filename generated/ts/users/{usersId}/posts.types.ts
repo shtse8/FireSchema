@@ -19,11 +19,23 @@ import { Timestamp, GeoPoint, DocumentReference, DocumentData } from 'firebase/f
  * Description: Posts created by the user
  */
 export interface PostsData {
-  /** title (string, required) */
+
+  /**
+   * title (string, required)
+
+   */
   title: string;
-  /** content (string) */
+
+  /**
+   * content (string)
+
+   */
   content?: string;
-  /** publishedAt (timestamp) */
+
+  /**
+   * publishedAt (timestamp)
+
+   */
   publishedAt?: Timestamp;
 }
 

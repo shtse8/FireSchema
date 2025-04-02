@@ -29,6 +29,12 @@ export interface ParsedFieldDefinition {
   referenceTo?: string; // Path to the referenced collection (for 'reference' type)
   items?: ParsedFieldDefinition; // Definition for array items (for 'array' type)
   properties?: Record<string, ParsedFieldDefinition>; // Structure definition (for 'map' type)
+  // Validation properties (optional)
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  minimum?: number;
+  maximum?: number;
 }
 
 /**

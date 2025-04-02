@@ -99,7 +99,12 @@ class UsersData {
     this.settings,
     this.tags,
     this.primaryAddressRef,
-  }); // End of constructor
+  })
+    : assert(displayName.length >= 3, 'Users.displayName must be at least 3 characters long')
+    , assert(displayName.length <= 50, 'Users.displayName must be at most 50 characters long')
+    , assert(RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$').hasMatch(email), 'Users.email must match pattern: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    , assert(age == null || age >= 0, 'Users.age must be >= 0')
+    , assert(age == null || age <= 130, 'Users.age must be <= 130'); // End of constructor
 
   /// Creates a UsersData instance from a Map.
   factory UsersData.fromJson(Map<String, dynamic> data) {

@@ -36,23 +36,61 @@ import type { AddressesData } from './addresses.types.js';
  * Description: Stores user profile information.
  */
 export interface UsersData {
-  /** User's public display name (string, required) */
+
+  /**
+   * User's public display name (string, required)
+
+   */
   displayName: string;
-  /** email (string, required) */
+
+  /**
+   * email (string, required)
+
+   */
   email: string;
-  /** Timestamp when the user was created (timestamp) */
+
+  /**
+   * Timestamp when the user was created (timestamp)
+
+   */
   createdAt?: Timestamp;
-  /** lastLogin (timestamp) */
+
+  /**
+   * lastLogin (timestamp)
+
+   */
   lastLogin?: Timestamp;
-  /** age (number) */
+
+  /**
+   * age (number)
+
+   * @minimum 0
+   * @maximum 130
+   */
   age?: number;
-  /** isActive (boolean) */
+
+  /**
+   * isActive (boolean)
+
+   */
   isActive?: boolean;
-  /** settings (map) */
+
+  /**
+   * settings (map)
+
+   */
   settings?: { theme?: string; notificationsEnabled?: boolean };
-  /** tags (array) */
+
+  /**
+   * tags (array)
+
+   */
   tags?: string[];
-  /** primaryAddressRef (reference) */
+
+  /**
+   * primaryAddressRef (reference)
+
+   */
   primaryAddressRef?: DocumentReference<AddressesData>;
 }
 

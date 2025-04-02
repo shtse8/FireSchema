@@ -112,5 +112,11 @@ function transformField(fieldName: string, rawField: any): ParsedFieldDefinition
     referenceTo: rawField.referenceTo,
     items: items,
     properties: properties,
+    // Add validation properties
+    minLength: rawField.minLength,
+    maxLength: rawField.maxLength,
+    pattern: rawField.pattern,
+    minimum: rawField.minimum,
+    maximum: rawField.maximum,
   };
 }
