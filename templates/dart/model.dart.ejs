@@ -176,11 +176,11 @@ class ${className}${isNested ? '' : 'Data'} ${isNested ? 'implements ToJsonSeria
   // --- Add Assertions ---
   let assertionStrings = [];
   Object.values(fields).forEach(field => {
-    if (field.type === 'string') {
-      const isNullable = !field.required;
-      const nullCheck = isNullable ? `${field.fieldName} == null || ` : '';
-      let fieldAssertions = [];
+    const isNullable = !field.required;
+    const nullCheck = isNullable ? `${field.fieldName} == null || ` : '';
+    let fieldAssertions = [];
 
+    if (field.type === 'string') {
       if (field.minLength != null) {
         fieldAssertions.push(`assert(${nullCheck}${field.fieldName}.length >= ${field.minLength}, '${className}.${field.fieldName} must be at least ${field.minLength} characters long')`);
       }
@@ -191,11 +191,17 @@ class ${className}${isNested ? '' : 'Data'} ${isNested ? 'implements ToJsonSeria
         const dartPattern = field.pattern.replace(/\\/g, '\\\\');
         fieldAssertions.push(`assert(${nullCheck}RegExp(r'${dartPattern}').hasMatch(${field.fieldName}), '${className}.${field.fieldName} must match pattern: ${field.pattern}')`);
       }
-       // Join assertions for a single field with '&&' if multiple apply (though assert takes one condition)
-       // Instead, we'll add each as a separate assertion clause in the initializer list
-       assertionStrings = assertionStrings.concat(fieldAssertions);
+    } else if (field.type === 'number') {
+      if (field.minimum != null) {
+        fieldAssertions.push(`assert(${nullCheck}${field.fieldName} >= ${field.minimum}, '${className}.${field.fieldName} must be >= ${field.minimum}')`);
+      }
+      if (field.maximum != null) {
+        fieldAssertions.push(`assert(${nullCheck}${field.fieldName} <= ${field.maximum}, '${className}.${field.fieldName} must be <= ${field.maximum}')`);
+      }
+      // TODO: Add exclusiveMinimum, exclusiveMaximum if needed
     }
-    // TODO: Add assertions for number ranges (minimum, maximum) if needed
+    // Add collected assertions for the current field
+    assertionStrings = assertionStrings.concat(fieldAssertions);
   });
 
   // Format assertions for Dart constructor initializer list

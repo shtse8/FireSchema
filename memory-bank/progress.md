@@ -53,10 +53,10 @@
     (DONE)**
   - Improve `AddData`/`UpdateData` type generation (Dart defaults [AddData
     done], read-only [AddData done, UpdateBuilder done]).
-  - Support updating nested map fields via dot notation in TS `UpdateBuilder`.
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema (Dart: string
-    `minLength`, `maxLength`, `pattern` via `assert`).
+    `minLength`, `maxLength`, `pattern`; number `minimum`, `maximum` via
+    `assert`).
   - Improve error handling and reporting during generation (re-throw errors on
     file/package generation failures).
 - **Documentation & Publishing:**

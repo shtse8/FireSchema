@@ -27,7 +27,9 @@
           "required": false
         },
         "age": {
-          "type": "number"
+          "type": "number",
+          "minimum": 0,
+          "maximum": 130
         },
         "isActive": {
           "type": "boolean",

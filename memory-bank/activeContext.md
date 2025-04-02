@@ -191,6 +191,13 @@ generating all logic directly. **(Completed)**
   - Updated example schema (`examples/firestore.schema.json`) to include these
     properties for testing.
   - Verified generated code passes `dart analyze`.
+- **Dart Model Validation Assertions (Number Ranges):**
+  - Updated Dart model template (`templates/dart/model.dart.ejs`) to generate
+    constructor `assert` statements for number fields based on schema properties
+    (`minimum`, `maximum`).
+  - Updated example schema (`examples/firestore.schema.json`) to include these
+    properties for testing.
+  - Verified generated code passes `dart analyze`.
 - **Generator Error Handling:**
   - Updated `configLoader.ts` to throw an error if the resolved schema file path
     does not exist.
