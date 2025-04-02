@@ -49,7 +49,6 @@
 **What's Left (Next Steps):**
 
 - **Runtime Refinements:**
-  - Address TODOs within runtime base classes.
   - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
     (DONE)**
   - Improve `AddData`/`UpdateData` type generation (Dart defaults [AddData
