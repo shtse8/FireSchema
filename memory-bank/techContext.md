@@ -8,8 +8,8 @@
   - `commander`: CLI argument parsing and command structure.
   - `ajv`: JSON Schema validation for user-provided schema files.
   - `ejs`: Templating engine for code generation.
-- **Compilation:** TypeScript compiled to JavaScript (`dist/` directory) using
-  `tsc`.
+- **Compilation:** TypeScript compiled to JavaScript (`dist/` directory).
+  Development builds use `bun build` for speed.
 - **Monorepo Structure:** Uses npm workspaces to manage the core tool and
   runtime packages (`packages/*`).
 
@@ -84,7 +84,11 @@
 
 **Development Environment:**
 
-- Node.js / npm (with workspaces) for building and running the generator and
-  runtime packages.
+- **Primary Tooling:** Bun (`bun`) is used for development tasks (installing
+  dependencies, running scripts, building). This provides faster performance
+  during development.
+- **User Compatibility:** The published CLI tool (`fireschema`) and runtime
+  packages (`@fireschema/ts-runtime`) remain fully compatible with standard
+  Node.js environments (npm, yarn, pnpm). Users do not need Bun installed.
 - TypeScript for core tool and TS runtime development.
 - Dart SDK for Dart runtime development.

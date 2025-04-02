@@ -54,6 +54,9 @@ generating all logic directly.
     Dart runtime (`base_collection_ref.dart`).
   - Set up basic test infrastructure (Jest for TS runtime, `test` package for
     Dart runtime) with placeholder tests passing.
+  - **Tooling Update:** Switched development environment tooling (build scripts,
+    dependency management) from npm/tsc to Bun for improved performance. Ensured
+    published packages remain compatible with standard Node.js environments.
 
 **Next Steps / Considerations:**
 

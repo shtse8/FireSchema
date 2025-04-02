@@ -5,9 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "clean": "npx rimraf dist",
+    "build": "bun run clean && bun build ./src/index.ts --outdir ./dist",
     "test": "jest",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "bun run build"
   },
   "keywords": [
     "firestore",

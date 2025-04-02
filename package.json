@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rimraf dist && npm run build --workspaces --if-present && tsc",
+    "clean": "npx rimraf dist",
+    "build": "npm run clean && npm run build --workspace=@fireschema/ts-runtime && bun build ./src/cli.ts --outdir ./dist --format cjs",
     "prepublishOnly": "npm run build"
   },
   "keywords": [],
@@ -20,6 +21,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^22.13.16",
+    "bun": "^1.2.8",
     "firebase": "^11.6.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.8.2"

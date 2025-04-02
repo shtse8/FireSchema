@@ -40,6 +40,9 @@
   - Jest configured for `@fireschema/ts-runtime`.
   - Dart `test` package confirmed for `fireschema_dart_runtime`.
   - Placeholder tests pass in both packages.
+- **Development Tooling Updated:** Switched to Bun for development tasks
+  (builds, scripts, installs) for better performance, while maintaining Node.js
+  compatibility for published packages.
 
 **What's Left (High Level):**
 
