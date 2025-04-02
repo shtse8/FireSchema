@@ -18,7 +18,7 @@ import {
 import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
-import { AddressesData } from './addresses.types.js';
+import { ItemsData } from './items.types.js';
 
 
 
@@ -31,39 +31,51 @@ import { AddressesData } from './addresses.types.js';
 
 
 /**
- * A typed builder for creating update operations for 'addresses' documents, extending BaseUpdateBuilder.
+ * A typed builder for creating update operations for 'items' documents, extending BaseUpdateBuilder.
  */
-export class AddressesUpdateBuilder extends BaseUpdateBuilder<AddressesData> {
+export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
 
   // Constructor is inherited from BaseUpdateBuilder
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
-  /** Sets the value for the 'street' field. */
-  setStreet(value: string): this {
+  /** Sets the value for the 'name' field. */
+  setName(value: string): this {
     // Call the protected _set method from the base class
-    return this._set('street', value);
+    return this._set('name', value);
   }
 
 
-  /** Sets the value for the 'city' field. */
-  setCity(value: string): this {
+  /** Sets the value for the 'value' field. */
+  setValue(value: number): this {
     // Call the protected _set method from the base class
-    return this._set('city', value);
+    return this._set('value', value);
   }
 
-
-  /** Sets the value for the 'zip' field. */
-  setZip(value: string): this {
-    // Call the protected _set method from the base class
-    return this._set('zip', value);
+  /** Atomically increments the 'value' field. */
+  incrementValue(value: number): this {
+    // Call the protected _increment helper (or _set with increment(value))
+    return this._increment('value', value);
+    // Alternatively: return this._set('value', increment(value));
   }
-
-  /** Deletes the 'zip' field. */
-  deleteZip(): this {
+  /** Deletes the 'value' field. */
+  deleteValue(): this {
     // Call the protected _deleteField helper
-    return this._deleteField('zip');
-    // Alternatively: return this._set('zip', deleteField());
+    return this._deleteField('value');
+    // Alternatively: return this._set('value', deleteField());
+  }
+
+  /** Sets the value for the 'createdAt' field. */
+  setCreatedAt(value: Timestamp): this {
+    // Call the protected _set method from the base class
+    return this._set('createdAt', value);
+  }
+
+  /** Sets the 'createdAt' field to the server timestamp. */
+  setCreatedAtToServerTimestamp(): this {
+    // Call the protected _serverTimestamp helper
+    return this._serverTimestamp('createdAt');
+    // Alternatively: return this._set('createdAt', serverTimestamp());
   }
 
   // --- End Field Setters ---

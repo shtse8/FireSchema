@@ -18,26 +18,24 @@ import {
 import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Removed FirestoreFunctions import
 
 // Local Imports
-import { PostsData } from './posts.types.js';
-import { PostsQueryBuilder } from './posts.query.js';
-import { PostsUpdateBuilder } from './posts.update.js';
+import { TagsData } from './tags.types.js';
+import { TagsQueryBuilder } from './tags.query.js';
+import { TagsUpdateBuilder } from './tags.update.js';
 
 
 
 // Define types for data manipulation.
 // AddData: Makes fields optional if they have a default value or are not required.
 // NOTE: This might need refinement if base class handles defaults differently.
-type PostsAddData = {
-  title: PostsData['title'];
-  content?: PostsData['content'];
-  publishedAt?: PostsData['publishedAt'];
+type TagsAddData = {
+  label: TagsData['label'];
 };
 // UpdateData: Type used by UpdateBuilder, defined there or implicitly via Firestore types.
 
 /**
- * Typed reference to the 'posts' collection, extending BaseCollectionRef.
+ * Typed reference to the 'tags' collection, extending BaseCollectionRef.
  */
-export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> {
+export class TagsCollection extends BaseCollectionRef<TagsData, TagsAddData> {
 
   /**
    * @param firestore The Firestore instance.
@@ -54,17 +52,7 @@ export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> 
     // Process fields from the input schema to create a valid CollectionSchema for the runtime
     const processedFields: Record<string, FieldSchema> = {};
     
-      processedFields['title'] = {
-        
-        // Add other allowed FieldSchema properties here if needed
-      };
-    
-      processedFields['content'] = {
-        
-        // Add other allowed FieldSchema properties here if needed
-      };
-    
-      processedFields['publishedAt'] = {
+      processedFields['label'] = {
         
         // Add other allowed FieldSchema properties here if needed
       };
@@ -82,20 +70,20 @@ export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> 
   /**
    * Creates a new UpdateBuilder instance for the document with the given ID.
    * @param id The ID of the document to update.
-   * @returns A new PostsUpdateBuilder instance.
+   * @returns A new TagsUpdateBuilder instance.
    */
-  update(id: string): PostsUpdateBuilder {
+  update(id: string): TagsUpdateBuilder {
     // Returns the specific generated UpdateBuilder
-    return new PostsUpdateBuilder(this.doc(id));
+    return new TagsUpdateBuilder(this.doc(id));
   }
 
   /**
    * Creates a new QueryBuilder instance for this collection.
-   * @returns A new PostsQueryBuilder instance.
+   * @returns A new TagsQueryBuilder instance.
    */
-  query(): PostsQueryBuilder {
+  query(): TagsQueryBuilder {
     // Returns the specific generated QueryBuilder
-    return new PostsQueryBuilder(this.firestore, this.ref);
+    return new TagsQueryBuilder(this.firestore, this.ref);
   }
 
   // --- Subcollection Accessors ---

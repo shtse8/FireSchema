@@ -19,7 +19,7 @@ program
   .description('Generate ODM code based on the schema and configuration')
   .option('-c, --config <path>', 'Path to the configuration file', './firestore-odm.config.json')
   .action(async (options) => {
-    const configPath = path.resolve(process.cwd(), options.config);
+    const configPath = path.resolve(options.config); // Resolve path correctly
     console.log(`Starting generation process...`);
     console.log(`Using configuration file: ${configPath}`);
 

@@ -5,6 +5,7 @@ import {
   Firestore,
   CollectionReference,
   DocumentReference,
+  // Import the actual functions to get their types
   collection,
   doc,
   getDoc,
@@ -14,7 +15,6 @@ import {
   serverTimestamp, // Keep for potential default value handling
   DocumentData,
   SetOptions, // For set with merge option
-  // Query related imports might be needed if base query methods are added
 } from 'firebase/firestore';
 
 // Placeholder for a type definition for schema fields, needed for default handling
@@ -28,6 +28,8 @@ export interface CollectionSchema {
   fields: Record<string, FieldSchema>;
   // Potentially add subcollection info if needed for base helpers
 }
+
+// Removed FirestoreFunctions interface
 
 /**
  * Abstract base class for FireSchema-generated collection references.
@@ -46,6 +48,7 @@ export abstract class BaseCollectionRef<
   protected firestore: Firestore;
   protected collectionId: string;
   protected schema?: CollectionSchema; // Optional schema for advanced features like defaults
+  // Removed firestoreFunctions property
 
   /**
    * Creates a BaseCollectionRef instance.
@@ -55,7 +58,7 @@ export abstract class BaseCollectionRef<
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
   constructor(
-    firestore: Firestore,
+    firestore: Firestore, // Keep Firestore instance for context, subcollections etc.
     collectionId: string,
     schema?: CollectionSchema,
     parentRef?: DocumentReference<DocumentData>
@@ -63,16 +66,23 @@ export abstract class BaseCollectionRef<
     this.firestore = firestore;
     this.collectionId = collectionId;
     this.schema = schema;
+    // Removed storing injected functions
+
+    // --- Debugging ---
+    // Removed debug log
+    // --- End Debugging ---
+
+    // Use injected collection function
     if (parentRef) {
-      this.ref = collection(parentRef, collectionId) as CollectionReference<TData>;
+      this.ref = collection(parentRef, collectionId) as CollectionReference<TData>; // Use imported collection
     } else {
-      this.ref = collection(firestore, collectionId) as CollectionReference<TData>;
+      this.ref = collection(firestore, collectionId) as CollectionReference<TData>; // Use imported collection
     }
   }
 
   /** Returns the DocumentReference for a given ID. */
   doc(id: string): DocumentReference<TData> {
-    return doc(this.ref, id);
+    return doc(this.ref, id); // Use imported doc
   }
 
   /**
@@ -104,7 +114,7 @@ export abstract class BaseCollectionRef<
   async add(data: TAddData): Promise<DocumentReference<TData>> {
     const dataToWrite = this.applyDefaults(data);
     // Firestore's addDoc expects the final data type (TData after defaults)
-    return addDoc(this.ref, dataToWrite);
+    return addDoc(this.ref, dataToWrite); // Use imported addDoc
   }
 
   /**
@@ -120,17 +130,17 @@ export abstract class BaseCollectionRef<
     // We cast TAddData to TData assuming compatibility for the set operation.
     // If TAddData has optional fields that TData requires, this could be an issue,
     // requiring a different type or more complex handling.
-    await setDoc(this.doc(id), data as unknown as TData, options || {});
+    await setDoc(this.doc(id), data as unknown as TData, options || {}); // Use imported setDoc
   }
 
   /** Deletes a document. */
   async delete(id: string): Promise<void> {
-    await deleteDoc(this.doc(id));
+    await deleteDoc(this.doc(id)); // Use imported deleteDoc
   }
 
   /** Reads a single document. */
   async get(id: string): Promise<TData | undefined> {
-    const snapshot = await getDoc(this.doc(id));
+    const snapshot = await getDoc(this.doc(id)); // Use imported getDoc
     return snapshot.exists() ? snapshot.data() : undefined;
   }
 
@@ -166,13 +176,16 @@ export abstract class BaseCollectionRef<
     SubCollectionClass: new (
       firestore: Firestore,
       collectionId: string,
-      schema?: CollectionSchema, // Pass schema if needed by subcollection
+      // firestoreFunctions removed from signature
+      schema?: CollectionSchema,
       parentRef?: DocumentReference<DocumentData>
     ) => SubCollectionType,
     subSchema?: CollectionSchema // Optional schema for the subcollection
   ): SubCollectionType {
     const parentDocRef = this.doc(parentId);
     // We pass the specific subCollectionId and potentially its schema
+    // Pass the same injected functions down to the subcollection constructor
+    // Removed firestoreFunctions from constructor call
     return new SubCollectionClass(this.firestore, subCollectionId, subSchema, parentDocRef);
   }
 }

@@ -7,8 +7,7 @@ import 'package:test/test.dart';
 class TestData {
   final String? id;
   final String? name;
-  final int?
-      value; // Changed back to int? as increment result type was the issue
+  final int? value; // Keep as int? for model clarity
   final bool? active;
   final List<String>? tags;
   final Timestamp? updatedAt; // For serverTimestamp testing
@@ -24,7 +23,7 @@ class TestData {
           runtimeType == other.runtimeType &&
           id == other.id &&
           name == other.name &&
-          value == other.value && // Compare int? directly
+          value == other.value &&
           active == other.active &&
           // Basic list equality check for simplicity in tests
           (tags == other.tags ||

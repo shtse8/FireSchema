@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext", // Keep NodeNext for ESM
+    "moduleResolution": "NodeNext", // Must be NodeNext when module is NodeNext
+    "rootDir": ".",
+    "outDir": "./dist",      // Output directory for compiled JS
+    "declaration": true,     // Generate .d.ts files
+    "declarationMap": true,  // Generate source maps for .d.ts files
+    "composite": true,       // Enable project references
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    // "allowJs": true, // Probably not needed anymore
+    "isolatedModules": true // Keep this
+    // Remove "types" array to let Bun inject "bun-types" automatically
+  },
+  "include": [
+    "**/*.ts" // Only include TS files
+  ],
+  "exclude": [
+    "node_modules",
+    "dist_test", // Keep excluding old test output dir if needed
+    "dist",      // Exclude the new build output directory
+    "__tests__"  // Exclude the old test directory
+  ]
+}

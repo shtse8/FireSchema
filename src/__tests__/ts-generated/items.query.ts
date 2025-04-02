@@ -27,7 +27,7 @@ import {
 import { BaseQueryBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
-import { AddressesData } from './addresses.types.js';
+import { ItemsData } from './items.types.js';
 
 
 
@@ -40,63 +40,63 @@ import { AddressesData } from './addresses.types.js';
 
 
 /**
- * A typed query builder for the 'addresses' collection, extending BaseQueryBuilder.
+ * A typed query builder for the 'items' collection, extending BaseQueryBuilder.
  */
-export class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
+export class ItemsQueryBuilder extends BaseQueryBuilder<ItemsData> {
 
   // Constructor is inherited from BaseQueryBuilder
 
   // --- Field-specific Where Methods ---
-  // Overloads for 'street' field type safety based on operator
-  whereStreet(op: '==', value: string): this;
-  whereStreet(op: '!=', value: string): this;
-  whereStreet(op: '<', value: string): this;
-  whereStreet(op: '<=', value: string): this;
-  whereStreet(op: '>', value: string): this;
-  whereStreet(op: '>=', value: string): this;
-  whereStreet(op: 'in', value: string[]): this;
-  whereStreet(op: 'not-in', value: string[]): this;
-  // Implementation signature for 'street'
-  whereStreet(
+  // Overloads for 'name' field type safety based on operator
+  whereName(op: '==', value: string): this;
+  whereName(op: '!=', value: string): this;
+  whereName(op: '<', value: string): this;
+  whereName(op: '<=', value: string): this;
+  whereName(op: '>', value: string): this;
+  whereName(op: '>=', value: string): this;
+  whereName(op: 'in', value: string[]): this;
+  whereName(op: 'not-in', value: string[]): this;
+  // Implementation signature for 'name'
+  whereName(
     op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
     // Call the protected _where method from the base class
-    return this._where('street', op, value);
+    return this._where('name', op, value);
   }
-  // Overloads for 'city' field type safety based on operator
-  whereCity(op: '==', value: string): this;
-  whereCity(op: '!=', value: string): this;
-  whereCity(op: '<', value: string): this;
-  whereCity(op: '<=', value: string): this;
-  whereCity(op: '>', value: string): this;
-  whereCity(op: '>=', value: string): this;
-  whereCity(op: 'in', value: string[]): this;
-  whereCity(op: 'not-in', value: string[]): this;
-  // Implementation signature for 'city'
-  whereCity(
+  // Overloads for 'value' field type safety based on operator
+  whereValue(op: '==', value: number): this;
+  whereValue(op: '!=', value: number): this;
+  whereValue(op: '<', value: number): this;
+  whereValue(op: '<=', value: number): this;
+  whereValue(op: '>', value: number): this;
+  whereValue(op: '>=', value: number): this;
+  whereValue(op: 'in', value: number[]): this;
+  whereValue(op: 'not-in', value: number[]): this;
+  // Implementation signature for 'value'
+  whereValue(
     op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
     // Call the protected _where method from the base class
-    return this._where('city', op, value);
+    return this._where('value', op, value);
   }
-  // Overloads for 'zip' field type safety based on operator
-  whereZip(op: '==', value: string): this;
-  whereZip(op: '!=', value: string): this;
-  whereZip(op: '<', value: string): this;
-  whereZip(op: '<=', value: string): this;
-  whereZip(op: '>', value: string): this;
-  whereZip(op: '>=', value: string): this;
-  whereZip(op: 'in', value: string[]): this;
-  whereZip(op: 'not-in', value: string[]): this;
-  // Implementation signature for 'zip'
-  whereZip(
+  // Overloads for 'createdAt' field type safety based on operator
+  whereCreatedAt(op: '==', value: Timestamp): this;
+  whereCreatedAt(op: '!=', value: Timestamp): this;
+  whereCreatedAt(op: '<', value: Timestamp): this;
+  whereCreatedAt(op: '<=', value: Timestamp): this;
+  whereCreatedAt(op: '>', value: Timestamp): this;
+  whereCreatedAt(op: '>=', value: Timestamp): this;
+  whereCreatedAt(op: 'in', value: Timestamp[]): this;
+  whereCreatedAt(op: 'not-in', value: Timestamp[]): this;
+  // Implementation signature for 'createdAt'
+  whereCreatedAt(
     op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
     // Call the protected _where method from the base class
-    return this._where('zip', op, value);
+    return this._where('createdAt', op, value);
   }
   // --- End Field-specific Where Methods ---
 

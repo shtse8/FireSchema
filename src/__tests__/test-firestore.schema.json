@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "schemaVersion": "1.0.0",
+  "title": "Test Firestore Schema",
+  "description": "A simple schema for testing the generator.",
+  "collections": {
+    "items": {
+      "description": "A collection of test items.",
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true
+        },
+        "value": {
+          "type": "number",
+          "required": false
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "required": true,
+          "defaultValue": "serverTimestamp"
+        }
+      },
+      "subcollections": {
+        "tags": {
+          "description": "Tags for an item.",
+          "fields": {
+            "label": {
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      }
+    }
+  }
+}

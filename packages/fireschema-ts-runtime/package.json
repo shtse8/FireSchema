@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "npx rimraf dist",
-    "build": "bun run clean && bun build ./src/index.ts --outdir ./dist",
+    "build": "bun run clean && bun run build.ts",
     "test": "jest",
     "prepublishOnly": "bun run build"
   },
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
+    "bun-plugin-dts": "^0.3.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.3.1",
     "typescript": "^5.0.0"

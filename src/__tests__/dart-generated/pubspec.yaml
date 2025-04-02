@@ -1,0 +1,23 @@
+name: test_generated_dart
+description: Test Dart generated code
+version: 1.0.0
+# repository: # Optional: Add repository URL if available
+
+environment:
+  sdk: '>=2.17.0 <4.0.0' # Example SDK constraint, adjust as needed
+  flutter: '>=1.17.0' # Optional: if primarily for Flutter
+
+dependencies:
+  flutter: # Optional: if primarily for Flutter
+    sdk: flutter
+  cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
+  fireschema_dart_runtime: ^0.1.0 # Add the runtime dependency
+  # Add other necessary dependencies if the generated code requires them
+
+dev_dependencies:
+  flutter_test: # Optional: if primarily for Flutter
+    sdk: flutter
+  flutter_lints: ^2.0.0 # Example linter
+
+# For information on the generic Dart part of this file, see
+# https://dart.dev/tools/pub/pubspec

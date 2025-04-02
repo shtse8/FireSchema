@@ -6,6 +6,8 @@ import {
   DocumentReference,
   // updateDoc, // Handled by base class commit()
   FieldValue, // Keep for potential direct use if needed, though base provides helpers
+  Timestamp,  // Needed for timestamp field setters
+  // DocumentReference, // Needed for reference field setters (Already imported above)
   // serverTimestamp, // Handled by base class helper _serverTimestamp()
   // increment, // Handled by base class helper _increment()
   // arrayUnion, // Handled by base class helper _arrayUnion()
@@ -16,7 +18,34 @@ import {
 import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
-import { UsersData } from './users.types';
+import { UsersData } from './users.types.js';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import type { AddressesData } from './addresses.types.js';
+
 
 /**
  * A typed builder for creating update operations for 'users' documents, extending BaseUpdateBuilder.

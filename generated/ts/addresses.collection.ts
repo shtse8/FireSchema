@@ -15,12 +15,12 @@ import {
   // Basic CRUD functions (collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc) are handled by base
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Removed FirestoreFunctions import
 
 // Local Imports
-import { AddressesData } from './addresses.types';
-import { AddressesQueryBuilder } from './addresses.query';
-import { AddressesUpdateBuilder } from './addresses.update';
+import { AddressesData } from './addresses.types.js';
+import { AddressesQueryBuilder } from './addresses.query.js';
+import { AddressesUpdateBuilder } from './addresses.update.js';
 
 
 
@@ -43,29 +43,38 @@ export class AddressesCollection extends BaseCollectionRef<AddressesData, Addres
    * @param firestore The Firestore instance.
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
-  constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
-    // Pass schema details (collection object) to the base class for features like default handling
-    const schema: CollectionSchema = {
-        fields: {
-  "street": {
-    "fieldName": "street",
-    "type": "string",
-    "required": true
-  },
-  "city": {
-    "fieldName": "city",
-    "type": "string",
-    "required": true
-  },
-  "zip": {
-    "fieldName": "zip",
-    "type": "string",
-    "required": false
-  }
-} // Pass field definitions
-        // Add subcollection info if BaseCollectionRef needs it
-    };
-    super(firestore, 'addresses', schema, parentRef);
+  // Constructor needs to accept all potential args for both root and subcollection instantiation
+  constructor(
+    firestore: Firestore,
+    collectionId: string,
+    // firestoreFunctions removed
+    schema?: CollectionSchema,
+    parentRef?: DocumentReference<DocumentData>
+  ) {
+    // Process fields from the input schema to create a valid CollectionSchema for the runtime
+    const processedFields: Record<string, FieldSchema> = {};
+    
+      processedFields['street'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['city'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['zip'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    // Call the base class constructor, passing the resolved collectionId and schema
+    // Pass firestoreFunctions to the base class constructor
+    // Removed firestoreFunctions from super() call
+    super(firestore, collectionId, schema ?? schemaForRuntime, parentRef);
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef

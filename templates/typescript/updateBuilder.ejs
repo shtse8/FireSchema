@@ -6,6 +6,8 @@ import {
   DocumentReference,
   // updateDoc, // Handled by base class commit()
   FieldValue, // Keep for potential direct use if needed, though base provides helpers
+  Timestamp,  // Needed for timestamp field setters
+  // DocumentReference, // Needed for reference field setters (Already imported above)
   // serverTimestamp, // Handled by base class helper _serverTimestamp()
   // increment, // Handled by base class helper _increment()
   // arrayUnion, // Handled by base class helper _arrayUnion()
@@ -16,7 +18,18 @@ import {
 import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
-import { <%- modelName %>Data } from './<%- collection.collectionId %>.types';
+import { <%- modelName %>Data } from './<%- collection.collectionId %>.types.js';
+<%# Dynamically import other Data types needed for reference fields %>
+<% const referencedTypes = new Set(); %>
+<% Object.values(collection.fields).forEach(field => { %>
+<%   if (field.type === 'reference' && field.referenceTo) { %>
+<%     referencedTypes.add(field.referenceTo); %>
+<%   } %>
+<% }); %>
+<% referencedTypes.forEach(refType => { %>
+<%   const refModelName = camelToPascalCase(refType); %>
+import type { <%- refModelName %>Data } from './<%- refType %>.types.js';
+<% }); %>
 
 /**
  * A typed builder for creating update operations for '<%- collection.collectionId %>' documents, extending BaseUpdateBuilder.

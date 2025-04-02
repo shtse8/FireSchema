@@ -18,11 +18,7 @@ import {
 import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
-import { AddressesData } from './addresses.types.js';
-
-
-
-
+import { TagsData } from './tags.types.js';
 
 
 
@@ -31,40 +27,20 @@ import { AddressesData } from './addresses.types.js';
 
 
 /**
- * A typed builder for creating update operations for 'addresses' documents, extending BaseUpdateBuilder.
+ * A typed builder for creating update operations for 'tags' documents, extending BaseUpdateBuilder.
  */
-export class AddressesUpdateBuilder extends BaseUpdateBuilder<AddressesData> {
+export class TagsUpdateBuilder extends BaseUpdateBuilder<TagsData> {
 
   // Constructor is inherited from BaseUpdateBuilder
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
-  /** Sets the value for the 'street' field. */
-  setStreet(value: string): this {
+  /** Sets the value for the 'label' field. */
+  setLabel(value: string): this {
     // Call the protected _set method from the base class
-    return this._set('street', value);
+    return this._set('label', value);
   }
 
-
-  /** Sets the value for the 'city' field. */
-  setCity(value: string): this {
-    // Call the protected _set method from the base class
-    return this._set('city', value);
-  }
-
-
-  /** Sets the value for the 'zip' field. */
-  setZip(value: string): this {
-    // Call the protected _set method from the base class
-    return this._set('zip', value);
-  }
-
-  /** Deletes the 'zip' field. */
-  deleteZip(): this {
-    // Call the protected _deleteField helper
-    return this._deleteField('zip');
-    // Alternatively: return this._set('zip', deleteField());
-  }
 
   // --- End Field Setters ---
 

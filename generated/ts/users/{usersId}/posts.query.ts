@@ -20,12 +20,24 @@ import {
   DocumentSnapshot, // Needed for cursor method signatures in base class
   WhereFilterOp, // Needed for where method signatures
   OrderByDirection, // Needed for orderBy signature in base class
+  Timestamp,        // Needed for timestamp field queries
+  DocumentReference // Needed for reference field queries
 } from 'firebase/firestore';
 // Runtime Imports
 import { BaseQueryBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
-import { PostsData } from './posts.types';
+import { PostsData } from './posts.types.js';
+
+
+
+
+
+
+
+
+
+
 
 /**
  * A typed query builder for the 'posts' collection, extending BaseQueryBuilder.

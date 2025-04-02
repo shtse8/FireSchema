@@ -122,3 +122,7 @@ build/
 *.iml
 *.ipr
 *.iws
+
+
+# Test Output
+src/__tests__/test-output/

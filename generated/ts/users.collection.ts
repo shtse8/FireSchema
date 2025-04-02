@@ -15,17 +15,17 @@ import {
   // Basic CRUD functions (collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc) are handled by base
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Removed FirestoreFunctions import
 
 // Local Imports
-import { UsersData } from './users.types';
-import { UsersQueryBuilder } from './users.query';
-import { UsersUpdateBuilder } from './users.update';
+import { UsersData } from './users.types.js';
+import { UsersQueryBuilder } from './users.query.js';
+import { UsersUpdateBuilder } from './users.update.js';
 
 
 
 
-import { PostsCollection } from './users/{usersId}/posts.collection';
+import { PostsCollection } from './users/{usersId}/posts.collection.js';
 
 
 
@@ -54,83 +54,72 @@ export class UsersCollection extends BaseCollectionRef<UsersData, UsersAddData> 
    * @param firestore The Firestore instance.
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
-  constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
-    // Pass schema details (collection object) to the base class for features like default handling
-    const schema: CollectionSchema = {
-        fields: {
-  "displayName": {
-    "fieldName": "displayName",
-    "description": "User's public display name",
-    "type": "string",
-    "required": true
-  },
-  "email": {
-    "fieldName": "email",
-    "type": "string",
-    "required": true
-  },
-  "createdAt": {
-    "fieldName": "createdAt",
-    "description": "Timestamp when the user was created",
-    "type": "timestamp",
-    "required": false,
-    "defaultValue": "serverTimestamp"
-  },
-  "lastLogin": {
-    "fieldName": "lastLogin",
-    "type": "timestamp",
-    "required": false
-  },
-  "age": {
-    "fieldName": "age",
-    "type": "number",
-    "required": false
-  },
-  "isActive": {
-    "fieldName": "isActive",
-    "type": "boolean",
-    "required": false,
-    "defaultValue": true
-  },
-  "settings": {
-    "fieldName": "settings",
-    "type": "map",
-    "required": false,
-    "properties": {
-      "theme": {
-        "fieldName": "theme",
-        "type": "string",
-        "required": false,
-        "defaultValue": "light"
-      },
-      "notificationsEnabled": {
-        "fieldName": "notificationsEnabled",
-        "type": "boolean",
-        "required": false,
-        "defaultValue": true
-      }
-    }
-  },
-  "tags": {
-    "fieldName": "tags",
-    "type": "array",
-    "required": false,
-    "items": {
-      "fieldName": "item",
-      "type": "string",
-      "required": false
-    }
-  },
-  "primaryAddressRef": {
-    "fieldName": "primaryAddressRef",
-    "type": "reference",
-    "required": false,
-    "referenceTo": "addresses"
-  }
-} // Pass field definitions
-        // Add subcollection info if BaseCollectionRef needs it
-    };
-    super(firestore, 'users', schema, parentRef);
+  // Constructor needs to accept all potential args for both root and subcollection instantiation
+  constructor(
+    firestore: Firestore,
+    collectionId: string,
+    // firestoreFunctions removed
+    schema?: CollectionSchema,
+    parentRef?: DocumentReference<DocumentData>
+  ) {
+    // Process fields from the input schema to create a valid CollectionSchema for the runtime
+    const processedFields: Record<string, FieldSchema> = {};
+    
+      processedFields['displayName'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['email'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['createdAt'] = {
+        
+        defaultValue: "serverTimestamp",
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['lastLogin'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['age'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['isActive'] = {
+        
+        defaultValue: true,
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['settings'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['tags'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['primaryAddressRef'] = {
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    // Call the base class constructor, passing the resolved collectionId and schema
+    // Pass firestoreFunctions to the base class constructor
+    // Removed firestoreFunctions from super() call
+    super(firestore, collectionId, schema ?? schemaForRuntime, parentRef);
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -166,23 +155,25 @@ export class UsersCollection extends BaseCollectionRef<UsersData, UsersAddData> 
    */
   posts(documentId: string): PostsCollection {
     // Use the helper method from BaseCollectionRef
-    const subSchema: CollectionSchema = { fields: {
-  "title": {
-    "fieldName": "title",
-    "type": "string",
-    "required": true
-  },
-  "content": {
-    "fieldName": "content",
-    "type": "string",
-    "required": false
-  },
-  "publishedAt": {
-    "fieldName": "publishedAt",
-    "type": "timestamp",
-    "required": false
-  }
-} };
+    // Process subcollection fields similarly to the main constructor
+    const processedSubFields: Record<string, FieldSchema> = {};
+    
+      processedSubFields['title'] = {
+        
+      };
+    
+      processedSubFields['content'] = {
+        
+      };
+    
+      processedSubFields['publishedAt'] = {
+        
+      };
+    
+    const subSchema: CollectionSchema = { fields: processedSubFields };
+    // Pass the instance's firestoreFunctions down to the subcollection helper
+    // Pass only the required arguments to the subCollection helper
+    // Removed firestoreFunctions from subCollection call
     return this.subCollection(documentId, 'posts', PostsCollection, subSchema);
   }
 

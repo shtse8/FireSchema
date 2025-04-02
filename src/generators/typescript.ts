@@ -6,7 +6,7 @@ import { FirestoreODMConfig, OutputTarget, TypeScriptOptions } from '../types/co
 import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition, FieldType } from '../types/schema';
 import { capitalizeFirstLetter, camelToPascalCase } from '../utils/naming';
 // Runtime Imports (adjust path as needed for monorepo structure)
-import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Assuming runtime is linked/built
+import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Assuming runtime is linked/built
 import { BaseQueryBuilder } from '@fireschema/ts-runtime';
 import { BaseUpdateBuilder } from '@fireschema/ts-runtime';
 
@@ -85,22 +85,35 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
   // --- Generate package.json (Optional) ---
   if (target.package) {
     try {
+        // Define the full desired package.json structure, including test setup
         const packageJsonContent = {
             name: target.package.name,
             version: target.package.version || '0.1.0',
             description: target.package.description || `Generated Firestore ODM for ${target.package.name}`,
-            // Add main/types entry points? Maybe point to core.ts?
-            // main: './core.js', // Assuming core.ts is compiled
-            // types: './core.d.ts',
-            // Add peer dependencies
+            "type": "module", // Add type: module
+            "main": "./dist/index.js", // Add main entry point
+            "types": "./dist/index.d.ts", // Add types entry point
+            scripts: {
+              "clean": "npx rimraf dist", // Add clean script
+              "build": "bun run clean && tsc -b", // Add build script
+              "test": "jest" // Keep existing test script (or change to bun test if preferred)
+            },
             peerDependencies: {
-                "firebase": "^9.0.0 || ^10.0.0", // Match runtime's peer dep
-                "@fireschema/ts-runtime": "^0.1.0" // Add the runtime itself
+                "firebase": "^9.0.0 || ^10.0.0 || ^11.0.0", // Keep updated range
+                "@fireschema/ts-runtime": "^0.1.0"
+            },
+            devDependencies: { // Ensure devDependencies section exists
+              "@types/jest": "^29.5.14", // Use versions consistent with previous setup
+              "firebase": "^10.12.4",
+              "jest": "^29.7.0",
+              "ts-jest": "^29.3.1",
+              "typescript": "^5.0.0"
             }
         };
+        // Always overwrite with the full desired content, including test setup
         const packageJsonPath = path.join(target.outputDir, 'package.json');
         await fs.promises.writeFile(packageJsonPath, JSON.stringify(packageJsonContent, null, 2));
-        console.log(`  ✓ Generated package.json: ${packageJsonPath}`);
+        console.log(`  ✓ Generated/Updated package.json: ${packageJsonPath}`);
     } catch (error: any) {
         console.error(`  ✗ Error generating package.json: ${error.message}`);
     }
@@ -144,6 +157,7 @@ async function generateFilesForCollection(
         options: options,
         getTypeScriptType: getTypeScriptType,
         capitalizeFirstLetter: capitalizeFirstLetter,
+        camelToPascalCase: camelToPascalCase, // Pass helper to templates
         // Add parentPath or other context if needed by templates
         isSubcollection: !!parentPath,
     };

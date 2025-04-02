@@ -15,16 +15,16 @@ import { Timestamp, GeoPoint, DocumentReference, DocumentData } from 'firebase/f
 
 
 /**
- * Represents the structure of a 'Addresses' document.
- * Description: Stores user addresses
+ * Represents the structure of a 'Items' document.
+ * Description: A collection of test items.
  */
-export interface AddressesData {
-  /** street (string, required) */
-  street: string;
-  /** city (string, required) */
-  city: string;
-  /** zip (string) */
-  zip?: string;
+export interface ItemsData {
+  /** name (string, required) */
+  name: string;
+  /** value (number) */
+  value?: number;
+  /** createdAt (timestamp, required) */
+  createdAt: Timestamp;
 }
 
 // Potential future additions:

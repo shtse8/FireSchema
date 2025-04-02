@@ -27,44 +27,39 @@ import {
 import { BaseQueryBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
-import { <%- modelName %>Data } from './<%- collection.collectionId %>.types.js';
-<%# Dynamically import other Data types needed for reference fields %>
-<% const referencedTypes = new Set(); %>
-<% Object.values(collection.fields).forEach(field => { %>
-<%   if (field.type === 'reference' && field.referenceTo) { %>
-<%     referencedTypes.add(field.referenceTo); %>
-<%   } %>
-<% }); %>
-<% referencedTypes.forEach(refType => { %>
-<%   const refModelName = camelToPascalCase(refType); %>
-import type { <%- refModelName %>Data } from './<%- refType %>.types.js';
-<% }); %>
+import { TagsData } from './tags.types.js';
+
+
+
+
+
+
 
 /**
- * A typed query builder for the '<%- collection.collectionId %>' collection, extending BaseQueryBuilder.
+ * A typed query builder for the 'tags' collection, extending BaseQueryBuilder.
  */
-export class <%- modelName %>QueryBuilder extends BaseQueryBuilder<<%- modelName %>Data> {
+export class TagsQueryBuilder extends BaseQueryBuilder<TagsData> {
 
   // Constructor is inherited from BaseQueryBuilder
 
   // --- Field-specific Where Methods ---
-<% Object.values(collection.fields).forEach(field => { -%>
-<%   const queryInfos = getQueryInfoForField(field, options); -%>
-<%   if (queryInfos.length > 0) { -%>
-  // Overloads for '<%- field.fieldName %>' field type safety based on operator
-<%   queryInfos.forEach(info => { -%>
-  where<%- capitalizeFirstLetter(field.fieldName) %>(op: '<%- info.op %>', value: <%- info.valueType %>): this;
-<%   }); -%>
-  // Implementation signature for '<%- field.fieldName %>'
-  where<%- capitalizeFirstLetter(field.fieldName) %>(
+  // Overloads for 'label' field type safety based on operator
+  whereLabel(op: '==', value: string): this;
+  whereLabel(op: '!=', value: string): this;
+  whereLabel(op: '<', value: string): this;
+  whereLabel(op: '<=', value: string): this;
+  whereLabel(op: '>', value: string): this;
+  whereLabel(op: '>=', value: string): this;
+  whereLabel(op: 'in', value: string[]): this;
+  whereLabel(op: 'not-in', value: string[]): this;
+  // Implementation signature for 'label'
+  whereLabel(
     op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
     // Call the protected _where method from the base class
-    return this._where('<%- field.fieldName %>', op, value);
+    return this._where('label', op, value);
   }
-<%   } -%>
-<% }); -%>
   // --- End Field-specific Where Methods ---
 
   // Methods like orderBy(), limit(), limitToLast(), startAt(), startAfter(),

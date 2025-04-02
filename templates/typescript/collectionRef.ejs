@@ -15,17 +15,17 @@ import {
   // Basic CRUD functions (collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc) are handled by base
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Removed FirestoreFunctions import
 
 // Local Imports
-import { <%- modelName %>Data } from './<%= collection.collectionId %>.types';
-import { <%- modelName %>QueryBuilder } from './<%= collection.collectionId %>.query';
-import { <%- modelName %>UpdateBuilder } from './<%= collection.collectionId %>.update';
+import { <%- modelName %>Data } from './<%= collection.collectionId %>.types.js';
+import { <%- modelName %>QueryBuilder } from './<%= collection.collectionId %>.query.js';
+import { <%- modelName %>UpdateBuilder } from './<%= collection.collectionId %>.update.js';
 <%# Generate imports for subcollections %>
 <% if (collection.subcollections) { %>
 <%   Object.keys(collection.subcollections).forEach(subId => { %>
 <%     const subModelName = capitalizeFirstLetter(subId); %>
-import { <%- subModelName %>Collection } from './<%= collection.collectionId %>/{<%= collection.collectionId %>Id}/<%= subId %>.collection';
+import { <%- subModelName %>Collection } from './<%= collection.collectionId %>/{<%= collection.collectionId %>Id}/<%= subId %>.collection.js';
 <%   }); %>
 <% } %>
 
@@ -49,13 +49,30 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
    * @param firestore The Firestore instance.
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
-  constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
-    // Pass schema details (collection object) to the base class for features like default handling
-    const schema: CollectionSchema = {
-        fields: <%- JSON.stringify(collection.fields, null, 2) %> // Pass field definitions
-        // Add subcollection info if BaseCollectionRef needs it
-    };
-    super(firestore, '<%- collection.collectionId %>', schema, parentRef);
+  // Constructor needs to accept all potential args for both root and subcollection instantiation
+  constructor(
+    firestore: Firestore,
+    collectionId: string,
+    // firestoreFunctions removed
+    schema?: CollectionSchema,
+    parentRef?: DocumentReference<DocumentData>
+  ) {
+    // Process fields from the input schema to create a valid CollectionSchema for the runtime
+    const processedFields: Record<string, FieldSchema> = {};
+    <% Object.entries(collection.fields).forEach(([fieldName, fieldDef]) => { %>
+      processedFields['<%- fieldName %>'] = {
+        <% if (fieldDef.defaultValue !== undefined) { %>
+        defaultValue: <%- JSON.stringify(fieldDef.defaultValue) %>,
+        <% } %>
+        // Add other allowed FieldSchema properties here if needed
+      };
+    <% }); %>
+    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    // Call the base class constructor, passing the resolved collectionId and schema
+    // Pass firestoreFunctions to the base class constructor
+    // Removed firestoreFunctions from super() call
+    super(firestore, collectionId, schema ?? schemaForRuntime, parentRef);
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -91,7 +108,19 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
    */
   <%- subId %>(documentId: string): <%- subModelName %>Collection {
     // Use the helper method from BaseCollectionRef
-    const subSchema: CollectionSchema = { fields: <%- JSON.stringify(subCollectionDef.fields, null, 2) %> };
+    // Process subcollection fields similarly to the main constructor
+    const processedSubFields: Record<string, FieldSchema> = {};
+    <% Object.entries(subCollectionDef.fields).forEach(([fieldName, fieldDef]) => { %>
+      processedSubFields['<%- fieldName %>'] = {
+        <% if (fieldDef.defaultValue !== undefined) { %>
+        defaultValue: <%- JSON.stringify(fieldDef.defaultValue) %>,
+        <% } %>
+      };
+    <% }); %>
+    const subSchema: CollectionSchema = { fields: processedSubFields };
+    // Pass the instance's firestoreFunctions down to the subcollection helper
+    // Pass only the required arguments to the subCollection helper
+    // Removed firestoreFunctions from subCollection call
     return this.subCollection(documentId, '<%- subId %>', <%- subModelName %>Collection, subSchema);
   }
 <%   }); %>

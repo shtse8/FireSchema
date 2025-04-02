@@ -37,35 +37,73 @@ generating all logic directly.
   - Updated example config (`examples/firestore-odm.config.json`) to remove
     `generateCore`.
   - Refined root build script (`package.json`) using `rimraf` for reliability.
-- **Phase 4: Debugging & Refinement (Current)**
+- **Phase 4: Unit Testing & Build System Refinement**
   - Debugged and fixed Dart generator errors related to `fileNameBase` and EJS
     syntax in templates (`collectionRef.dart.ejs`).
-  - Debugged and fixed Dart analysis errors in generated code by:
-    - Adding `fromFirestore`/`toFirestore` to `model.dart.ejs`.
-    - Correcting null safety (`?`) for query parameters in
-      `queryBuilder.dart.ejs`.
-    - Correcting subcollection factory signature/call in
-      `collectionRef.dart.ejs` and `base_collection_ref.dart`.
-    - Updating `generated/dart/pubspec.yaml` to use local path dependency for
-      runtime.
+  - Debugged and fixed Dart analysis errors in generated code (null safety,
+    subcollection factory, model converters).
   - Successfully regenerated example code (`generated/`) without Dart analysis
-    errors (except minor warnings/TODOs).
+    errors.
   - Added basic default value handling (string, num, bool) to `applyDefaults` in
-    Dart runtime (`base_collection_ref.dart`).
-  - Set up basic test infrastructure (Jest for TS runtime, `test` package for
-    Dart runtime) with placeholder tests passing.
+    Dart runtime.
   - **Tooling Update:** Switched development environment tooling (build scripts,
-    dependency management) from npm/tsc to Bun for improved performance. Ensured
-    published packages remain compatible with standard Node.js environments.
+    dependency management) from npm/tsc to Bun.
+  - **TS Runtime Build:** Refined TS runtime build process. Initially switched
+    to `tsc` to ensure `.d.ts` generation, then switched back to `bun build`
+    using `bun-plugin-dts` to achieve both speed and type declaration
+    generation. Updated root build script to use `tsc` for CLI build due to `fs`
+    module issues with `bun build --format cjs`.
+  - **Unit Tests:**
+    - Implemented comprehensive unit tests for `@fireschema/ts-runtime` base
+      classes (`BaseCollectionRef`, `BaseQueryBuilder`, `BaseUpdateBuilder`)
+      using Jest, resolving various configuration issues related to module
+      resolution and transformation.
+    - Implemented comprehensive unit tests for `fireschema_dart_runtime` base
+      classes using `flutter test` and `fake_cloud_firestore`, resolving issues
+      related to Flutter dependencies (`dart:ui`) and type casting (`num?` vs
+      `int?` for increments).
+  - **`.gitignore`:** Updated root `.gitignore` to include Dart/Flutter
+    generated files (`.dart_tool/`, etc.) and removed previously tracked
+    `.dart_tool` folders from Git history.
+- **Phase 5: Integration Testing Investigation & Strategy Shift**
+  - Attempted to set up integration tests for generated TypeScript code in
+    `generated/ts` using `bun test`. Encountered persistent
+    `FirebaseError: Expected first argument to collection()...` errors, likely
+    due to `bun test` loading separate instances of the `firebase` module for
+    the test context and the linked `@fireschema/ts-runtime` workspace.
+    Dependency injection was attempted but did not resolve the underlying module
+    instance conflict.
+  - Attempted to set up integration tests using Jest (via `ts-jest` and Babel)
+    in a separate `integration-tests/ts` package. Encountered various
+    configuration issues related to ESM transformation and module/preset
+    resolution within the monorepo structure
+    (`SyntaxError: Cannot use import statement outside a module`,
+    `Cannot find module '@babel/preset-env'`).
+  - **Decision:** Shifted testing strategy away from runtime integration tests
+    due to persistent environment/tooling complexities. Focus is now on
+    **Generator Output Verification** using snapshot testing.
+- **Phase 6: Generator Snapshot Testing Setup**
+  - Set up Jest in the root project (`package.json`, `jest.config.cjs`).
+  - Created a snapshot test file (`src/__tests__/generator.test.ts`) that:
+    - Defines a sample schema and config.
+    - Runs the compiled generator CLI (`dist/cli.js`).
+    - Verifies the existence of expected output files.
+    - Compares generated file content against Jest snapshots.
+  - Debugged and fixed issues in the test setup (config paths, schema
+    validation) and generator templates (imports, helper functions).
+  - Successfully ran the snapshot test for TypeScript output, generating initial
+    snapshots.
+  - **Implemented and successfully ran snapshot tests for Dart output**,
+    generating initial snapshots. Fixed syntax error in test file.
 
 **Next Steps / Considerations:**
 
-- **Testing:**
-  - Write comprehensive unit tests for runtime library base classes
-    (`@fireschema/ts-runtime`, `fireschema_dart_runtime`).
-  - Add integration tests for the generated code (using the example project or a
-    dedicated test project) to verify interaction with runtime libraries and
-    Firestore (potentially using emulators or fakes).
+- **Testing Strategy:**
+  - Review generated TypeScript snapshots (`src/__tests__/__snapshots__/`).
+  - Review newly generated Dart snapshots (`src/__tests__/__snapshots__/`).
+  - Ensure adequate test coverage for edge cases in generator logic and options.
+- **Testing (General):**
+  - Maintain existing unit tests for runtime packages.
 - **Runtime Refinements:**
   - Address TODOs within runtime base classes (e.g., `add` method type handling,
     more default types).

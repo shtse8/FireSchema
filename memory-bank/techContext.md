@@ -92,3 +92,20 @@
   Node.js environments (npm, yarn, pnpm). Users do not need Bun installed.
 - TypeScript for core tool and TS runtime development.
 - Dart SDK for Dart runtime development.
+
+**Testing:**
+
+- **Runtime Unit Tests:**
+  - `@fireschema/ts-runtime`: Tested using Jest within its own package
+    (`packages/fireschema-ts-runtime`).
+  - `fireschema_dart_runtime`: Tested using `flutter test` and
+    `fake_cloud_firestore` within its own package
+    (`packages/fireschema_dart_runtime`).
+- **Generator Output Verification:**
+  - **Strategy:** Instead of runtime integration tests (which faced persistent
+    tooling issues), the generator's output is verified using snapshot testing.
+  - **Tooling:** Jest (`jest`, `ts-jest`) configured in the root project.
+  - **Process:** Tests located in `src/__tests__` execute the compiled generator
+    CLI with a sample schema/config and compare the generated file contents
+    against stored snapshots (`src/__tests__/__snapshots__/`).
+  - **Current:** Snapshot tests implemented for TypeScript output.

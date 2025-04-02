@@ -1,7 +1,7 @@
 {
-  "name": "@my-project/firestore-models-ts",
-  "version": "0.1.0",
-  "description": "Generated TS models for Firestore",
+  "name": "@test/generated-ts",
+  "version": "1.0.0",
+  "description": "Generated Firestore ODM for @test/generated-ts",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

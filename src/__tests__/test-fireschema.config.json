@@ -1,0 +1,29 @@
+{
+  "schema": "./test-firestore.schema.json",
+  "outputs": [
+    {
+      "language": "typescript",
+      "outputDir": "./ts-generated",
+      "package": {
+        "name": "@test/generated-ts",
+        "version": "1.0.0"
+      },
+      "options": {
+        "dateTimeType": "Timestamp"
+      }
+    },
+    {
+      "language": "dart",
+      "outputDir": "./dart-generated",
+      "package": {
+        "name": "test_generated_dart",
+        "version": "1.0.0",
+        "description": "Test Dart generated code",
+        "environment": {
+          "sdk": ">=3.0.0 <4.0.0"
+        }
+      },
+      "options": {}
+    }
+  ]
+}

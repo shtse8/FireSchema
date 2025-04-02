@@ -18,26 +18,31 @@ import {
 import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Removed FirestoreFunctions import
 
 // Local Imports
-import { PostsData } from './posts.types.js';
-import { PostsQueryBuilder } from './posts.query.js';
-import { PostsUpdateBuilder } from './posts.update.js';
+import { ItemsData } from './items.types.js';
+import { ItemsQueryBuilder } from './items.query.js';
+import { ItemsUpdateBuilder } from './items.update.js';
+
+
+
+
+import { TagsCollection } from './items/{itemsId}/tags.collection.js';
 
 
 
 // Define types for data manipulation.
 // AddData: Makes fields optional if they have a default value or are not required.
 // NOTE: This might need refinement if base class handles defaults differently.
-type PostsAddData = {
-  title: PostsData['title'];
-  content?: PostsData['content'];
-  publishedAt?: PostsData['publishedAt'];
+type ItemsAddData = {
+  name: ItemsData['name'];
+  value?: ItemsData['value'];
+  createdAt?: ItemsData['createdAt'];
 };
 // UpdateData: Type used by UpdateBuilder, defined there or implicitly via Firestore types.
 
 /**
- * Typed reference to the 'posts' collection, extending BaseCollectionRef.
+ * Typed reference to the 'items' collection, extending BaseCollectionRef.
  */
-export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> {
+export class ItemsCollection extends BaseCollectionRef<ItemsData, ItemsAddData> {
 
   /**
    * @param firestore The Firestore instance.
@@ -54,17 +59,19 @@ export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> 
     // Process fields from the input schema to create a valid CollectionSchema for the runtime
     const processedFields: Record<string, FieldSchema> = {};
     
-      processedFields['title'] = {
+      processedFields['name'] = {
         
         // Add other allowed FieldSchema properties here if needed
       };
     
-      processedFields['content'] = {
+      processedFields['value'] = {
         
         // Add other allowed FieldSchema properties here if needed
       };
     
-      processedFields['publishedAt'] = {
+      processedFields['createdAt'] = {
+        
+        defaultValue: "serverTimestamp",
         
         // Add other allowed FieldSchema properties here if needed
       };
@@ -82,23 +89,48 @@ export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> 
   /**
    * Creates a new UpdateBuilder instance for the document with the given ID.
    * @param id The ID of the document to update.
-   * @returns A new PostsUpdateBuilder instance.
+   * @returns A new ItemsUpdateBuilder instance.
    */
-  update(id: string): PostsUpdateBuilder {
+  update(id: string): ItemsUpdateBuilder {
     // Returns the specific generated UpdateBuilder
-    return new PostsUpdateBuilder(this.doc(id));
+    return new ItemsUpdateBuilder(this.doc(id));
   }
 
   /**
    * Creates a new QueryBuilder instance for this collection.
-   * @returns A new PostsQueryBuilder instance.
+   * @returns A new ItemsQueryBuilder instance.
    */
-  query(): PostsQueryBuilder {
+  query(): ItemsQueryBuilder {
     // Returns the specific generated QueryBuilder
-    return new PostsQueryBuilder(this.firestore, this.ref);
+    return new ItemsQueryBuilder(this.firestore, this.ref);
   }
 
   // --- Subcollection Accessors ---
+
+
+
+
+  /**
+   * Access the 'tags' subcollection for a specific document.
+   * @param documentId The ID of the parent 'items' document.
+   * @returns A typed reference to the 'tags' subcollection.
+   */
+  tags(documentId: string): TagsCollection {
+    // Use the helper method from BaseCollectionRef
+    // Process subcollection fields similarly to the main constructor
+    const processedSubFields: Record<string, FieldSchema> = {};
+    
+      processedSubFields['label'] = {
+        
+      };
+    
+    const subSchema: CollectionSchema = { fields: processedSubFields };
+    // Pass the instance's firestoreFunctions down to the subcollection helper
+    // Pass only the required arguments to the subCollection helper
+    // Removed firestoreFunctions from subCollection call
+    return this.subCollection(documentId, 'tags', TagsCollection, subSchema);
+  }
+
 
 
   // --- Custom Methods Placeholder ---
