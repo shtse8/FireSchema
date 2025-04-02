@@ -15,7 +15,7 @@ import {
   // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseUpdateBuilder } from '@shtse8/fireschema-runtime'; // Adjust path/package name as needed
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
 import { AddressesData } from './addresses.types.js';
@@ -46,26 +46,54 @@ export class AddressesUpdateBuilder extends BaseUpdateBuilder<AddressesData> {
 
 
   /** Sets the value for the 'street' field. */
-  setStreet(value: string): this {
+  setStreet(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('street', value);
   }
 
 
+
+
+
+
+
+
+
+
+
   /** Sets the value for the 'city' field. */
-  setCity(value: string): this {
+  setCity(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('city', value);
   }
 
 
+
+
+
+
+
+
+
+
+
   /** Sets the value for the 'zip' field. */
-  setZip(value: string): this {
+  setZip(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('zip', value);
   }
 
+
+
+
+
+
   /** Deletes the 'zip' field. */
-  deleteZip(): this {
+  deleteZip(): this { // Remove 'set' prefix
     return this._deleteField('zip');
   }
+
+
 
   // --- End Field Setters ---
 

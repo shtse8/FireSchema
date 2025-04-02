@@ -55,8 +55,9 @@ class TestQueryBuilder extends BaseQueryBuilder<TestData> {
           collectionRef: collectionRef,
         );
 
-  // Expose protected `where` method for testing using named args
+  // Expose protected where method for testing using named args
   TestQueryBuilder testWhere({
+    // Remove generic type parameter
     required String fieldPath,
     Object? isEqualTo,
     Object? isNotEqualTo,
@@ -65,13 +66,15 @@ class TestQueryBuilder extends BaseQueryBuilder<TestData> {
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
     Object? arrayContains,
-    List<Object?>? arrayContainsAny,
-    List<Object?>? whereIn,
-    List<Object?>? whereNotIn,
+    List<Object?>? arrayContainsAny, // Back to List<Object?>?
+    List<Object?>? whereIn, // Back to List<Object?>?
+    List<Object?>? whereNotIn, // Back to List<Object?>?
     bool? isNull,
   }) {
     // Call the actual protected method from the base class
     where(
+      // Call 'where' without generic type
+      // Call 'where' and pass generic type
       fieldPath,
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -158,7 +161,7 @@ void main() {
           firestore: fakeFirestore, collectionRef: itemsCollRef);
       // Use the test helper which calls the protected where
       final results = await builder
-          .testWhere(fieldPath: 'active', isEqualTo: true)
+          .testWhere(fieldPath: 'active', isEqualTo: true) // Remove type arg
           .getData();
       expect(results.length, 2);
       expect(results.any((d) => d.name == 'Apple' && d.value == 10), isTrue);
@@ -169,7 +172,7 @@ void main() {
       final builder = TestQueryBuilder(
           firestore: fakeFirestore, collectionRef: itemsCollRef);
       final results = await builder
-          .testWhere(fieldPath: 'value', isGreaterThan: 10)
+          .testWhere(fieldPath: 'value', isGreaterThan: 10) // Remove type arg
           .getData();
       expect(results.length, 2);
       expect(results.any((d) => d.name == 'Banana'), isTrue); // value: 20
@@ -181,7 +184,8 @@ void main() {
       final builder = TestQueryBuilder(
           firestore: fakeFirestore, collectionRef: itemsCollRef);
       final results = await builder
-          .testWhere(fieldPath: 'tags', arrayContains: 'fruit')
+          .testWhere(
+              fieldPath: 'tags', arrayContains: 'fruit') // Remove type arg
           .getData();
       expect(results.length, 3); // Apple(10), Banana(20), Apple(15)
       expect(results.any((d) => d.name == 'Carrot'), isFalse);
@@ -191,8 +195,9 @@ void main() {
       final builder = TestQueryBuilder(
           firestore: fakeFirestore, collectionRef: itemsCollRef);
       final results = await builder
-          .testWhere(fieldPath: 'tags', arrayContains: 'fruit')
-          .testWhere(fieldPath: 'active', isEqualTo: true)
+          .testWhere(
+              fieldPath: 'tags', arrayContains: 'fruit') // Remove type arg
+          .testWhere(fieldPath: 'active', isEqualTo: true) // Remove type arg
           .getData();
       expect(results.length, 2); // Apple(10), Banana(20)
       expect(results.any((d) => d.name == 'Apple' && d.value == 10), isTrue);
@@ -281,8 +286,9 @@ void main() {
     test('get() should return QuerySnapshot', () async {
       final builder = TestQueryBuilder(
           firestore: fakeFirestore, collectionRef: itemsCollRef);
-      final snapshot =
-          await builder.testWhere(fieldPath: 'active', isEqualTo: false).get();
+      final snapshot = await builder
+          .testWhere(fieldPath: 'active', isEqualTo: false) // Remove type arg
+          .get();
       expect(snapshot, isA<QuerySnapshot<TestData>>());
       expect(snapshot.docs.length, 2); // Carrot, Apple(15)
     });
@@ -291,7 +297,7 @@ void main() {
       final builder = TestQueryBuilder(
           firestore: fakeFirestore, collectionRef: itemsCollRef);
       final dataList = await builder
-          .testWhere(fieldPath: 'active', isEqualTo: false)
+          .testWhere(fieldPath: 'active', isEqualTo: false) // Remove type arg
           .getData();
       expect(dataList, isA<List<TestData>>());
       expect(dataList.length, 2);

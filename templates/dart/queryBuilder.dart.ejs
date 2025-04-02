@@ -30,9 +30,21 @@ class <%- modelName %>QueryBuilder extends BaseQueryBuilder<<%- modelName %>Data
 <%   queryInfos.forEach(info => { -%>
     <%- info.valueType.replace(/\?$/, '') %>? <%- info.paramName %>, // Ensure only one trailing '?' for nullable parameter
 <%   }); -%>
+<%
+  // Determine the base Dart type for the field
+  const baseFieldType = getDartType(field, options);
+  // Determine the element type for the generic argument <FieldType>
+  // Default to the base type, extract element type if it's a List
+  let fieldElementType = baseFieldType;
+  if (baseFieldType.startsWith('List<') && baseFieldType.endsWith('>')) {
+    fieldElementType = baseFieldType.substring(5, baseFieldType.length - 1);
+  }
+  // Remove potential nullability marker for the generic type argument
+  fieldElementType = fieldElementType.replace(/\?$/, '');
+%>
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       '<%- field.fieldName %>', // Pass the field path string
 <%   queryInfos.forEach(info => { -%>
       <%- info.paramName %>: <%- info.paramName %>,

@@ -82,8 +82,6 @@ are published to npm and pub.dev when a version tag (e.g., `v0.1.1`) is pushed.
 
 # (Removed - Verified 2025-04-02: Existing logic handles nested maps/objects and arrays of references correctly)
 
-- (Existing) Type safety for `whereIn`, `notIn`, `arrayContainsAny` value
-  parameters in Dart query builder could be improved.
 - **(Resolved 2025-04-02)** TypeScript `UpdateBuilder` now supports updating
   nested map fields via dot notation through generated methods (e.g.,
   `setAddressStreet`).

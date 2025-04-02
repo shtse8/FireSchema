@@ -14,8 +14,8 @@ abstract class BaseQueryBuilder<TData> {
   Query<TData> query; // Internal query state, starts with collectionRef
 
   BaseQueryBuilder({required this.firestore, required this.collectionRef})
-    : query =
-          collectionRef; // Initialize query with the base collection reference
+      : query =
+            collectionRef; // Initialize query with the base collection reference
 
   /// Internal helper to apply a new query state.
   @protected
@@ -28,6 +28,7 @@ abstract class BaseQueryBuilder<TData> {
   /// Generated classes should provide type-safe public methods that call this.
   @protected
   BaseQueryBuilder<TData> where(
+    // Back to original non-generic
     String fieldPath, {
     Object? isEqualTo,
     Object? isNotEqualTo,
@@ -36,9 +37,9 @@ abstract class BaseQueryBuilder<TData> {
     Object? isGreaterThan,
     Object? isGreaterThanOrEqualTo,
     Object? arrayContains,
-    List<Object?>? arrayContainsAny,
-    List<Object?>? whereIn,
-    List<Object?>? whereNotIn,
+    List<Object?>? arrayContainsAny, // Back to List<Object?>?
+    List<Object?>? whereIn, // Back to List<Object?>?
+    List<Object?>? whereNotIn, // Back to List<Object?>?
     bool? isNull,
   }) {
     // Apply the underlying query where method
@@ -66,10 +67,14 @@ abstract class BaseQueryBuilder<TData> {
     if (arrayContains != null)
       newQuery = newQuery.where(fieldPath, arrayContains: arrayContains);
     if (arrayContainsAny != null)
-      newQuery = newQuery.where(fieldPath, arrayContainsAny: arrayContainsAny);
-    if (whereIn != null) newQuery = newQuery.where(fieldPath, whereIn: whereIn);
+      newQuery = newQuery.where(fieldPath,
+          arrayContainsAny: arrayContainsAny); // No cast needed now
+    if (whereIn != null)
+      newQuery =
+          newQuery.where(fieldPath, whereIn: whereIn); // No cast needed now
     if (whereNotIn != null)
-      newQuery = newQuery.where(fieldPath, whereNotIn: whereNotIn);
+      newQuery = newQuery.where(fieldPath,
+          whereNotIn: whereNotIn); // No cast needed now
     if (isNull != null) newQuery = newQuery.where(fieldPath, isNull: isNull);
 
     return applyQuery(newQuery);

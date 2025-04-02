@@ -32,9 +32,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'displayName', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -57,9 +58,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'email', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -82,9 +84,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     Timestamp? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'createdAt', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -107,9 +110,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     Timestamp? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'lastLogin', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -132,9 +136,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     num? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'age', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -157,9 +162,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     bool? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'isActive', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -178,9 +184,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     Map<String, dynamic>? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'settings', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -195,9 +202,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     List<List<String>>? arrayContainsAny, // Ensure only one trailing '?' for nullable parameter
     List<List<String>>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<List<String>>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'tags', // Pass the field path string
       arrayContains: arrayContains,
       arrayContainsAny: arrayContainsAny,
@@ -216,9 +224,10 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
     DocumentReference<Map<String, dynamic>>? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'primaryAddressRef', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,

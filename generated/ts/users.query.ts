@@ -24,7 +24,7 @@ import {
   DocumentReference // Needed for reference field queries
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseQueryBuilder } from '@shtse8/fireschema-runtime'; // Adjust path/package name as needed
+import { BaseQueryBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
 import { UsersData } from './users.types.js';

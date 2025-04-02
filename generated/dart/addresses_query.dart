@@ -32,9 +32,10 @@ class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
     String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'street', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -57,9 +58,10 @@ class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
     String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'city', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -82,9 +84,10 @@ class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
     String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'zip', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,

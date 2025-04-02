@@ -149,7 +149,20 @@ generating all logic directly. **(Completed)**
     (`@shtse8/fireschema`, `@shtse8/fireschema-runtime`,
     `fireschema_dart_runtime`) via CI/CD by pushing tag `v0.1.3`.
 
-**Current Status & Next Steps:**
+- **Dart Query Builder Type Safety Investigation:**
+  - Attempted to improve type safety for list operations (`whereIn`, `notIn`,
+    `arrayContainsAny`) in `BaseQueryBuilder` using generics
+    (`where<FieldType>`).
+  - Encountered persistent Dart analyzer errors related to type compatibility
+    between the generic base method and the specific types passed from generated
+    subclasses, even with explicit casts.
+  - Reverted `BaseQueryBuilder.where` to its original non-generic signature
+    (accepting `List<Object?>?`).
+  - Confirmed that type safety is still maintained effectively through the
+    strongly-typed parameters in the generated subclass methods (e.g.,
+    `whereTags(whereIn: List<String>?)`).
+  - Verified generated code passes `dart analyze` and runtime unit tests pass.
+    **Current Status & Next Steps:**
 
 - **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
   debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`

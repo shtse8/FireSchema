@@ -15,7 +15,7 @@ import {
   // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseUpdateBuilder } from '@shtse8/fireschema-runtime'; // Adjust path/package name as needed
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
 import { UsersData } from './users.types.js';
@@ -63,62 +63,123 @@ export class UsersUpdateBuilder extends BaseUpdateBuilder<UsersData> {
 
 
   /** Sets the value for the 'displayName' field. */
-  setDisplayName(value: string): this {
+  setDisplayName(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('displayName', value);
   }
 
 
+
+
+
+
+
+
+
+
+
   /** Sets the value for the 'email' field. */
-  setEmail(value: string): this {
+  setEmail(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('email', value);
   }
 
 
+
+
+
+
+
+
+
+
+
   /** Sets the value for the 'createdAt' field. */
-  setCreatedAt(value: Timestamp): this {
+  setCreatedAt(value: Timestamp | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('createdAt', value);
   }
 
+
+
+
+
   /** Sets the 'createdAt' field to the server timestamp. */
-  setCreatedAtToServerTimestamp(): this {
+  setCreatedAtToServerTimestamp(): this { // Keep 'set' prefix for this specific operation
     return this._serverTimestamp('createdAt');
   }
+
+
   /** Deletes the 'createdAt' field. */
-  deleteCreatedAt(): this {
+  deleteCreatedAt(): this { // Remove 'set' prefix
     return this._deleteField('createdAt');
   }
 
+
+
+
+
+
   /** Sets the value for the 'lastLogin' field. */
-  setLastLogin(value: Timestamp): this {
+  setLastLogin(value: Timestamp | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('lastLogin', value);
   }
 
+
+
+
+
+
   /** Deletes the 'lastLogin' field. */
-  deleteLastLogin(): this {
+  deleteLastLogin(): this { // Remove 'set' prefix
     return this._deleteField('lastLogin');
   }
 
+
+
+
+
+
   /** Sets the value for the 'age' field. */
-  setAge(value: number): this {
+  setAge(value: number | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('age', value);
   }
 
+
+
   /** Atomically increments the 'age' field. */
-  incrementAge(value: number): this {
+  incrementAge(value: number): this { // Remove 'set' prefix for atomic ops
     return this._increment('age', value);
   }
+
+
+
+
   /** Deletes the 'age' field. */
-  deleteAge(): this {
+  deleteAge(): this { // Remove 'set' prefix
     return this._deleteField('age');
   }
 
+
+
+
+
+
   /** Sets the value for the 'isActive' field. */
-  setIsActive(value: boolean): this {
+  setIsActive(value: boolean | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('isActive', value);
   }
 
+
+
+
+
+
   /** Deletes the 'isActive' field. */
-  deleteIsActive(): this {
+  deleteIsActive(): this { // Remove 'set' prefix
     return this._deleteField('isActive');
   }
 
@@ -127,13 +188,40 @@ export class UsersUpdateBuilder extends BaseUpdateBuilder<UsersData> {
 
 
 
+  /** Sets the value for the 'settings' field. */
+  setSettings(value: { theme?: string; notificationsEnabled?: boolean } | FieldValue): this {
+    // Use the pre-calculated field path and method name
+    return this._set('settings', value);
+  }
+
+
+
+
+
+
+  /** Deletes the 'settings' field. */
+  deleteSettings(): this { // Remove 'set' prefix
+    return this._deleteField('settings');
+  }
+
+
+
+
+
+
   /** Sets the value for the 'settings.theme' field. */
-  setSettings_Theme(value: string): this {
+  setSettingsTheme(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('settings.theme', value);
   }
 
+
+
+
+
+
   /** Deletes the 'settings.theme' field. */
-  deleteSettings_Theme(): this {
+  deleteSettingsTheme(): this { // Remove 'set' prefix
     return this._deleteField('settings.theme');
   }
 
@@ -141,22 +229,37 @@ export class UsersUpdateBuilder extends BaseUpdateBuilder<UsersData> {
 
 
 
+
   /** Sets the value for the 'settings.notificationsEnabled' field. */
-  setSettings_NotificationsEnabled(value: boolean): this {
+  setSettingsNotificationsEnabled(value: boolean | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('settings.notificationsEnabled', value);
   }
 
+
+
+
+
+
   /** Deletes the 'settings.notificationsEnabled' field. */
-  deleteSettings_NotificationsEnabled(): this {
+  deleteSettingsNotificationsEnabled(): this { // Remove 'set' prefix
     return this._deleteField('settings.notificationsEnabled');
   }
 
 
 
+
+
+
   /** Sets the value for the 'tags' field. */
-  setTags(value: string[]): this {
+  setTags(value: string[] | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('tags', value);
   }
+
+
+
+
 
   /** Atomically adds elements to the 'tags' array field. */
   arrayUnionTags(values: string[] | string): this {
@@ -167,20 +270,36 @@ export class UsersUpdateBuilder extends BaseUpdateBuilder<UsersData> {
   arrayRemoveTags(values: string[] | string): this {
     return this._arrayRemove('tags', Array.isArray(values) ? values : [values]);
   }
+
+
+
   /** Deletes the 'tags' field. */
-  deleteTags(): this {
+  deleteTags(): this { // Remove 'set' prefix
     return this._deleteField('tags');
   }
 
+
+
+
+
+
   /** Sets the value for the 'primaryAddressRef' field. */
-  setPrimaryAddressRef(value: DocumentReference<AddressesData>): this {
+  setPrimaryAddressRef(value: DocumentReference<AddressesData> | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('primaryAddressRef', value);
   }
 
+
+
+
+
+
   /** Deletes the 'primaryAddressRef' field. */
-  deletePrimaryAddressRef(): this {
+  deletePrimaryAddressRef(): this { // Remove 'set' prefix
     return this._deleteField('primaryAddressRef');
   }
+
+
 
   // --- End Field Setters ---
 

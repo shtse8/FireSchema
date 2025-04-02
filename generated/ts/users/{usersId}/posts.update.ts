@@ -15,7 +15,7 @@ import {
   // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseUpdateBuilder } from '@shtse8/fireschema-runtime'; // Adjust path/package name as needed
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
 
 // Local Imports
 import { PostsData } from './posts.types.js';
@@ -46,30 +46,59 @@ export class PostsUpdateBuilder extends BaseUpdateBuilder<PostsData> {
 
 
   /** Sets the value for the 'title' field. */
-  setTitle(value: string): this {
+  setTitle(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('title', value);
   }
 
 
+
+
+
+
+
+
+
+
+
   /** Sets the value for the 'content' field. */
-  setContent(value: string): this {
+  setContent(value: string | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('content', value);
   }
 
+
+
+
+
+
   /** Deletes the 'content' field. */
-  deleteContent(): this {
+  deleteContent(): this { // Remove 'set' prefix
     return this._deleteField('content');
   }
 
+
+
+
+
+
   /** Sets the value for the 'publishedAt' field. */
-  setPublishedAt(value: Timestamp): this {
+  setPublishedAt(value: Timestamp | FieldValue): this {
+    // Use the pre-calculated field path and method name
     return this._set('publishedAt', value);
   }
 
+
+
+
+
+
   /** Deletes the 'publishedAt' field. */
-  deletePublishedAt(): this {
+  deletePublishedAt(): this { // Remove 'set' prefix
     return this._deleteField('publishedAt');
   }
+
+
 
   // --- End Field Setters ---
 

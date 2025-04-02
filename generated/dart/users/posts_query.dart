@@ -32,9 +32,10 @@ class PostsQueryBuilder extends BaseQueryBuilder<PostsData> {
     String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'title', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -57,9 +58,10 @@ class PostsQueryBuilder extends BaseQueryBuilder<PostsData> {
     String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'content', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
@@ -82,9 +84,10 @@ class PostsQueryBuilder extends BaseQueryBuilder<PostsData> {
     Timestamp? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
     List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+
   }) {
     // Call the protected where method from the base class
-    return where(
+    return where( // Remove generic type argument
       'publishedAt', // Pass the field path string
       isEqualTo: isEqualTo,
       isNotEqualTo: isNotEqualTo,
