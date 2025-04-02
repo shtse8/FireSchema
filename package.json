@@ -1,5 +1,5 @@
 {
-  "name": "fireschema",
+  "name": "@shtse8/fireschema",
   "version": "0.1.1",
   "description": "",
   "main": "dist/cli.js",
