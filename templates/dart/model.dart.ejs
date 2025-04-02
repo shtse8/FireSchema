@@ -171,7 +171,40 @@ class ${className}${isNested ? '' : 'Data'} ${isNested ? 'implements ToJsonSeria
     ${field.required ? 'required ' : ''}this.${field.fieldName},`;
   });
   classString += `
+  })`; // End of parameter list
+
+  // --- Add Assertions ---
+  let assertionStrings = [];
+  Object.values(fields).forEach(field => {
+    if (field.type === 'string') {
+      const isNullable = !field.required;
+      const nullCheck = isNullable ? `${field.fieldName} == null || ` : '';
+      let fieldAssertions = [];
+
+      if (field.minLength != null) {
+        fieldAssertions.push(`assert(${nullCheck}${field.fieldName}.length >= ${field.minLength}, '${className}.${field.fieldName} must be at least ${field.minLength} characters long')`);
+      }
+      if (field.maxLength != null) {
+         fieldAssertions.push(`assert(${nullCheck}${field.fieldName}.length <= ${field.maxLength}, '${className}.${field.fieldName} must be at most ${field.maxLength} characters long')`);
+      }
+      if (field.pattern != null) {
+        const dartPattern = field.pattern.replace(/\\/g, '\\\\');
+        fieldAssertions.push(`assert(${nullCheck}RegExp(r'${dartPattern}').hasMatch(${field.fieldName}), '${className}.${field.fieldName} must match pattern: ${field.pattern}')`);
+      }
+       // Join assertions for a single field with '&&' if multiple apply (though assert takes one condition)
+       // Instead, we'll add each as a separate assertion clause in the initializer list
+       assertionStrings = assertionStrings.concat(fieldAssertions);
+    }
+    // TODO: Add assertions for number ranges (minimum, maximum) if needed
   });
+
+  // Format assertions for Dart constructor initializer list
+  if (assertionStrings.length > 0) {
+     // Start with ':' for the first assertion, use ',' for subsequent ones
+     classString += `\n    : ${assertionStrings.join('\n    , ')}`;
+  }
+
+  classString += `; // End of constructor
 `;
 
   // --- fromJson Factory ---

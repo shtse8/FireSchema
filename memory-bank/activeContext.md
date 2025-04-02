@@ -184,6 +184,13 @@ generating all logic directly. **(Completed)**
     values for List and Map types defined in the schema are correctly applied
     when the corresponding field is missing in the input data.
   - Confirmed all Dart runtime tests pass.
+- **Dart Model Validation Assertions:**
+  - Updated Dart model template (`templates/dart/model.dart.ejs`) to generate
+    constructor `assert` statements for string fields based on schema properties
+    (`minLength`, `maxLength`, `pattern`).
+  - Updated example schema (`examples/firestore.schema.json`) to include these
+    properties for testing.
+  - Verified generated code passes `dart analyze`.
 
 - **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
   debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`

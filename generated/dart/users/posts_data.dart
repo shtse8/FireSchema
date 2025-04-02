@@ -29,7 +29,7 @@ class PostsData {
     required this.title,
     this.content,
     this.publishedAt,
-  });
+  }); // End of constructor
 
   /// Creates a PostsData instance from a Map.
   factory PostsData.fromJson(Map<String, dynamic> data) {

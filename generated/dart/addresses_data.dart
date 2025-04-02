@@ -29,7 +29,7 @@ class AddressesData {
     required this.street,
     required this.city,
     this.zip,
-  });
+  }); // End of constructor
 
   /// Creates a AddressesData instance from a Map.
   factory AddressesData.fromJson(Map<String, dynamic> data) {

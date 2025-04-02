@@ -25,7 +25,7 @@ class UsersSettingsMap implements ToJsonSerializable {
   const UsersSettingsMap({
     this.theme,
     this.notificationsEnabled,
-  });
+  }); // End of constructor
 
   /// Creates a UsersSettingsMap instance from a Map.
   factory UsersSettingsMap.fromJson(Map<String, dynamic> data) {
@@ -99,7 +99,7 @@ class UsersData {
     this.settings,
     this.tags,
     this.primaryAddressRef,
-  });
+  }); // End of constructor
 
   /// Creates a UsersData instance from a Map.
   factory UsersData.fromJson(Map<String, dynamic> data) {

@@ -7,11 +7,14 @@
         "displayName": {
           "type": "string",
           "required": true,
-          "description": "User's public display name"
+          "description": "User's public display name",
+          "minLength": 3,
+          "maxLength": 50
         },
         "email": {
           "type": "string",
-          "required": true
+          "required": true,
+          "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
         },
         "createdAt": {
           "type": "timestamp",
