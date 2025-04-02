@@ -43,6 +43,7 @@ class ItemsCollection extends BaseCollectionRef<ItemsData, ItemsAddData> { // Us
               'name': { 'defaultValue': null },
               'value': { 'defaultValue': null },
               'createdAt': { 'defaultValue': "serverTimestamp" },
+              'address': { 'defaultValue': null },
             },
           },
         );
@@ -125,11 +126,14 @@ class ItemsData {
   final num? value;
   /// createdAt (timestamp, required)
   final Timestamp createdAt;
+  /// address (map)
+  final Map<String, dynamic>? address;
 
   const ItemsData({
     required this.name,
     this.value,
     required this.createdAt,
+    this.address,
   });
 
   /// Creates a ItemsData instance from a Firestore DocumentSnapshot.
@@ -172,6 +176,15 @@ class ItemsData {
 
 
       createdAt: data['createdAt'] as Timestamp? ?? (throw Exception("Missing required field: createdAt in $data")),
+
+
+
+
+
+
+
+
+      address: data['address'] as Map<String, dynamic>?,
     );
   }
 
@@ -221,6 +234,15 @@ class ItemsData {
 
 
       'createdAt': createdAt,
+
+
+
+
+
+
+
+
+      'address': address,
     };
   }
 
@@ -237,11 +259,13 @@ class ItemsData {
     String? name,
     num? value,
     Timestamp? createdAt,
+    Map<String, dynamic>? address,
   }) {
     return ItemsData(
       name: name ?? this.name,
       value: value ?? this.value,
       createdAt: createdAt ?? this.createdAt,
+      address: address ?? this.address,
     );
   }
 
@@ -261,6 +285,9 @@ class ItemsAddData {
 
   final Timestamp? createdAt;
 
+
+  final Map<String, dynamic>? address;
+
   const ItemsAddData({
 
     required this.name,
@@ -268,6 +295,8 @@ class ItemsAddData {
     this.value,
 
     this.createdAt,
+
+    this.address,
   });
 
   /// Converts this instance to a Map suitable for Firestore add operation.
@@ -288,6 +317,11 @@ class ItemsAddData {
     if (createdAt != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['createdAt'] = createdAt;
+    }
+    // Only include non-null values in the map for 'add'
+    if (address != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['address'] = address;
     }
     return map;
   }
@@ -390,6 +424,23 @@ class ItemsQueryBuilder extends BaseQueryBuilder<ItemsData> {
       isLessThanOrEqualTo: isLessThanOrEqualTo,
       isGreaterThan: isGreaterThan,
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
+      whereIn: whereIn,
+      whereNotIn: whereNotIn,
+    ) as ItemsQueryBuilder; // Cast back to specific type is necessary
+  }
+  /// Adds a query filter for the 'address' field.
+  /// Provide one of the named parameters to specify the query condition.
+  ItemsQueryBuilder whereAddress({
+    Map<String, dynamic>? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Map<String, dynamic>? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+  }) {
+    // Call the protected where method from the base class
+    return where(
+      'address', // Pass the field path string
+      isEqualTo: isEqualTo,
+      isNotEqualTo: isNotEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
     ) as ItemsQueryBuilder; // Cast back to specific type is necessary
@@ -742,6 +793,18 @@ class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
     return serverTimestamp('createdAt') as ItemsUpdateBuilder; // Cast back
   }
 
+  /// Sets the value for the 'address' field.
+  ItemsUpdateBuilder setAddress(Map<String, dynamic>? value) {
+    // Call the protected set method from the base class
+    return set('address', value) as ItemsUpdateBuilder; // Cast back
+  }
+
+  /// Deletes the 'address' field.
+  ItemsUpdateBuilder deleteAddress() {
+    // Call the protected deleteField helper
+    return deleteField('address') as ItemsUpdateBuilder; // Cast back
+  }
+
   // --- End Field Setters ---
 
   // commit() method is inherited from BaseUpdateBuilder
@@ -816,6 +879,7 @@ type ItemsAddData = {
   name: ItemsData['name'];
   value?: ItemsData['value'];
   createdAt?: ItemsData['createdAt'];
+  address?: ItemsData['address'];
 };
 // UpdateData: Type used by UpdateBuilder, defined there or implicitly via Firestore types.
 
@@ -852,6 +916,11 @@ export class ItemsCollection extends BaseCollectionRef<ItemsData, ItemsAddData> 
       processedFields['createdAt'] = {
         
         defaultValue: "serverTimestamp",
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['address'] = {
         
         // Add other allowed FieldSchema properties here if needed
       };
@@ -960,6 +1029,8 @@ import { ItemsData } from './items.types.js';
 
 
 
+
+
 /**
  * A typed query builder for the 'items' collection, extending BaseQueryBuilder.
  */
@@ -1019,6 +1090,19 @@ export class ItemsQueryBuilder extends BaseQueryBuilder<ItemsData> {
     // Call the protected _where method from the base class
     return this._where('createdAt', op, value);
   }
+  // Overloads for 'address' field type safety based on operator
+  whereAddress(op: '==', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }): this;
+  whereAddress(op: '!=', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }): this;
+  whereAddress(op: 'in', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }[]): this;
+  whereAddress(op: 'not-in', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }[]): this;
+  // Implementation signature for 'address'
+  whereAddress(
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
+    value: any   // Use any for implementation signature
+  ): this {
+    // Call the protected _where method from the base class
+    return this._where('address', op, value);
+  }
   // --- End Field-specific Where Methods ---
 
   // Methods like orderBy(), limit(), limitToLast(), startAt(), startAfter(),
@@ -1046,6 +1130,8 @@ import { Timestamp, GeoPoint, DocumentReference, DocumentData } from 'firebase/f
 
 
 
+
+
 /**
  * Represents the structure of a 'Items' document.
  * Description: A collection of test items.
@@ -1057,6 +1143,8 @@ export interface ItemsData {
   value?: number;
   /** createdAt (timestamp, required) */
   createdAt: Timestamp;
+  /** address (map) */
+  address?: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } };
 }
 
 // Potential future additions:
@@ -1097,6 +1185,8 @@ import { ItemsData } from './items.types.js';
 
 
 
+
+
 /**
  * A typed builder for creating update operations for 'items' documents, extending BaseUpdateBuilder.
  */
@@ -1106,44 +1196,122 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
+
+
+
+
+
+
   /** Sets the value for the 'name' field. */
   setName(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('name', value);
   }
 
 
   /** Sets the value for the 'value' field. */
   setValue(value: number): this {
-    // Call the protected _set method from the base class
     return this._set('value', value);
   }
 
   /** Atomically increments the 'value' field. */
   incrementValue(value: number): this {
-    // Call the protected _increment helper (or _set with increment(value))
     return this._increment('value', value);
-    // Alternatively: return this._set('value', increment(value));
   }
   /** Deletes the 'value' field. */
   deleteValue(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('value');
-    // Alternatively: return this._set('value', deleteField());
   }
 
   /** Sets the value for the 'createdAt' field. */
   setCreatedAt(value: Timestamp): this {
-    // Call the protected _set method from the base class
     return this._set('createdAt', value);
   }
 
   /** Sets the 'createdAt' field to the server timestamp. */
   setCreatedAtToServerTimestamp(): this {
-    // Call the protected _serverTimestamp helper
     return this._serverTimestamp('createdAt');
-    // Alternatively: return this._set('createdAt', serverTimestamp());
   }
+
+
+
+
+
+
+  /** Sets the value for the 'address.street' field. */
+  setAddress_Street(value: string): this {
+    return this._set('address.street', value);
+  }
+
+
+
+
+
+
+  /** Sets the value for the 'address.city' field. */
+  setAddress_City(value: string): this {
+    return this._set('address.city', value);
+  }
+
+
+
+
+
+
+  /** Sets the value for the 'address.zip' field. */
+  setAddress_Zip(value: string): this {
+    return this._set('address.zip', value);
+  }
+
+  /** Deletes the 'address.zip' field. */
+  deleteAddress_Zip(): this {
+    return this._deleteField('address.zip');
+  }
+
+
+
+
+
+  /** Sets the value for the 'address.coords' field. */
+  setAddress_Coords(value: { lat: number; lon: number }): this {
+    return this._set('address.coords', value);
+  }
+
+  /** Deletes the 'address.coords' field. */
+  deleteAddress_Coords(): this {
+    return this._deleteField('address.coords');
+  }
+
+
+
+
+
+  /** Sets the value for the 'address.coords.lat' field. */
+  setAddress_Coords_Lat(value: number): this {
+    return this._set('address.coords.lat', value);
+  }
+
+  /** Atomically increments the 'address.coords.lat' field. */
+  incrementAddress_Coords_Lat(value: number): this {
+    return this._increment('address.coords.lat', value);
+  }
+
+
+
+
+
+  /** Sets the value for the 'address.coords.lon' field. */
+  setAddress_Coords_Lon(value: number): this {
+    return this._set('address.coords.lon', value);
+  }
+
+  /** Atomically increments the 'address.coords.lon' field. */
+  incrementAddress_Coords_Lon(value: number): this {
+    return this._increment('address.coords.lon', value);
+  }
+
+
+
+
 
   // --- End Field Setters ---
 
@@ -1389,9 +1557,14 @@ export class TagsUpdateBuilder extends BaseUpdateBuilder<TagsData> {
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
+
+
+
+
+
+
   /** Sets the value for the 'label' field. */
   setLabel(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('label', value);
   }
 

@@ -30,6 +30,8 @@ import { ItemsData } from './items.types.js';
 
 
 
+
+
 /**
  * A typed builder for creating update operations for 'items' documents, extending BaseUpdateBuilder.
  */
@@ -39,44 +41,122 @@ export class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
+
+
+
+
+
+
   /** Sets the value for the 'name' field. */
   setName(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('name', value);
   }
 
 
   /** Sets the value for the 'value' field. */
   setValue(value: number): this {
-    // Call the protected _set method from the base class
     return this._set('value', value);
   }
 
   /** Atomically increments the 'value' field. */
   incrementValue(value: number): this {
-    // Call the protected _increment helper (or _set with increment(value))
     return this._increment('value', value);
-    // Alternatively: return this._set('value', increment(value));
   }
   /** Deletes the 'value' field. */
   deleteValue(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('value');
-    // Alternatively: return this._set('value', deleteField());
   }
 
   /** Sets the value for the 'createdAt' field. */
   setCreatedAt(value: Timestamp): this {
-    // Call the protected _set method from the base class
     return this._set('createdAt', value);
   }
 
   /** Sets the 'createdAt' field to the server timestamp. */
   setCreatedAtToServerTimestamp(): this {
-    // Call the protected _serverTimestamp helper
     return this._serverTimestamp('createdAt');
-    // Alternatively: return this._set('createdAt', serverTimestamp());
   }
+
+
+
+
+
+
+  /** Sets the value for the 'address.street' field. */
+  setAddress_Street(value: string): this {
+    return this._set('address.street', value);
+  }
+
+
+
+
+
+
+  /** Sets the value for the 'address.city' field. */
+  setAddress_City(value: string): this {
+    return this._set('address.city', value);
+  }
+
+
+
+
+
+
+  /** Sets the value for the 'address.zip' field. */
+  setAddress_Zip(value: string): this {
+    return this._set('address.zip', value);
+  }
+
+  /** Deletes the 'address.zip' field. */
+  deleteAddress_Zip(): this {
+    return this._deleteField('address.zip');
+  }
+
+
+
+
+
+  /** Sets the value for the 'address.coords' field. */
+  setAddress_Coords(value: { lat: number; lon: number }): this {
+    return this._set('address.coords', value);
+  }
+
+  /** Deletes the 'address.coords' field. */
+  deleteAddress_Coords(): this {
+    return this._deleteField('address.coords');
+  }
+
+
+
+
+
+  /** Sets the value for the 'address.coords.lat' field. */
+  setAddress_Coords_Lat(value: number): this {
+    return this._set('address.coords.lat', value);
+  }
+
+  /** Atomically increments the 'address.coords.lat' field. */
+  incrementAddress_Coords_Lat(value: number): this {
+    return this._increment('address.coords.lat', value);
+  }
+
+
+
+
+
+  /** Sets the value for the 'address.coords.lon' field. */
+  setAddress_Coords_Lon(value: number): this {
+    return this._set('address.coords.lon', value);
+  }
+
+  /** Atomically increments the 'address.coords.lon' field. */
+  incrementAddress_Coords_Lon(value: number): this {
+    return this._increment('address.coords.lon', value);
+  }
+
+
+
+
 
   // --- End Field Setters ---
 

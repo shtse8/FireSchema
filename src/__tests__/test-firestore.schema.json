@@ -19,6 +19,37 @@
           "type": "timestamp",
           "required": true,
           "defaultValue": "serverTimestamp"
+        },
+        "address": {
+          "type": "map",
+          "required": false,
+          "properties": {
+            "street": {
+              "type": "string",
+              "required": true
+            },
+            "city": {
+              "type": "string",
+              "required": true
+            },
+            "zip": {
+              "type": "string"
+            },
+            "coords": {
+              "type": "map",
+              "required": false,
+              "properties": {
+                "lat": {
+                  "type": "number",
+                  "required": true
+                },
+                "lon": {
+                  "type": "number",
+                  "required": true
+                }
+              }
+            }
+          }
         }
       },
       "subcollections": {

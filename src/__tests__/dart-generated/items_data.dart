@@ -18,11 +18,14 @@ class ItemsData {
   final num? value;
   /// createdAt (timestamp, required)
   final Timestamp createdAt;
+  /// address (map)
+  final Map<String, dynamic>? address;
 
   const ItemsData({
     required this.name,
     this.value,
     required this.createdAt,
+    this.address,
   });
 
   /// Creates a ItemsData instance from a Firestore DocumentSnapshot.
@@ -65,6 +68,15 @@ class ItemsData {
 
 
       createdAt: data['createdAt'] as Timestamp? ?? (throw Exception("Missing required field: createdAt in $data")),
+
+
+
+
+
+
+
+
+      address: data['address'] as Map<String, dynamic>?,
     );
   }
 
@@ -114,6 +126,15 @@ class ItemsData {
 
 
       'createdAt': createdAt,
+
+
+
+
+
+
+
+
+      'address': address,
     };
   }
 
@@ -130,11 +151,13 @@ class ItemsData {
     String? name,
     num? value,
     Timestamp? createdAt,
+    Map<String, dynamic>? address,
   }) {
     return ItemsData(
       name: name ?? this.name,
       value: value ?? this.value,
       createdAt: createdAt ?? this.createdAt,
+      address: address ?? this.address,
     );
   }
 
@@ -154,6 +177,9 @@ class ItemsAddData {
 
   final Timestamp? createdAt;
 
+
+  final Map<String, dynamic>? address;
+
   const ItemsAddData({
 
     required this.name,
@@ -161,6 +187,8 @@ class ItemsAddData {
     this.value,
 
     this.createdAt,
+
+    this.address,
   });
 
   /// Converts this instance to a Map suitable for Firestore add operation.
@@ -181,6 +209,11 @@ class ItemsAddData {
     if (createdAt != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['createdAt'] = createdAt;
+    }
+    // Only include non-null values in the map for 'add'
+    if (address != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['address'] = address;
     }
     return map;
   }

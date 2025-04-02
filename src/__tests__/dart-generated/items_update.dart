@@ -55,6 +55,18 @@ class ItemsUpdateBuilder extends BaseUpdateBuilder<ItemsData> {
     return serverTimestamp('createdAt') as ItemsUpdateBuilder; // Cast back
   }
 
+  /// Sets the value for the 'address' field.
+  ItemsUpdateBuilder setAddress(Map<String, dynamic>? value) {
+    // Call the protected set method from the base class
+    return set('address', value) as ItemsUpdateBuilder; // Cast back
+  }
+
+  /// Deletes the 'address' field.
+  ItemsUpdateBuilder deleteAddress() {
+    // Call the protected deleteField helper
+    return deleteField('address') as ItemsUpdateBuilder; // Cast back
+  }
+
   // --- End Field Setters ---
 
   // commit() method is inherited from BaseUpdateBuilder

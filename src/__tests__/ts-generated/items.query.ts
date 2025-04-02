@@ -39,6 +39,8 @@ import { ItemsData } from './items.types.js';
 
 
 
+
+
 /**
  * A typed query builder for the 'items' collection, extending BaseQueryBuilder.
  */
@@ -97,6 +99,19 @@ export class ItemsQueryBuilder extends BaseQueryBuilder<ItemsData> {
   ): this {
     // Call the protected _where method from the base class
     return this._where('createdAt', op, value);
+  }
+  // Overloads for 'address' field type safety based on operator
+  whereAddress(op: '==', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }): this;
+  whereAddress(op: '!=', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }): this;
+  whereAddress(op: 'in', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }[]): this;
+  whereAddress(op: 'not-in', value: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } }[]): this;
+  // Implementation signature for 'address'
+  whereAddress(
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
+    value: any   // Use any for implementation signature
+  ): this {
+    // Call the protected _where method from the base class
+    return this._where('address', op, value);
   }
   // --- End Field-specific Where Methods ---
 

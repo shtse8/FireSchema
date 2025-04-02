@@ -40,54 +40,110 @@ export class <%- modelName %>UpdateBuilder extends BaseUpdateBuilder<<%- modelNa
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
+
+<% /* --- Recursive Function to Generate Setters for Map Properties --- */ %>
+<% function generateSettersForProperties(properties, pathPrefix, namePrefix) { %>
+<%   Object.entries(properties).forEach(([propName, propDef]) => { %>
+<%     const fullPath = pathPrefix + propName; %>
+<%     const methodNamePart = namePrefix + capitalizeFirstLetter(propName); %>
+<%     const propType = getTypeScriptType(propDef, options); %>
+<%
+    // --- Generate Setter for the property ---
+-%>
+  /** Sets the value for the '<%- fullPath %>' field. */
+  set<%- methodNamePart %>(value: <%- propType %>): this {
+    return this._set('<%- fullPath %>', value);
+  }
+
+<%
+    // --- Generate Atomic Operations for the property ---
+-%>
+<%     if (propDef.type === 'number') { -%>
+  /** Atomically increments the '<%- fullPath %>' field. */
+  increment<%- methodNamePart %>(value: number): this {
+    return this._increment('<%- fullPath %>', value);
+  }
+<%     } -%>
+<%     if (propDef.type === 'array') { -%>
+<%       const itemType = propDef.items ? getTypeScriptType(propDef.items, options) : 'any'; -%>
+  /** Atomically adds elements to the '<%- fullPath %>' array field. */
+  arrayUnion<%- methodNamePart %>(values: <%- itemType %>[] | <%- itemType %>): this {
+    return this._arrayUnion('<%- fullPath %>', Array.isArray(values) ? values : [values]);
+  }
+
+  /** Atomically removes elements from the '<%- fullPath %>' array field. */
+  arrayRemove<%- methodNamePart %>(values: <%- itemType %>[] | <%- itemType %>): this {
+    return this._arrayRemove('<%- fullPath %>', Array.isArray(values) ? values : [values]);
+  }
+<%     } -%>
+<%     if (propDef.type === 'timestamp' && propDef.defaultValue === 'serverTimestamp') { -%>
+  /** Sets the '<%- fullPath %>' field to the server timestamp. */
+  set<%- methodNamePart %>ToServerTimestamp(): this {
+    return this._serverTimestamp('<%- fullPath %>');
+  }
+<%     } -%>
+<%     if (!propDef.required) { -%>
+  /** Deletes the '<%- fullPath %>' field. */
+  delete<%- methodNamePart %>(): this {
+    return this._deleteField('<%- fullPath %>');
+  }
+<%     } -%>
+<%
+    // --- Recurse if the property is itself a map ---
+    if (propDef.type === 'map' && propDef.properties) {
+      generateSettersForProperties(propDef.properties, fullPath + '.', methodNamePart + '_');
+    }
+-%>
+
+<%   }); %>
+<% } %>
+<% /* --- End Recursive Function --- */ %>
+
+<% // --- Main Loop for Top-Level Fields --- %>
 <% Object.values(collection.fields).forEach(field => { -%>
-<%   const fieldType = getTypeScriptType(field, options); -%>
+<%   if (field.type === 'map' && field.properties) { -%>
+<%     // For map types, generate setters for nested properties
+       generateSettersForProperties(field.properties, field.fieldName + '.', capitalizeFirstLetter(field.fieldName) + '_');
+-%>
+<%   } else { -%>
+<%     // For non-map types, generate standard top-level setters/operations -%>
+<%     const fieldType = getTypeScriptType(field, options); -%>
   /** Sets the value for the '<%- field.fieldName %>' field. */
   set<%- capitalizeFirstLetter(field.fieldName) %>(value: <%- fieldType %>): this {
-    // Call the protected _set method from the base class
     return this._set('<%- field.fieldName %>', value);
   }
 
-<%   // --- Atomic Operations --- -%>
-<%   if (field.type === 'number') { -%>
+<%     // --- Atomic Operations for top-level field --- -%>
+<%     if (field.type === 'number') { -%>
   /** Atomically increments the '<%- field.fieldName %>' field. */
   increment<%- capitalizeFirstLetter(field.fieldName) %>(value: number): this {
-    // Call the protected _increment helper (or _set with increment(value))
     return this._increment('<%- field.fieldName %>', value);
-    // Alternatively: return this._set('<%- field.fieldName %>', increment(value));
   }
-<%   } -%>
-<%   if (field.type === 'array') { -%>
-<%     const itemType = field.items ? getTypeScriptType(field.items, options) : 'any'; -%>
+<%     } -%>
+<%     if (field.type === 'array') { -%>
+<%       const itemType = field.items ? getTypeScriptType(field.items, options) : 'any'; -%>
   /** Atomically adds elements to the '<%- field.fieldName %>' array field. */
   arrayUnion<%- capitalizeFirstLetter(field.fieldName) %>(values: <%- itemType %>[] | <%- itemType %>): this {
-    // Call the protected _arrayUnion helper
     return this._arrayUnion('<%- field.fieldName %>', Array.isArray(values) ? values : [values]);
-    // Alternatively: return this._set('<%- field.fieldName %>', arrayUnion(...(Array.isArray(values) ? values : [values])));
   }
 
   /** Atomically removes elements from the '<%- field.fieldName %>' array field. */
   arrayRemove<%- capitalizeFirstLetter(field.fieldName) %>(values: <%- itemType %>[] | <%- itemType %>): this {
-    // Call the protected _arrayRemove helper
     return this._arrayRemove('<%- field.fieldName %>', Array.isArray(values) ? values : [values]);
-    // Alternatively: return this._set('<%- field.fieldName %>', arrayRemove(...(Array.isArray(values) ? values : [values])));
   }
-<%   } -%>
-<%   if (field.type === 'timestamp' && field.defaultValue === 'serverTimestamp') { -%>
+<%     } -%>
+<%     if (field.type === 'timestamp' && field.defaultValue === 'serverTimestamp') { -%>
   /** Sets the '<%- field.fieldName %>' field to the server timestamp. */
   set<%- capitalizeFirstLetter(field.fieldName) %>ToServerTimestamp(): this {
-    // Call the protected _serverTimestamp helper
     return this._serverTimestamp('<%- field.fieldName %>');
-    // Alternatively: return this._set('<%- field.fieldName %>', serverTimestamp());
   }
-<%   } -%>
-<%   if (!field.required) { -%>
+<%     } -%>
+<%     if (!field.required) { -%>
   /** Deletes the '<%- field.fieldName %>' field. */
   delete<%- capitalizeFirstLetter(field.fieldName) %>(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('<%- field.fieldName %>');
-    // Alternatively: return this._set('<%- field.fieldName %>', deleteField());
   }
+<%     } -%>
 <%   } -%>
 
 <% }); -%>

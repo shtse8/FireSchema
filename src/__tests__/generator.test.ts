@@ -56,6 +56,23 @@ const testSchema = {
         name: { type: 'string', required: true },
         value: { type: 'number', required: false },
         createdAt: { type: 'timestamp', required: true, defaultValue: 'serverTimestamp' },
+        address: { // Added map field
+          type: 'map',
+          required: false,
+          properties: {
+            street: { type: 'string', required: true },
+            city: { type: 'string', required: true },
+            zip: { type: 'string' }, // Optional zip
+            coords: { // Nested map
+              type: 'map',
+              required: false, // Make nested map optional too
+              properties: {
+                lat: { type: 'number', required: true },
+                lon: { type: 'number', required: true }
+              }
+            }
+          }
+        },
       },
       subcollections: {
         tags: {

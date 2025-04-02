@@ -40,6 +40,7 @@ class ItemsCollection extends BaseCollectionRef<ItemsData, ItemsAddData> { // Us
               'name': { 'defaultValue': null },
               'value': { 'defaultValue': null },
               'createdAt': { 'defaultValue': "serverTimestamp" },
+              'address': { 'defaultValue': null },
             },
           },
         );

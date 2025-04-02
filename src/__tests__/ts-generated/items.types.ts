@@ -14,6 +14,8 @@ import { Timestamp, GeoPoint, DocumentReference, DocumentData } from 'firebase/f
 
 
 
+
+
 /**
  * Represents the structure of a 'Items' document.
  * Description: A collection of test items.
@@ -25,6 +27,8 @@ export interface ItemsData {
   value?: number;
   /** createdAt (timestamp, required) */
   createdAt: Timestamp;
+  /** address (map) */
+  address?: { street: string; city: string; zip?: string; coords?: { lat: number; lon: number } };
 }
 
 // Potential future additions:

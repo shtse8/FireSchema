@@ -96,6 +96,23 @@ class ItemsQueryBuilder extends BaseQueryBuilder<ItemsData> {
       whereNotIn: whereNotIn,
     ) as ItemsQueryBuilder; // Cast back to specific type is necessary
   }
+  /// Adds a query filter for the 'address' field.
+  /// Provide one of the named parameters to specify the query condition.
+  ItemsQueryBuilder whereAddress({
+    Map<String, dynamic>? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Map<String, dynamic>? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
+  }) {
+    // Call the protected where method from the base class
+    return where(
+      'address', // Pass the field path string
+      isEqualTo: isEqualTo,
+      isNotEqualTo: isNotEqualTo,
+      whereIn: whereIn,
+      whereNotIn: whereNotIn,
+    ) as ItemsQueryBuilder; // Cast back to specific type is necessary
+  }
   // --- End Field-specific Where Methods ---
 
   // Methods like orderBy(), limit(), limitToLast(), startAt(), startAfter(),

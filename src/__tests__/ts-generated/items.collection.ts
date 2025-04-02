@@ -36,6 +36,7 @@ type ItemsAddData = {
   name: ItemsData['name'];
   value?: ItemsData['value'];
   createdAt?: ItemsData['createdAt'];
+  address?: ItemsData['address'];
 };
 // UpdateData: Type used by UpdateBuilder, defined there or implicitly via Firestore types.
 
@@ -72,6 +73,11 @@ export class ItemsCollection extends BaseCollectionRef<ItemsData, ItemsAddData> 
       processedFields['createdAt'] = {
         
         defaultValue: "serverTimestamp",
+        
+        // Add other allowed FieldSchema properties here if needed
+      };
+    
+      processedFields['address'] = {
         
         // Add other allowed FieldSchema properties here if needed
       };
