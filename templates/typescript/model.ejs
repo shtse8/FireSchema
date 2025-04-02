@@ -24,6 +24,15 @@ export interface <%- modelName %>Data {
   /**
    * <%- field.description || field.fieldName %> (<%- field.type %><%- field.required ? ', required' : '' %>)
 <% const currentField = collection.fields[field.fieldName]; // Access directly %>
+<% if (currentField.type === 'string' && currentField.minLength != null) { -%>
+   * @minLength <%- currentField.minLength %>
+<% } -%>
+<% if (currentField.type === 'string' && currentField.maxLength != null) { -%>
+   * @maxLength <%- currentField.maxLength %>
+<% } -%>
+<% if (currentField.type === 'string' && currentField.pattern != null) { -%>
+   * @pattern <%- currentField.pattern %>
+<% } -%>
 <% if (currentField.type === 'number' && currentField.minimum != null) { -%>
    * @minimum <%- currentField.minimum %>
 <% } -%>

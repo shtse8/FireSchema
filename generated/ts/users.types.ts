@@ -36,31 +36,29 @@ import type { AddressesData } from './addresses.types.js';
  * Description: Stores user profile information.
  */
 export interface UsersData {
-
   /**
    * User's public display name (string, required)
 
+   * @minLength 3
+   * @maxLength 50
    */
   displayName: string;
-
   /**
    * email (string, required)
 
+   * @pattern ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
    */
   email: string;
-
   /**
    * Timestamp when the user was created (timestamp)
 
    */
   createdAt?: Timestamp;
-
   /**
    * lastLogin (timestamp)
 
    */
   lastLogin?: Timestamp;
-
   /**
    * age (number)
 
@@ -68,25 +66,21 @@ export interface UsersData {
    * @maximum 130
    */
   age?: number;
-
   /**
    * isActive (boolean)
 
    */
   isActive?: boolean;
-
   /**
    * settings (map)
 
    */
   settings?: { theme?: string; notificationsEnabled?: boolean };
-
   /**
    * tags (array)
 
    */
   tags?: string[];
-
   /**
    * primaryAddressRef (reference)
 

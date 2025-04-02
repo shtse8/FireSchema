@@ -19,19 +19,16 @@ import { Timestamp, GeoPoint, DocumentReference, DocumentData } from 'firebase/f
  * Description: Stores user addresses
  */
 export interface AddressesData {
-
   /**
    * street (string, required)
 
    */
   street: string;
-
   /**
    * city (string, required)
 
    */
   city: string;
-
   /**
    * zip (string)
 

@@ -56,7 +56,8 @@
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema (Dart: string
     `minLength`, `maxLength`, `pattern`; number `minimum`, `maximum` via
-    `assert`; TS: number `minimum`, `maximum` via TSDoc).
+    `assert`; TS: string `minLength`, `maxLength`, `pattern`; number `minimum`,
+    `maximum` via TSDoc).
   - Improve error handling and reporting during generation (re-throw errors on
     file/package generation failures).
 - **Documentation & Publishing:**
