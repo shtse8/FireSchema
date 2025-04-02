@@ -125,6 +125,7 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
         console.log(`  ✓ Generated/Updated package.json: ${packageJsonPath}`);
     } catch (error: any) {
         console.error(`  ✗ Error generating package.json: ${error.message}`);
+        throw error; // Re-throw
     }
   }
 
@@ -199,6 +200,7 @@ async function generateFilesForCollection(
         console.log(`    ✓ Generated model: ${modelFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating model for collection "${collectionId}": ${error.message}`);
+        throw error; // Re-throw to stop processing this collection/target
     }
 
     // Generate Collection Reference File
@@ -211,6 +213,7 @@ async function generateFilesForCollection(
         console.log(`    ✓ Generated collection reference: ${collectionRefFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating collection reference for collection "${collectionId}": ${error.message}`);
+        throw error; // Re-throw
     }
 
     // Generate Query Builder File
@@ -223,6 +226,7 @@ async function generateFilesForCollection(
         console.log(`    ✓ Generated query builder: ${queryBuilderFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating query builder for collection "${collectionId}": ${error.message}`);
+        throw error; // Re-throw
     }
 
     // Generate Update Builder File
@@ -234,6 +238,7 @@ async function generateFilesForCollection(
         console.log(`    ✓ Generated update builder: ${updateBuilderFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating update builder for collection "${collectionId}": ${error.message}`);
+        throw error; // Re-throw
     }
 
     // --- Generate Subcollection Files (Recursive Call) ---

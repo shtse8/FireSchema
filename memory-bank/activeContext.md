@@ -191,6 +191,13 @@ generating all logic directly. **(Completed)**
   - Updated example schema (`examples/firestore.schema.json`) to include these
     properties for testing.
   - Verified generated code passes `dart analyze`.
+- **Generator Error Handling:**
+  - Updated `configLoader.ts` to throw an error if the resolved schema file path
+    does not exist.
+  - Updated language-specific generators (`typescript.ts`, `dart.ts`) to
+    re-throw errors after logging them during file generation (model,
+    collectionRef, etc.) and package file generation (`package.json`,
+    `pubspec.yaml`). This ensures generation halts properly on critical errors.
 
 - **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
   debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`

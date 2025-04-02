@@ -65,9 +65,8 @@ export function loadConfig(configPath: string): FirestoreODMConfig {
 
   // --- Post-resolution Validation ---
   if (!fs.existsSync(finalConfig.schema)) {
-     console.warn(`Warning: Schema file specified in config not found at resolved path: ${finalConfig.schema}. Generation might fail.`);
-     // Decide if this should be a hard error or just a warning
-     // throw new Error(`Schema file specified in config not found at resolved path: ${finalConfig.schema}`);
+     // Make this a hard error as generation cannot proceed without the schema file.
+     throw new Error(`Schema file specified in config not found at resolved path: ${finalConfig.schema}`);
   }
 
 

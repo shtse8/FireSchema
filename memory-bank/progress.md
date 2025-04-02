@@ -57,7 +57,8 @@
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema (Dart: string
     `minLength`, `maxLength`, `pattern` via `assert`).
-  - Improve error handling and reporting during generation.
+  - Improve error handling and reporting during generation (re-throw errors on
+    file/package generation failures).
 - **Documentation & Publishing:**
   - Add more detailed documentation (advanced usage, schema details).
   - Prepare packages for publishing (consider build steps, versioning).
