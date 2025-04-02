@@ -49,8 +49,7 @@
 **What's Left (Next Steps):**
 
 - **Runtime Refinements:**
-  - Address TODOs within runtime base classes (e.g., `add` method type handling,
-    more default types).
+  - Address TODOs within runtime base classes (e.g., more default types).
   - Refine Dart `fromJson`/`toJson` for complex nested types (maps, arrays of
     references).
   - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
