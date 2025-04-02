@@ -177,6 +177,13 @@ generating all logic directly. **(Completed)**
   - Fields marked with `x-read-only` are now excluded from the generated
     `set<FieldName>` methods in the `...UpdateBuilder` class.
   - Verified generated code passes `dart analyze`. Steps:**
+- **Dart Runtime Default Value Testing:**
+  - Simplified `applyDefaults` logic in `BaseCollectionRef` to handle
+    non-serverTimestamp defaults (primitives, lists, maps) uniformly.
+  - Added unit tests to `base_collection_ref_test.dart` to verify that default
+    values for List and Map types defined in the schema are correctly applied
+    when the corresponding field is missing in the input data.
+  - Confirmed all Dart runtime tests pass.
 
 - **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
   debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`

@@ -11,8 +11,16 @@ class TestData {
   final String name;
   final int? value;
   final DateTime? createdAt;
-
-  TestData({this.id, required this.name, this.value, this.createdAt});
+  final List<String>? tags; // Added for list default test
+  final Map<String, dynamic>? settings; // Added for map default test
+  TestData({
+    this.id,
+    required this.name,
+    this.value,
+    this.createdAt,
+    this.tags, // Added
+    this.settings, // Added
+  });
 
   // Basic equality for testing
   @override
@@ -27,12 +35,19 @@ class TestData {
 
   @override
   int get hashCode =>
-      id.hashCode ^ name.hashCode ^ value.hashCode ^ createdAt.hashCode;
+      id.hashCode ^
+      name.hashCode ^
+      value.hashCode ^
+      createdAt.hashCode ^
+      tags.hashCode ^ // Added
+      settings.hashCode; // Added
 
   Map<String, dynamic> toMap() => {
         'name': name,
         if (value != null) 'value': value,
         if (createdAt != null) 'createdAt': Timestamp.fromDate(createdAt!),
+        if (tags != null) 'tags': tags, // Added
+        if (settings != null) 'settings': settings, // Added
       };
 }
 
@@ -43,8 +58,15 @@ class TestAddData implements ToJsonSerializable {
   final int? value;
   // Can accept DateTime or FieldValue for server timestamp during add
   final dynamic createdAt; // Use dynamic to allow DateTime or FieldValue
-
-  TestAddData({required this.name, this.value, this.createdAt});
+  final List<String>? tags; // Added
+  final Map<String, dynamic>? settings; // Added
+  TestAddData({
+    required this.name,
+    this.value,
+    this.createdAt,
+    this.tags, // Added
+    this.settings, // Added
+  });
   // No @override needed when implementing an interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{
@@ -60,6 +82,12 @@ class TestAddData implements ToJsonSerializable {
       // Assume it's a FieldValue (like serverTimestamp())
       map['createdAt'] = createdAt;
     }
+    if (tags != null) {
+      map['tags'] = tags; // Added
+    }
+    if (settings != null) {
+      map['settings'] = settings; // Added
+    }
     return map;
   }
 }
@@ -73,6 +101,8 @@ TestData _fromFirestore(
     name: data['name'] as String,
     value: data['value'] as int?,
     createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
+    tags: (data['tags'] as List<dynamic>?)?.cast<String>(), // Added
+    settings: data['settings'] as Map<String, dynamic>?, // Added
   );
 }
 
@@ -84,6 +114,8 @@ Map<String, Object?> _toFirestore(TestData data, SetOptions? options) {
     // Let serverTimestamp handle createdAt if null, otherwise convert
     if (data.createdAt != null)
       'createdAt': Timestamp.fromDate(data.createdAt!),
+    if (data.tags != null) 'tags': data.tags, // Added
+    if (data.settings != null) 'settings': data.settings, // Added
   };
 }
 
@@ -489,5 +521,37 @@ void main() {
     });
 
     // Add tests for add, set, delete, get, subCollection here...
+  });
+
+  test('applyDefaults should add List and Map defaults if field is null', () {
+    final schema = {
+      'fields': {
+        'tags': {
+          'defaultValue': ['a', 'b']
+        },
+        'settings': {
+          'defaultValue': {'theme': 'dark', 'level': 1}
+        },
+        'existingList': {
+          'defaultValue': ['x']
+        },
+      }
+    };
+    final testCollection = TestCollectionRef(
+      firestore: fakeFirestore,
+      collectionId: 'items',
+      schema: schema,
+    );
+    final inputData = {
+      'existingList': ['y', 'z']
+    }; // Provide one value
+    final expectedData = {
+      'tags': ['a', 'b'],
+      'settings': {'theme': 'dark', 'level': 1},
+      'existingList': ['y', 'z'], // Should not be overwritten
+    };
+
+    final result = testCollection.applyDefaults(inputData);
+    expect(result, equals(expectedData));
   });
 }
