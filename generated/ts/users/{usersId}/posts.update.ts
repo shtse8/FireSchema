@@ -15,7 +15,7 @@ import {
   // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+import { BaseUpdateBuilder } from '@shtse8/fireschema-runtime'; // Adjust path/package name as needed
 
 // Local Imports
 import { PostsData } from './posts.types.js';
