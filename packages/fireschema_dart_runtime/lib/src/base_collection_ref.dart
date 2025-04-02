@@ -87,45 +87,17 @@ abstract class BaseCollectionRef<TData, TAddData> {
   /// Adds a new document with the given data, returning the new DocumentReference.
   /// Assumes TAddData is convertible to Map<String, dynamic>.
   Future<DocumentReference<TData>> add(TAddData data) async {
-    // It's expected that TAddData can be represented as a Map for Firestore.
-    // The toFirestore converter handles the final conversion from TData.
-    // We apply defaults to a Map representation before adding.
-    final rawData = data
-        as Map<String, dynamic>; // Requires TAddData to be Map or convertible
+    // Assume TAddData is Map<String, dynamic> or easily convertible for applying defaults.
+    final rawData = data as Map<String, dynamic>;
     final dataToWrite = applyDefaults(rawData);
-    // addDoc uses the converter automatically via ref
-    return ref.add(dataToWrite as TData); // Cast needed after applying defaults
-    // TODO: Review this cast - applyDefaults returns Map, but ref.add expects TData.
-    // The `toFirestore` converter should handle the Map from applyDefaults implicitly?
-    // Let's rethink: addDoc takes Map<String, dynamic>, not TData directly unless using the converted ref.
-    // If TAddData is NOT TData, we need to convert TAddData to Map, apply defaults,
-    // then let the converter handle it? Or does the user pass TData directly?
-    // Assuming user passes TAddData (potentially different from TData), convert to Map, apply defaults.
-    // The `ref.add()` *should* take TData, meaning we need TAddData -> TData conversion first?
-    // Let's assume TAddData is the input type, apply defaults to its Map form,
-    // and rely on `toFirestore` to handle the final object passed to `add`.
-    // This seems complex. Maybe `add` should expect TData directly?
-    // Or TAddData needs a `toMap()` method?
 
-    // Simpler approach: Assume TAddData is Map<String, dynamic> or similar for now.
-    // Let the `withConverter` handle the final object.
-    // This requires the `fromFirestore` / `toFirestore` to be robust.
-
-    // Revised approach: addDoc on the *unconverted* ref takes Map.
-    // Let's use the unconverted ref to add the map with defaults.
-    // final unconvertedRef = parentRef != null
-    //     ? parentRef!.collection(collectionId)
-    //     : firestore.collection(collectionId);
-    // DocumentReference rawDocRef = await unconvertedRef.add(dataToWrite);
-    // Return the converted doc ref:
-    // return doc(rawDocRef.id);
-    // This seems more correct.
-
+    // Use the *unconverted* reference to add the Map, then return the *converted* DocumentReference.
     final unconvertedRef = (parentRef != null
         ? parentRef!.collection(collectionId)
         : firestore.collection(collectionId));
     final rawDocRef = await unconvertedRef.add(dataToWrite);
-    return doc(rawDocRef.id); // Return the converted DocumentReference<TData>
+    return doc(rawDocRef
+        .id); // doc(id) returns the DocumentReference<TData> with converter
   }
 
   /// Sets the data for a document, overwriting existing data by default.
