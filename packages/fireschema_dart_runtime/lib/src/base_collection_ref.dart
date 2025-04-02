@@ -8,12 +8,17 @@ typedef FieldSchema
 typedef CollectionSchema
     = Map<String, FieldSchema>; // Example: {'fields': {'createdAt': {...}}}
 
+/// Abstract class for types that can be serialized to JSON for Firestore 'add' operations.
+abstract class ToJsonSerializable {
+  Map<String, Object?> toJson();
+}
+
 /// Abstract base class for FireSchema-generated Dart collection references.
 /// Provides common CRUD operations and path handling using `withConverter`.
 ///
 /// [TData] The type of the Dart model class for the document data.
 /// [TAddData] The type for data used when adding a new document (often the same as TData or a subset).
-abstract class BaseCollectionRef<TData, TAddData> {
+abstract class BaseCollectionRef<TData, TAddData extends ToJsonSerializable> {
   @protected
   final FirebaseFirestore firestore;
   @protected
@@ -88,8 +93,10 @@ abstract class BaseCollectionRef<TData, TAddData> {
   /// Assumes TAddData is convertible to Map<String, dynamic>.
   Future<DocumentReference<TData>> add(TAddData data) async {
     // Assume TAddData is Map<String, dynamic> or easily convertible for applying defaults.
-    final rawData = data as Map<String, dynamic>;
-    final dataToWrite = applyDefaults(rawData);
+    // Use the toJson method from the AddData type
+    final rawData = data.toJson();
+    // Ensure the map passed to applyDefaults matches its expected type
+    final dataToWrite = applyDefaults(Map<String, dynamic>.from(rawData));
 
     // Use the *unconverted* reference to add the Map, then return the *converted* DocumentReference.
     final unconvertedRef = (parentRef != null
@@ -124,7 +131,9 @@ abstract class BaseCollectionRef<TData, TAddData> {
 
   /// Helper to access a subcollection.
   @protected
-  SubCollectionType subCollection<SubTData, SubTAddData,
+  SubCollectionType subCollection<
+      SubTData,
+      SubTAddData extends ToJsonSerializable, // Add constraint here
       SubCollectionType extends BaseCollectionRef<SubTData, SubTAddData>>(
     String parentId,
     String subCollectionId,

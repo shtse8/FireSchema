@@ -14,7 +14,7 @@ import 'addresses_update.dart';
 
 
 /// Typed reference to the 'addresses' collection, extending BaseCollectionRef.
-class AddressesCollection extends BaseCollectionRef<AddressesData, Map<String, dynamic>> { // Using Map for AddData for now
+class AddressesCollection extends BaseCollectionRef<AddressesData, AddressesAddData> { // Use the specific AddData type
 
   /// Creates a AddressesCollection instance.
   AddressesCollection({

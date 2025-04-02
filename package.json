@@ -9,7 +9,7 @@
   "scripts": {
     "test": "jest",
     "clean": "npx rimraf dist",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && npm run build -ws --if-present && tsc",
     "prepublishOnly": "npm run build"
   },
   "keywords": [],

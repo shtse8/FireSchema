@@ -34,7 +34,7 @@ import '<%= relativeDataPath %>'; // Import subcollection data class
 <% } %>
 
 /// Typed reference to the '<%- collection.collectionId %>' collection, extending BaseCollectionRef.
-class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName %>Data, Map<String, dynamic>> { // Using Map for AddData for now
+class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName %>Data, <%- modelName %>AddData> { // Use the specific AddData type
 
   /// Creates a <%- modelName %>Collection instance.
   <%- modelName %>Collection({

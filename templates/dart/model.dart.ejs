@@ -143,4 +143,41 @@ class <%- modelName %>Data {
   }
 
   // TODO: Add toString, equals, hashCode implementations?
+
+
+/// Represents the data structure for adding a new '<%- modelName %>' document.
+/// Fields with default values (like server timestamps) or optional fields are nullable.
+class <%- modelName %>AddData {
+<% Object.values(collection.fields).forEach(field => { -%>
+<%   const dartType = getDartType(field, options); %>
+<%   // Determine if the field should be required in AddData
+   // Required if: it's marked required in schema AND has no default value
+   // Optional if: it's not required OR it has a default value
+   const isRequiredForAdd = field.required && !field.defaultValue;
+   const isOptionalForAdd = !field.required || !!field.defaultValue;
+%>
+  final <%- dartType %><%- isOptionalForAdd ? '?' : '' %> <%- field.fieldName %>;
+<% }); -%>
+
+  const <%- modelName %>AddData({
+<% Object.values(collection.fields).forEach(field => { -%>
+<%   const isRequiredForAdd = field.required && !field.defaultValue; %>
+    <%- isRequiredForAdd ? 'required ' : '' %>this.<%- field.fieldName %>,
+<% }); -%>
+  });
+
+  /// Converts this instance to a Map suitable for Firestore add operation.
+  /// Excludes fields that are null to avoid overwriting server-generated values.
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{};
+<% Object.values(collection.fields).forEach(field => { -%>
+    // Only include non-null values in the map for 'add'
+    if (<%- field.fieldName %> != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['<%- field.fieldName %>'] = <%- field.fieldName %>;
+    }
+<% }); -%>
+    return map;
+  }
+}
 }

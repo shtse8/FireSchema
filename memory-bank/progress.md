@@ -62,9 +62,6 @@
 - **Testing Strategy:**
   - **Shifted from runtime integration tests to generator output snapshot
     tests** due to persistent environment/tooling issues.
-  - Review generated TypeScript snapshots (`src/__tests__/__snapshots__/`).
-  - Review generated TypeScript and Dart snapshots
-    (`src/__tests__/__snapshots__/`).
   - Ensure adequate test coverage for generator edge cases/options.
 - **Runtime & Generator Refinements:**
   - Address TODOs within runtime base classes (e.g., `add` method type handling,
@@ -81,8 +78,9 @@
 
 **Current Status:** Runtime refactoring is complete. Build system refined. Unit
 tests for runtime packages are passing. **Generator snapshot testing for
-TypeScript and Dart output are implemented and passing.** Integration testing
-blocker is resolved by shifting strategy.
+TypeScript and Dart output is implemented, passing, and the snapshots have been
+reviewed and confirmed correct.** Integration testing blocker is resolved by
+shifting strategy.
 
 **Known Issues:**
 

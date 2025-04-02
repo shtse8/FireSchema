@@ -92,4 +92,30 @@ class TagsData {
   }
 
   // TODO: Add toString, equals, hashCode implementations?
+
+
+/// Represents the data structure for adding a new 'Tags' document.
+/// Fields with default values (like server timestamps) or optional fields are nullable.
+class TagsAddData {
+
+
+  final String label;
+
+  const TagsAddData({
+
+    required this.label,
+  });
+
+  /// Converts this instance to a Map suitable for Firestore add operation.
+  /// Excludes fields that are null to avoid overwriting server-generated values.
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{};
+    // Only include non-null values in the map for 'add'
+    if (label != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['label'] = label;
+    }
+    return map;
+  }
+}
 }

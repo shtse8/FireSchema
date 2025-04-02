@@ -139,4 +139,50 @@ class PostsData {
   }
 
   // TODO: Add toString, equals, hashCode implementations?
+
+
+/// Represents the data structure for adding a new 'Posts' document.
+/// Fields with default values (like server timestamps) or optional fields are nullable.
+class PostsAddData {
+
+
+  final String title;
+
+
+  final String? content;
+
+
+  final Timestamp? publishedAt;
+
+  const PostsAddData({
+
+    required this.title,
+
+    this.content,
+
+    this.publishedAt,
+  });
+
+  /// Converts this instance to a Map suitable for Firestore add operation.
+  /// Excludes fields that are null to avoid overwriting server-generated values.
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{};
+    // Only include non-null values in the map for 'add'
+    if (title != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['title'] = title;
+    }
+    // Only include non-null values in the map for 'add'
+    if (content != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['content'] = content;
+    }
+    // Only include non-null values in the map for 'add'
+    if (publishedAt != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['publishedAt'] = publishedAt;
+    }
+    return map;
+  }
+}
 }

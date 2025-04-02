@@ -14,7 +14,7 @@ import 'posts_update.dart';
 
 
 /// Typed reference to the 'posts' collection, extending BaseCollectionRef.
-class PostsCollection extends BaseCollectionRef<PostsData, Map<String, dynamic>> { // Using Map for AddData for now
+class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> { // Use the specific AddData type
 
   /// Creates a PostsCollection instance.
   PostsCollection({

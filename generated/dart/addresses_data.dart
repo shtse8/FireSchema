@@ -138,4 +138,50 @@ class AddressesData {
   }
 
   // TODO: Add toString, equals, hashCode implementations?
+
+
+/// Represents the data structure for adding a new 'Addresses' document.
+/// Fields with default values (like server timestamps) or optional fields are nullable.
+class AddressesAddData {
+
+
+  final String street;
+
+
+  final String city;
+
+
+  final String? zip;
+
+  const AddressesAddData({
+
+    required this.street,
+
+    required this.city,
+
+    this.zip,
+  });
+
+  /// Converts this instance to a Map suitable for Firestore add operation.
+  /// Excludes fields that are null to avoid overwriting server-generated values.
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{};
+    // Only include non-null values in the map for 'add'
+    if (street != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['street'] = street;
+    }
+    // Only include non-null values in the map for 'add'
+    if (city != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['city'] = city;
+    }
+    // Only include non-null values in the map for 'add'
+    if (zip != null) {
+      // TODO: Handle nested toJson if needed for complex types
+      map['zip'] = zip;
+    }
+    return map;
+  }
+}
 }

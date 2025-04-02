@@ -35,7 +35,33 @@ class TestData {
 }
 
 // For add operations, ID is not present, createdAt might be FieldValue
-typedef TestAddData = Map<String, dynamic>;
+// Class for adding data, implementing the required interface
+class TestAddData implements ToJsonSerializable {
+  final String name;
+  final int? value;
+  // Can accept DateTime or FieldValue for server timestamp during add
+  final dynamic createdAt; // Use dynamic to allow DateTime or FieldValue
+
+  TestAddData({required this.name, this.value, this.createdAt});
+
+  @override
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{
+      'name': name,
+    };
+    if (value != null) {
+      map['value'] = value;
+    }
+    // Handle both DateTime and FieldValue for createdAt
+    if (createdAt is DateTime) {
+      map['createdAt'] = Timestamp.fromDate(createdAt as DateTime);
+    } else if (createdAt != null) {
+      // Assume it's a FieldValue (like serverTimestamp())
+      map['createdAt'] = createdAt;
+    }
+    return map;
+  }
+}
 
 // --- Firestore Converters ---
 TestData _fromFirestore(
@@ -259,7 +285,7 @@ void main() {
         schema: schema,
       );
       // Input data missing 'createdAt' and 'value'
-      final inputData = {'name': 'New Item'};
+      final inputData = TestAddData(name: 'New Item'); // Use TestAddData class
 
       final newDocRef = await testCollection.add(inputData);
       expect(newDocRef, isA<DocumentReference<TestData>>());
@@ -280,7 +306,8 @@ void main() {
         firestore: fakeFirestore,
         collectionId: 'items',
       );
-      final inputData = {'name': 'Another Item'};
+      final inputData =
+          TestAddData(name: 'Another Item'); // Use TestAddData class
       final newDocRef = await testCollection.add(inputData);
 
       expect(newDocRef, isA<DocumentReference<TestData>>());

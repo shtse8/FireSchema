@@ -21,7 +21,7 @@ import './items/tags_data.dart'; // Import subcollection data class
 
 
 /// Typed reference to the 'items' collection, extending BaseCollectionRef.
-class ItemsCollection extends BaseCollectionRef<ItemsData, Map<String, dynamic>> { // Using Map for AddData for now
+class ItemsCollection extends BaseCollectionRef<ItemsData, ItemsAddData> { // Use the specific AddData type
 
   /// Creates a ItemsCollection instance.
   ItemsCollection({

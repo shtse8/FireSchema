@@ -21,7 +21,7 @@ import './users/posts_data.dart'; // Import subcollection data class
 
 
 /// Typed reference to the 'users' collection, extending BaseCollectionRef.
-class UsersCollection extends BaseCollectionRef<UsersData, Map<String, dynamic>> { // Using Map for AddData for now
+class UsersCollection extends BaseCollectionRef<UsersData, UsersAddData> { // Use the specific AddData type
 
   /// Creates a UsersCollection instance.
   UsersCollection({

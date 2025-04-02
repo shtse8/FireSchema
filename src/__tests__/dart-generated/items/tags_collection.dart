@@ -14,7 +14,7 @@ import 'tags_update.dart';
 
 
 /// Typed reference to the 'tags' collection, extending BaseCollectionRef.
-class TagsCollection extends BaseCollectionRef<TagsData, Map<String, dynamic>> { // Using Map for AddData for now
+class TagsCollection extends BaseCollectionRef<TagsData, TagsAddData> { // Use the specific AddData type
 
   /// Creates a TagsCollection instance.
   TagsCollection({
