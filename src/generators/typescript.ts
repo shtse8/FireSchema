@@ -6,9 +6,9 @@ import { FirestoreODMConfig, OutputTarget, TypeScriptOptions } from '../types/co
 import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition, FieldType } from '../types/schema';
 import { capitalizeFirstLetter, camelToPascalCase } from '../utils/naming';
 // Runtime Imports (adjust path as needed for monorepo structure)
-import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Assuming runtime is linked/built
-import { BaseQueryBuilder } from '@fireschema/ts-runtime';
-import { BaseUpdateBuilder } from '@fireschema/ts-runtime';
+import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@shtse8/fireschema-runtime'; // Assuming runtime is linked/built
+import { BaseQueryBuilder } from '@shtse8/fireschema-runtime';
+import { BaseUpdateBuilder } from '@shtse8/fireschema-runtime';
 
 interface TemplateStrings {
     model: string;

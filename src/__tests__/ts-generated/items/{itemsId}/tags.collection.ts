@@ -15,7 +15,7 @@ import {
   // Basic CRUD functions (collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc) are handled by base
 } from 'firebase/firestore';
 // Runtime Imports
-import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@fireschema/ts-runtime'; // Removed FirestoreFunctions import
+import { BaseCollectionRef, CollectionSchema, FieldSchema } from '@shtse8/fireschema-runtime'; // Removed FirestoreFunctions import
 
 // Local Imports
 import { TagsData } from './tags.types.js';
