@@ -478,6 +478,33 @@ if (updatedUserData?.primaryAddressRef != null) {
 }
 ```
 
+### Configuration Options
+
+- **`schema`** (Required, string): Path to your `firestore.schema.json` file,
+  relative to the config file's location.
+- **`outputs`** (Required, array): An array of output target objects.
+  - **`language`** (Required, string): Target language (`"typescript"` or
+    `"dart"`).
+  - **`outputDir`** (Required, string): Output directory for the generated code,
+    relative to the config file's location.
+  - **`options`** (Optional, object): Language-specific options.
+    - **TypeScript Options:**
+      - `dateTimeType` (Optional, string, default: `"Timestamp"`): Specifies
+        whether to use `Timestamp` (from `firebase/firestore`) or JavaScript
+        `Date` for timestamp fields. Using `Date` requires manual handling
+        during Firestore operations.
+    - **Dart Options:**
+      - `nullSafety` (Optional, boolean, default: `true`): Whether to generate
+        null-safe Dart code.
+  - **`package`** (Optional, object): If provided, generates a basic
+    `package.json` (for TS) or `pubspec.yaml` (for Dart) in the `outputDir`.
+    - `name` (Required, string): The package name.
+    - `version` (Optional, string, default: `"0.1.0"`): The package version.
+    - `description` (Optional, string): The package description.
+- **`generatorOptions`** (Optional, object): Global options for the generator.
+  - `logLevel` (Optional, string, default: `"info"`): Controls the verbosity of
+    console output (`"verbose"`, `"info"`, `"warn"`, `"error"`).
+
 ## Schema Definition (`firestore.schema.json`)
 
 FireSchema uses JSON Schema (`draft-07`) to define collections and fields.
