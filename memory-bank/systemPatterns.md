@@ -22,7 +22,7 @@ graph LR
     subgraph User Project
         K --> L[Generated TS Files];
         K --> M[Generated Dart Files];
-        L -- imports & extends --> TS_RT[@fireschema/ts-runtime];
+        L -- imports & extends --> TS_RT[@shtse8/fireschema-runtime];
         M -- imports & extends --> DART_RT[fireschema_dart_runtime];
         UserCodeTS[User TS Code] --> L;
         UserCodeDart[User Dart Code] --> M;
@@ -79,12 +79,13 @@ graph LR
    the runtime libraries. The generated code extends these base builders,
    providing schema-specific, type-safe methods (e.g., `where<FieldName>`,
    `set<FieldName>`) that delegate to the base class's implementation.
-9. **Runtime Libraries:** Separate packages (`@fireschema/ts-runtime`,
+9. **Runtime Libraries:** Separate packages (`@shtse8/fireschema-runtime`,
    `fireschema_dart_runtime`) contain the reusable base classes and logic,
    allowing generated code to be smaller and updates to Firestore interaction
    logic to be centralized.
 10. **CI/CD Publishing (GitHub Actions):** An automated workflow
     (`.github/workflows/publish.yml`) triggers on version tag pushes (`v*.*.*`).
     It builds the monorepo, runs tests, and publishes the CLI tool and TS
-    runtime to npm (using `NPM_TOKEN` secret) and the Dart runtime to pub.dev
-    (using OIDC authentication via a reusable workflow).
+    runtime (`@shtse8/fireschema-runtime`) to npm (using `NPM_TOKEN` secret and
+    `--access public`) and the Dart runtime to pub.dev (using OIDC
+    authentication via a reusable workflow).

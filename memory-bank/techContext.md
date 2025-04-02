@@ -31,10 +31,11 @@
 - **Purpose:** Contain the common, reusable logic for interacting with Firestore
   (base classes for collection references, query builders, update builders).
   Generated code imports and extends/uses these base classes.
-- **TypeScript Runtime (`@fireschema/ts-runtime`):**
+- **TypeScript Runtime (`@shtse8/fireschema-runtime`):**
   - Located in `packages/fireschema-ts-runtime`.
   - Provides `BaseCollectionRef`, `BaseQueryBuilder`, `BaseUpdateBuilder`.
-  - Published as an npm package.
+  - Published as an npm package (`@shtse8/fireschema-runtime`). Requires
+    `--access public` flag during `npm publish`.
   - **Peer Dependency:** `firebase` (^9.0.0 || ^10.0.0 || ^11.0.0).
 - **Dart Runtime (`fireschema_dart_runtime`):**
   - Located in `packages/fireschema_dart_runtime`.
@@ -46,7 +47,7 @@
 
 1. **TypeScript:**
    - **Dependencies:** Relies on the `firebase` package AND the
-     `@fireschema/ts-runtime` package being installed in the user's project.
+     `@shtse8/fireschema-runtime` package being installed in the user's project.
    - **Output Files (per collection):**
      - `[collection].types.ts`: Model interface (`<ModelName>Data`).
      - `[collection].collection.ts`: Collection reference class
@@ -56,7 +57,7 @@
      - `[collection].update.ts`: Update builder class
        (`<ModelName>UpdateBuilder`) extending `BaseUpdateBuilder`.
    - **Core File:** No longer generated (`core.ts` removed). Runtime logic is in
-     `@fireschema/ts-runtime`.
+     `@shtse8/fireschema-runtime`.
    - **Naming:** PascalCase for classes, camelCase for filenames (by default).
    - **Subcollections:** Generated in nested directories reflecting the path
      (e.g., `users/{userId}/posts.collection.ts`). Parent collection class
@@ -88,7 +89,7 @@
   dependencies, running scripts, building). This provides faster performance
   during development.
 - **User Compatibility:** The published CLI tool (`fireschema`) and runtime
-  packages (`@fireschema/ts-runtime`) remain fully compatible with standard
+  packages (`@shtse8/fireschema-runtime`) remain fully compatible with standard
   Node.js environments (npm, yarn, pnpm). Users do not need Bun installed.
 - TypeScript for core tool and TS runtime development.
 - Dart SDK for Dart runtime development.
@@ -96,7 +97,7 @@
 **Testing:**
 
 - **Runtime Unit Tests:**
-  - `@fireschema/ts-runtime`: Tested using Jest within its own package
+  - `@shtse8/fireschema-runtime`: Tested using Jest within its own package
     (`packages/fireschema-ts-runtime`).
   - `fireschema_dart_runtime`: Tested using `flutter test` and
     `fake_cloud_firestore` within its own package
@@ -116,8 +117,8 @@
   handles automated build, test, and publishing.
 - **Trigger:** Workflow is triggered by pushing a git tag matching the pattern
   `v[0-9]+.[0-9]+.[0-9]+` (e.g., `v0.1.1`).
-- **npm Publishing (`fireschema`, `@fireschema/ts-runtime`):
-  - Uses `npm publish`.
+- **npm Publishing (`@shtse8/fireschema`, `@shtse8/fireschema-runtime`):
+  - Uses `npm publish --access public` (required for scoped public packages).
   - Requires `NPM_TOKEN` secret configured in GitHub repository settings.
 - **pub.dev Publishing (`fireschema_dart_runtime`):
   - Uses the official `dart-lang/setup-dart/.github/workflows/publish.yml`

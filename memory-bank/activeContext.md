@@ -1,15 +1,15 @@
 # Active Context: FireSchema (CI/CD Setup)
 
 **Current Focus:** Major refactoring to use separate, installable runtime
-libraries (`@fireschema/ts-runtime`, `fireschema_dart_runtime`) instead of
-generating all logic directly.
+libraries (`@shtse8/fireschema-runtime`, `fireschema_dart_runtime`) instead of
+generating all logic directly. **(Completed)**
 
 **Recent Changes (Runtime Refactoring):**
 
 - **Phase 1: Setup & Runtime Library Creation**
-  - Established package structure and config files (`package.json`,
-    `tsconfig.json`, `pubspec.yaml`) for both `@fireschema/ts-runtime` and
-    `fireschema_dart_runtime`.
+  - Established package structure and config files (`package.json` updated to
+    use `@shtse8` scope, `tsconfig.json`, `pubspec.yaml`) for both
+    `@shtse8/fireschema-runtime` and `fireschema_dart_runtime`.
   - Created initial base classes (`BaseCollectionRef`, `BaseQueryBuilder`,
     `BaseUpdateBuilder`) in both runtime packages, extracting common logic from
     old templates.
@@ -23,7 +23,7 @@ generating all logic directly.
     imports, commenting core generation, updating pubspec.yaml generation).
   - Updated TypeScript EJS templates (`collectionRef.ejs`, `queryBuilder.ejs`,
     `updateBuilder.ejs`) to import and extend/use base classes from
-    `@fireschema/ts-runtime`.
+    `@shtse8/fireschema-runtime`.
   - Updated Dart EJS templates (`collectionRef.dart.ejs`,
     `queryBuilder.dart.ejs`, `updateBuilder.dart.ejs`) to import and extend/use
     base classes from `fireschema_dart_runtime`.
@@ -132,15 +132,29 @@ generating all logic directly.
     publishing (`dart-lang/setup-dart` reusable workflow).
   - Configured automated publishing settings on pub.dev for
     `fireschema_dart_runtime`.
-  - Bumped versions to 0.1.1 for testing.
-  - Successfully triggered CI/CD workflow by pushing `v0.1.1` tag, publishing
-    npm packages and Dart package update.
+  - **Debugged CI/CD Workflow:**
+    - Fixed workflow syntax errors.
+    - Renamed npm packages to use `@shtse8` scope (`@shtse8/fireschema`,
+      `@shtse8/fireschema-runtime`) due to publishing constraints.
+    - Updated all internal references (`package.json`, build scripts, generated
+      code imports, generator source) to use new scoped names.
+    - Ensured `bun.lockb` was regenerated and committed after dependency
+      changes.
+    - Added `--access public` flag to `npm publish` commands for scoped
+      packages.
+    - Updated Dart `CHANGELOG.md` before publishing.
+    - Resolved version conflicts by incrementing versions (0.1.1 -> 0.1.2 ->
+      0.1.3).
+  - Successfully published version `0.1.3` of all packages
+    (`@shtse8/fireschema`, `@shtse8/fireschema-runtime`,
+    `fireschema_dart_runtime`) via CI/CD by pushing tag `v0.1.3`.
 
 **Current Status & Next Steps:**
 
-- **CI/CD:** Automated publishing workflow via GitHub Actions is set up and
-  functional for tags matching `v*.*.*`. Requires `NPM_TOKEN` secret for npm
-  publishing; uses OIDC for pub.dev.
+- **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
+  debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`
+  secret for npm publishing (using `--access public` for scoped packages); uses
+  OIDC for pub.dev (requires `CHANGELOG.md` update).
 - **Testing:** Maintain existing unit tests for runtime packages and snapshot
   tests for generator output.
 - **Runtime Refinements:**
@@ -156,4 +170,4 @@ generating all logic directly.
 - **Documentation:**
   - Add more detailed documentation (advanced usage, schema details).
 - **Update other Memory Bank files (`progress.md`, `techContext.md`,
-  `systemPatterns.md`).**
+  `systemPatterns.md`).** (DONE)

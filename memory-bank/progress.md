@@ -10,7 +10,7 @@
     query builders, update builders) based on the schema.
   - Subcollection generation works correctly for both languages.
 - **Runtime Architecture:**
-  - Separate, installable runtime libraries (`@fireschema/ts-runtime`,
+  - Separate, installable runtime libraries (`@shtse8/fireschema-runtime`,
     `fireschema_dart_runtime`) contain base logic.
   - Generated code correctly imports and extends/uses these runtime libraries.
   - Monorepo structure with npm workspaces is functional.
@@ -44,7 +44,7 @@
   - Uses OIDC for secure pub.dev publishing (no token secret needed).
   - Requires `NPM_TOKEN` secret for npm publishing.
   - Initial version (0.1.0) of Dart runtime published manually.
-  - CI/CD workflow successfully tested by publishing version 0.1.1.
+  - CI/CD workflow successfully debugged and used to publish version 0.1.3.
 
 **What's Left (Next Steps):**
 
@@ -73,6 +73,7 @@ generated code for both TypeScript and Dart is clean and buildable according to
 linters and compilers.
 
 **Automated publishing via GitHub Actions is set up and functional.** Packages
+(`@shtse8/fireschema`, `@shtse8/fireschema-runtime`, `fireschema_dart_runtime`)
 are published to npm and pub.dev when a version tag (e.g., `v0.1.1`) is pushed.
 
 **Known Issues:**
