@@ -218,6 +218,17 @@ generating all logic directly. **(Completed)**
     re-throw errors after logging them during file generation (model,
     collectionRef, etc.) and package file generation (`package.json`,
     `pubspec.yaml`). This ensures generation halts properly on critical errors.
+- **Dart Model Validation Assertions (Attempt 2):**
+  - Attempted to fix EJS compilation errors by refactoring the Dart model
+    template (`templates/dart/model.dart.ejs`) to separate JS logic from EJS
+    output tags.
+  - Removed `const` from main data class constructor and `UpdateData`
+    constructor.
+  - Moved assertion generation logic into the constructor body.
+  - **Outcome:** EJS compilation errors persisted, indicating deeper issues with
+    the template structure or EJS parsing of the complex logic. Unable to fully
+    resolve Dart assertion generation for `RegExp` due to template complexity
+    and tool limitations.
 
 - **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
   debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`

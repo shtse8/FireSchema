@@ -55,9 +55,10 @@
     done], read-only [AddData done, UpdateBuilder done]).
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema (Dart: string
-    `minLength`, `maxLength`, `pattern`; number `minimum`, `maximum` via
-    `assert`; TS: string `minLength`, `maxLength`, `pattern`; number `minimum`,
-    `maximum` via TSDoc).
+    `minLength`, `maxLength`; number `minimum`, `maximum` via `assert`; TS:
+    string `minLength`, `maxLength`, `pattern`; number `minimum`, `maximum` via
+    TSDoc). (Note: Dart `pattern` assertion via `RegExp` currently blocked by
+    EJS template issues).
   - Improve error handling and reporting during generation (re-throw errors on
     file/package generation failures).
 - **Documentation & Publishing:**
