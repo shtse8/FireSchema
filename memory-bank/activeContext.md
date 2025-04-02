@@ -1,4 +1,4 @@
-# Active Context: FireSchema (Runtime Refactoring In Progress)
+# Active Context: FireSchema (CI/CD Setup)
 
 **Current Focus:** Major refactoring to use separate, installable runtime
 libraries (`@fireschema/ts-runtime`, `fireschema_dart_runtime`) instead of
@@ -119,16 +119,30 @@ generating all logic directly.
     test failures were due to cleanup (`EBUSY`) and obsolete snapshots, not code
     errors.
 
+- **Phase 8: CI/CD Setup & Testing**
+  - Created initial GitHub Actions workflow (`.github/workflows/publish.yml`)
+    for publishing.
+  - Added versioning steps (root, TS runtime, Dart runtime).
+  - Created README files for TS and Dart runtime packages.
+  - Added LICENSE and CHANGELOG files for Dart runtime package.
+  - Added `repository` field to Dart runtime `pubspec.yaml`.
+  - Manually published initial version (0.1.0) of `fireschema_dart_runtime` to
+    pub.dev (required for first publish).
+  - Updated GitHub Actions workflow to use recommended OIDC method for Dart
+    publishing (`dart-lang/setup-dart` reusable workflow).
+  - Configured automated publishing settings on pub.dev for
+    `fireschema_dart_runtime`.
+  - Bumped versions to 0.1.1 for testing.
+  - Successfully triggered CI/CD workflow by pushing `v0.1.1` tag, publishing
+    npm packages and Dart package update.
+
 **Current Status & Next Steps:**
 
-- **Testing:**
-  - Snapshots updated. Review changes in `src/__tests__/__snapshots__/`.
-  - Maintain unit tests for runtime packages.
-  - Note: IDE analysis errors may persist for `src/__tests__/dart-generated` due
-    to Dart path resolution limitations from that specific directory, but the
-    generated code structure is correct per snapshot tests.
-- **Testing (General):**
-  - Maintain existing unit tests for runtime packages.
+- **CI/CD:** Automated publishing workflow via GitHub Actions is set up and
+  functional for tags matching `v*.*.*`. Requires `NPM_TOKEN` secret for npm
+  publishing; uses OIDC for pub.dev.
+- **Testing:** Maintain existing unit tests for runtime packages and snapshot
+  tests for generator output.
 - **Runtime Refinements:**
   - Address TODOs within runtime base classes (e.g., `add` method type handling,
     more default types).
@@ -139,7 +153,7 @@ generating all logic directly.
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema.
   - Improve error handling and reporting during generation.
-- **Documentation & Publishing:**
+- **Documentation:**
   - Add more detailed documentation (advanced usage, schema details).
-  - Prepare packages for publishing (consider build steps, versioning).
-- **Update `progress.md`**.
+- **Update other Memory Bank files (`progress.md`, `techContext.md`,
+  `systemPatterns.md`).**

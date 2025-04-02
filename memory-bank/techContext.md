@@ -109,3 +109,23 @@
     CLI with a sample schema/config and compare the generated file contents
     against stored snapshots (`src/__tests__/__snapshots__/`).
   - **Current:** Snapshot tests implemented for TypeScript output.
+
+**Publishing & CI/CD:**
+
+- **Automation:** GitHub Actions workflow (`.github/workflows/publish.yml`)
+  handles automated build, test, and publishing.
+- **Trigger:** Workflow is triggered by pushing a git tag matching the pattern
+  `v[0-9]+.[0-9]+.[0-9]+` (e.g., `v0.1.1`).
+- **npm Publishing (`fireschema`, `@fireschema/ts-runtime`):
+  - Uses `npm publish`.
+  - Requires `NPM_TOKEN` secret configured in GitHub repository settings.
+- **pub.dev Publishing (`fireschema_dart_runtime`):
+  - Uses the official `dart-lang/setup-dart/.github/workflows/publish.yml`
+    reusable workflow.
+  - Authenticates using OpenID Connect (OIDC) with pub.dev.
+  - Requires automated publishing to be configured on the package's admin page
+    on pub.dev (Repository: `shtse8/FireSchema`, Tag pattern: `v{{version}}`,
+    Event: push).
+  - **Manual First Publish:** The _first_ version of the Dart package must be
+    published manually using `dart pub publish` before the automated workflow
+    can publish updates.

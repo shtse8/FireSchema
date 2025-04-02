@@ -1,4 +1,4 @@
-# Progress: FireSchema (Runtime Refactoring Complete)
+# Progress: FireSchema (CI/CD Setup Complete)
 
 **What Works:**
 
@@ -34,7 +34,17 @@
   - Memory Bank files (`activeContext.md`, `techContext.md`,
     `systemPatterns.md`) updated.
   - `README.md` updated with current installation/usage.
+  - Runtime package READMEs created (`packages/*/README.md`).
+  - Dart runtime LICENSE and CHANGELOG created.
   - Example files (`examples/`) are up-to-date.
+- **Publishing & CI/CD:**
+  - GitHub Actions workflow (`.github/workflows/publish.yml`) created for
+    automated build, test, and publish to npm/pub.dev on version tag push
+    (`v*.*.*`).
+  - Uses OIDC for secure pub.dev publishing (no token secret needed).
+  - Requires `NPM_TOKEN` secret for npm publishing.
+  - Initial version (0.1.0) of Dart runtime published manually.
+  - CI/CD workflow successfully tested by publishing version 0.1.1.
 
 **What's Left (Next Steps):**
 
@@ -51,6 +61,7 @@
 - **Documentation & Publishing:**
   - Add more detailed documentation (advanced usage, schema details).
   - Prepare packages for publishing (consider build steps, versioning).
+    **(DONE)**
 
 **Current Status:**
 
@@ -60,6 +71,9 @@ testing strategy has successfully shifted to **unit tests for runtimes** and
 **snapshot tests for generator output**. All existing tests are passing, and the
 generated code for both TypeScript and Dart is clean and buildable according to
 linters and compilers.
+
+**Automated publishing via GitHub Actions is set up and functional.** Packages
+are published to npm and pub.dev when a version tag (e.g., `v0.1.1`) is pushed.
 
 **Known Issues:**
 

@@ -83,3 +83,8 @@ graph LR
    `fireschema_dart_runtime`) contain the reusable base classes and logic,
    allowing generated code to be smaller and updates to Firestore interaction
    logic to be centralized.
+10. **CI/CD Publishing (GitHub Actions):** An automated workflow
+    (`.github/workflows/publish.yml`) triggers on version tag pushes (`v*.*.*`).
+    It builds the monorepo, runs tests, and publishes the CLI tool and TS
+    runtime to npm (using `NPM_TOKEN` secret) and the Dart runtime to pub.dev
+    (using OIDC authentication via a reusable workflow).
