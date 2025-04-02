@@ -35,13 +35,18 @@
   example config and runtime-refactored generator (Dart errors resolved).
 - **Build process refined** in root `package.json` for better reliability
   (clean, build workspaces, build root).
+- **Basic test infrastructure set up** for both runtime packages:
+  - Jest configured for `@fireschema/ts-runtime`.
+  - Dart `test` package confirmed for `fireschema_dart_runtime`.
+  - Placeholder tests pass in both packages.
 
 **What's Left (High Level):**
 
 - **Refactor to Runtime Libraries (In Progress):**
   - Build/Link runtime packages correctly within the monorepo (Build process
     improved, linking seems okay via `npm install`).
-  - Test generated code with runtime libraries (integration tests).
+  - Test generated code with runtime libraries (integration tests -
+    infrastructure ready).
   - ~~Update `README.md` and examples.~~ (Done)
   - Refine runtime base class implementations (e.g., Dart `add` method, schema
     passing).
@@ -49,16 +54,18 @@
 - Refinements to Dart `fromJson`/`toJson` for complex nested types.
 - Refinements to `AddData`/`UpdateData` types (especially Dart
   defaults/read-only).
-- Comprehensive testing (unit tests for runtimes, integration tests).
+- Comprehensive testing (unit tests for runtimes - infrastructure ready,
+  integration tests - infrastructure ready).
 - Robust error handling and reporting.
 - Documentation improvements (advanced usage, schema details).
 
 **Current Status:** The core code structure for the runtime libraries and the
 updated generators/templates is in place. The build process has been refined,
 documentation (`README.md`) and examples (`examples/`) have been updated, and
-the generator successfully produces code using the runtime approach. The next
-steps involve testing the generated output with the runtime libraries and
-addressing integration.
+the generator successfully produces code using the runtime approach. Basic test
+infrastructure is now in place for the runtime libraries. The next steps involve
+writing actual unit and integration tests, and addressing further runtime
+refinements.
 
 **Known Issues:**
 
