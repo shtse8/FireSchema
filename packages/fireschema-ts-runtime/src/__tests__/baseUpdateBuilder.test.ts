@@ -1,3 +1,4 @@
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { BaseUpdateBuilder } from '../baseUpdateBuilder'; // Adjust path as needed
 import {
   Firestore,
@@ -14,19 +15,16 @@ import {
 } from 'firebase/firestore';
 
 // Mock the 'firebase/firestore' module for update functions
-const mockDoc = jest.fn();
-const mockUpdateDoc = jest.fn();
+const mockDoc = jest.fn<(...args: any[]) => DocumentReference<TestData>>();
+const mockUpdateDoc = jest.fn<(...args: any[]) => Promise<void>>();
 const mockServerTimestamp = jest.fn(() => 'mockServerTimestampValue');
 const mockDeleteField = jest.fn(() => 'mockDeleteFieldValue');
-const mockArrayUnion = jest.fn((...args) => ({ type: 'arrayUnion', args }));
-const mockArrayRemove = jest.fn((...args) => ({ type: 'arrayRemove', args }));
-const mockIncrement = jest.fn((value) => ({ type: 'increment', value }));
+const mockArrayUnion = jest.fn((...args: any[]) => ({ type: 'arrayUnion', args }));
+const mockArrayRemove = jest.fn((...args: any[]) => ({ type: 'arrayRemove', args }));
+const mockIncrement = jest.fn((value: number) => ({ type: 'increment', value }));
 
 jest.mock('firebase/firestore', () => ({
-  // Keep mocks from other tests if needed, or re-declare
-  collection: jest.fn().mockReturnValue({ id: 'mockCollId', path: 'coll' }), // Basic mock
-
-  // Update Mocks
+  collection: jest.fn().mockReturnValue({ id: 'mockCollId', path: 'coll' }),
   doc: (...args: any[]) => mockDoc(...args),
   updateDoc: (...args: any[]) => mockUpdateDoc(...args),
   serverTimestamp: () => mockServerTimestamp(),
@@ -34,8 +32,6 @@ jest.mock('firebase/firestore', () => ({
   arrayUnion: (...args: any[]) => mockArrayUnion(...args),
   arrayRemove: (...args: any[]) => mockArrayRemove(...args),
   increment: (value: number) => mockIncrement(value),
-
-  // Add other necessary exports
 }));
 
 // Define dummy types for testing
@@ -51,43 +47,37 @@ interface TestData extends DocumentData {
   };
 }
 
-// Concrete implementation for testing (assuming BaseUpdateBuilder might be abstract)
+// Concrete implementation for testing
 class TestUpdateBuilder extends BaseUpdateBuilder<TestData> {
   constructor(docRef: DocumentReference<TestData>) {
-    super(docRef); // Pass only docRef
+    super(docRef);
   }
-  // Implement abstract methods if any
 }
 
 describe('BaseUpdateBuilder', () => {
-  // let mockFirestore: Firestore; // Firestore instance not needed by BaseUpdateBuilder constructor
   let mockDocumentRef: DocumentReference<TestData>;
   let testUpdateBuilder: TestUpdateBuilder;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // mockFirestore = {} as Firestore; // Not needed
-    // Use the mockDoc defined in the jest.mock setup
     mockDocumentRef = { id: 'testDoc123', path: 'testItems/testDoc123' } as DocumentReference<TestData>;
-    mockDoc.mockReturnValue(mockDocumentRef); // Ensure doc() returns our mock ref
+    mockDoc.mockReturnValue(mockDocumentRef); // Ensure doc() mock returns this if used
 
-    // Pass the *mock* docRef to the constructor
     testUpdateBuilder = new TestUpdateBuilder(mockDocumentRef);
   });
 
-  it('should initialize with the correct firestore and document reference', () => {
+  it('should initialize with the correct document reference', () => {
     expect(testUpdateBuilder).toBeInstanceOf(BaseUpdateBuilder);
-    // expect((testUpdateBuilder as any).firestore).toBe(mockFirestore); // Property doesn't exist on base class
-    expect((testUpdateBuilder as any)._docRef).toBe(mockDocumentRef); // Check the internal property name _docRef
-    expect((testUpdateBuilder as any)._updateData).toEqual({}); // Update data should be empty initially
-  }); // <-- Add missing closing brace and parenthesis
+    expect((testUpdateBuilder as any)._docRef).toBe(mockDocumentRef);
+    expect((testUpdateBuilder as any)._updateData).toEqual({});
+  });
 
   // --- Update Accumulation Tests ---
 
   it('should add a field update using _set', () => {
     const result = (testUpdateBuilder as any)._set('name', 'New Name');
-    expect(result).toBe(testUpdateBuilder); // Returns self
+    expect(result).toBe(testUpdateBuilder);
     expect((testUpdateBuilder as any)._updateData).toEqual({ name: 'New Name' });
   });
 
@@ -95,7 +85,6 @@ describe('BaseUpdateBuilder', () => {
     (testUpdateBuilder as any)._set('name', 'Another Name');
     (testUpdateBuilder as any)._set('value', 123);
     (testUpdateBuilder as any)._set('nested.prop', 'Nested Value');
-
     expect((testUpdateBuilder as any)._updateData).toEqual({
       name: 'Another Name',
       value: 123,
@@ -105,8 +94,7 @@ describe('BaseUpdateBuilder', () => {
 
   it('should overwrite previous updates for the same field using _set', () => {
     (testUpdateBuilder as any)._set('status', 'pending');
-    (testUpdateBuilder as any)._set('status', 'completed'); // Overwrite
-
+    (testUpdateBuilder as any)._set('status', 'completed');
     expect((testUpdateBuilder as any)._updateData).toEqual({ status: 'completed' });
   });
 
@@ -128,7 +116,7 @@ describe('BaseUpdateBuilder', () => {
     const tagsToAdd = ['new', 'urgent'];
     (testUpdateBuilder as any)._arrayUnion('tags', tagsToAdd);
     expect(mockArrayUnion).toHaveBeenCalledTimes(1);
-    expect(mockArrayUnion).toHaveBeenCalledWith(...tagsToAdd); // Check args passed to arrayUnion
+    expect(mockArrayUnion).toHaveBeenCalledWith(...tagsToAdd);
     expect((testUpdateBuilder as any)._updateData).toEqual({ tags: { type: 'arrayUnion', args: tagsToAdd } });
   });
 
@@ -136,7 +124,7 @@ describe('BaseUpdateBuilder', () => {
     const tagsToRemove = ['old'];
     (testUpdateBuilder as any)._arrayRemove('tags', tagsToRemove);
     expect(mockArrayRemove).toHaveBeenCalledTimes(1);
-    expect(mockArrayRemove).toHaveBeenCalledWith(...tagsToRemove); // Check args passed to arrayRemove
+    expect(mockArrayRemove).toHaveBeenCalledWith(...tagsToRemove);
     expect((testUpdateBuilder as any)._updateData).toEqual({ tags: { type: 'arrayRemove', args: tagsToRemove } });
   });
 
@@ -147,52 +135,24 @@ describe('BaseUpdateBuilder', () => {
     expect((testUpdateBuilder as any)._updateData).toEqual({ count: { type: 'increment', value: 5 } });
   });
 
-
   // --- Commit Tests ---
 
   it('should call updateDoc with accumulated data on commit', async () => {
-    mockUpdateDoc.mockResolvedValue(undefined); // Mock successful update
-
-    // Stage some updates
+    mockUpdateDoc.mockResolvedValue(undefined);
     (testUpdateBuilder as any)._set('name', 'Final Name');
     (testUpdateBuilder as any)._increment('count', 1);
     const expectedUpdateData = { name: 'Final Name', count: { type: 'increment', value: 1 } };
-
     await testUpdateBuilder.commit();
-
     expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
-    // Check that updateDoc was called with the correct docRef and the accumulated data
     expect(mockUpdateDoc).toHaveBeenCalledWith(mockDocumentRef, expectedUpdateData);
   });
 
   it('should not call updateDoc if no updates are staged', async () => {
     mockUpdateDoc.mockResolvedValue(undefined);
-    // Spy on console.warn
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-    await testUpdateBuilder.commit(); // Commit with no staged updates
-
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {}); // Fix mockImplementation call
+    await testUpdateBuilder.commit();
     expect(mockUpdateDoc).not.toHaveBeenCalled();
     expect(consoleWarnSpy).toHaveBeenCalledWith('Update commit called with no changes specified.');
-
-    consoleWarnSpy.mockRestore(); // Clean up spy
+    consoleWarnSpy.mockRestore();
   });
-
-  // Optional: Test if data is cleared after commit (if implemented)
-  // it('should clear updateData after successful commit', async () => {
-  //   mockUpdateDoc.mockResolvedValue(undefined);
-  //   (testUpdateBuilder as any)._set('name', 'Temp Name');
-  //   await testUpdateBuilder.commit();
-  //   expect((testUpdateBuilder as any)._updateData).toEqual({});
-  // });
-
-
-  // Add tests here for set, serverTimestamp, deleteField, arrayUnion, arrayRemove, increment, commit
-  // Example:
-  // it('should add a field update using _set', () => {
-  //   const result = (testUpdateBuilder as any)._set('name', 'New Name');
-  //   expect(result).toBe(testUpdateBuilder); // Returns self
-  //   expect((testUpdateBuilder as any).updateData).toEqual({ name: 'New Name' });
-  // });
-
 });

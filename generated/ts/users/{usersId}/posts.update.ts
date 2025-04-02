@@ -39,37 +39,36 @@ export class PostsUpdateBuilder extends BaseUpdateBuilder<PostsData> {
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
+
+
+
+
+
+
   /** Sets the value for the 'title' field. */
   setTitle(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('title', value);
   }
 
 
   /** Sets the value for the 'content' field. */
   setContent(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('content', value);
   }
 
   /** Deletes the 'content' field. */
   deleteContent(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('content');
-    // Alternatively: return this._set('content', deleteField());
   }
 
   /** Sets the value for the 'publishedAt' field. */
   setPublishedAt(value: Timestamp): this {
-    // Call the protected _set method from the base class
     return this._set('publishedAt', value);
   }
 
   /** Deletes the 'publishedAt' field. */
   deletePublishedAt(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('publishedAt');
-    // Alternatively: return this._set('publishedAt', deleteField());
   }
 
   // --- End Field Setters ---

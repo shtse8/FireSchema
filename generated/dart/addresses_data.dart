@@ -5,6 +5,7 @@
 // ignore_for_file: unused_import, unused_local_variable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import runtime types
 // Import other necessary packages if needed
 
 
@@ -136,13 +137,14 @@ class AddressesData {
       zip: zip ?? this.zip,
     );
   }
+} // End of AddressesData class
 
   // TODO: Add toString, equals, hashCode implementations?
 
 
 /// Represents the data structure for adding a new 'Addresses' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
-class AddressesAddData {
+class AddressesAddData implements ToJsonSerializable {
 
 
   final String street;
@@ -166,22 +168,20 @@ class AddressesAddData {
   /// Excludes fields that are null to avoid overwriting server-generated values.
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
-    // Only include non-null values in the map for 'add'
-    if (street != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['street'] = street;
-    }
-    // Only include non-null values in the map for 'add'
-    if (city != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['city'] = city;
-    }
-    // Only include non-null values in the map for 'add'
+
+    // Required fields are always included
+    // TODO: Handle nested toJson if needed for complex types
+    map['street'] = street;
+
+    // Required fields are always included
+    // TODO: Handle nested toJson if needed for complex types
+    map['city'] = city;
+
+    // Only include non-null values in the map for optional fields
     if (zip != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['zip'] = zip;
     }
     return map;
   }
-}
 }

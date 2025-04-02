@@ -5,6 +5,7 @@
 // ignore_for_file: unused_import, unused_local_variable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import runtime types
 // Import other necessary packages if needed
 
 
@@ -90,13 +91,14 @@ class TagsData {
       label: label ?? this.label,
     );
   }
+} // End of TagsData class
 
   // TODO: Add toString, equals, hashCode implementations?
 
 
 /// Represents the data structure for adding a new 'Tags' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
-class TagsAddData {
+class TagsAddData implements ToJsonSerializable {
 
 
   final String label;
@@ -110,12 +112,10 @@ class TagsAddData {
   /// Excludes fields that are null to avoid overwriting server-generated values.
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
-    // Only include non-null values in the map for 'add'
-    if (label != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['label'] = label;
-    }
+
+    // Required fields are always included
+    // TODO: Handle nested toJson if needed for complex types
+    map['label'] = label;
     return map;
   }
-}
 }

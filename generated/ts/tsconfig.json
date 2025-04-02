@@ -23,5 +23,8 @@
     "dist_test", // Keep excluding old test output dir if needed
     "dist",      // Exclude the new build output directory
     "__tests__"  // Exclude the old test directory
+  ],
+  "references": [
+    { "path": "../../packages/fireschema-ts-runtime" }
   ]
 }

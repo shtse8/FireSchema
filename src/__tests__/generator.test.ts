@@ -1,6 +1,6 @@
 // src/__tests__/generator.test.ts
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import fs from 'fs';
+const fs = require('fs'); // Use require for fs module
 import path from 'path';
 import { execSync } from 'child_process'; // To run the CLI command
 

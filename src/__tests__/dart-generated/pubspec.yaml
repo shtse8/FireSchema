@@ -11,7 +11,8 @@ dependencies:
   flutter: # Optional: if primarily for Flutter
     sdk: flutter
   cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
-  fireschema_dart_runtime: ^0.1.0 # Add the runtime dependency
+  fireschema_dart_runtime:
+    path: packages/fireschema_dart_runtime # Use path relative to project root
   # Add other necessary dependencies if the generated code requires them
 
 dev_dependencies:

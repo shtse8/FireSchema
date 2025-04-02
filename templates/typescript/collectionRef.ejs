@@ -93,7 +93,7 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
    */
   query(): <%- modelName %>QueryBuilder {
     // Returns the specific generated QueryBuilder
-    return new <%- modelName %>QueryBuilder(this.firestore, this.ref);
+    return new <%- modelName %>QueryBuilder(this.firestore, this.ref); // Pass firestore and ref
   }
 
   // --- Subcollection Accessors ---

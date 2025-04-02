@@ -5,6 +5,7 @@
 // ignore_for_file: unused_import, unused_local_variable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import runtime types
 // Import other necessary packages if needed
 
 
@@ -276,13 +277,14 @@ class UsersData {
       primaryAddressRef: primaryAddressRef ?? this.primaryAddressRef,
     );
   }
+} // End of UsersData class
 
   // TODO: Add toString, equals, hashCode implementations?
 
 
 /// Represents the data structure for adding a new 'Users' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
-class UsersAddData {
+class UsersAddData implements ToJsonSerializable {
 
 
   final String displayName;
@@ -336,52 +338,56 @@ class UsersAddData {
   /// Excludes fields that are null to avoid overwriting server-generated values.
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
-    // Only include non-null values in the map for 'add'
-    if (displayName != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['displayName'] = displayName;
-    }
-    // Only include non-null values in the map for 'add'
-    if (email != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['email'] = email;
-    }
-    // Only include non-null values in the map for 'add'
+
+    // Required fields are always included
+    // TODO: Handle nested toJson if needed for complex types
+    map['displayName'] = displayName;
+
+    // Required fields are always included
+    // TODO: Handle nested toJson if needed for complex types
+    map['email'] = email;
+
+    // Only include non-null values in the map for optional fields
     if (createdAt != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['createdAt'] = createdAt;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (lastLogin != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['lastLogin'] = lastLogin;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (age != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['age'] = age;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (isActive != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['isActive'] = isActive;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (settings != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['settings'] = settings;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (tags != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['tags'] = tags;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (primaryAddressRef != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['primaryAddressRef'] = primaryAddressRef;
     }
     return map;
   }
-}
 }

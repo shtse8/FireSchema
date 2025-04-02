@@ -39,31 +39,32 @@ export class AddressesUpdateBuilder extends BaseUpdateBuilder<AddressesData> {
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
+
+
+
+
+
+
   /** Sets the value for the 'street' field. */
   setStreet(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('street', value);
   }
 
 
   /** Sets the value for the 'city' field. */
   setCity(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('city', value);
   }
 
 
   /** Sets the value for the 'zip' field. */
   setZip(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('zip', value);
   }
 
   /** Deletes the 'zip' field. */
   deleteZip(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('zip');
-    // Alternatively: return this._set('zip', deleteField());
   }
 
   // --- End Field Setters ---

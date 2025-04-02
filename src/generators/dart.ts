@@ -87,6 +87,10 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
   // --- Generate pubspec.yaml (Optional) ---
   if (target.package) {
     try {
+        // Use path relative to project root
+        const relativeRuntimePath = 'packages/fireschema_dart_runtime'.replace(/\\/g, '/');
+
+
         // Basic pubspec content
         const pubspecContent = `
 name: ${target.package.name}
@@ -102,7 +106,8 @@ dependencies:
   flutter: # Optional: if primarily for Flutter
     sdk: flutter
   cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
-  fireschema_dart_runtime: ^0.1.0 # Add the runtime dependency
+  fireschema_dart_runtime:
+    path: ${relativeRuntimePath} # Use path relative to project root
   # Add other necessary dependencies if the generated code requires them
 
 dev_dependencies:

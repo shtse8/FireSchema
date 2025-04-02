@@ -95,7 +95,7 @@ export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> 
    */
   query(): PostsQueryBuilder {
     // Returns the specific generated QueryBuilder
-    return new PostsQueryBuilder(this.firestore, this.ref);
+    return new PostsQueryBuilder(this.firestore, this.ref); // Pass firestore and ref
   }
 
   // --- Subcollection Accessors ---

@@ -95,7 +95,7 @@ export class AddressesCollection extends BaseCollectionRef<AddressesData, Addres
    */
   query(): AddressesQueryBuilder {
     // Returns the specific generated QueryBuilder
-    return new AddressesQueryBuilder(this.firestore, this.ref);
+    return new AddressesQueryBuilder(this.firestore, this.ref); // Pass firestore and ref
   }
 
   // --- Subcollection Accessors ---

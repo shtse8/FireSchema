@@ -1,7 +1,9 @@
+// ignore_for_file: invalid_use_of_protected_member
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
-import 'package:fireschema_dart_runtime/src/base_collection_ref.dart'; // Import base class
 import 'package:test/test.dart';
+import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import the runtime library
 
 // --- Test Data Structures ---
 class TestData {
@@ -43,8 +45,7 @@ class TestAddData implements ToJsonSerializable {
   final dynamic createdAt; // Use dynamic to allow DateTime or FieldValue
 
   TestAddData({required this.name, this.value, this.createdAt});
-
-  @override
+  // No @override needed when implementing an interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{
       'name': name,

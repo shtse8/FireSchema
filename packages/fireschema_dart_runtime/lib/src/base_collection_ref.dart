@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meta/meta.dart';
+import 'types.dart'; // Import the interface
 
 // Placeholder for schema definition types in Dart
 // These might be simple Maps or dedicated classes depending on complexity.
@@ -7,11 +8,6 @@ typedef FieldSchema
     = Map<String, dynamic>; // Example: {'defaultValue': 'serverTimestamp'}
 typedef CollectionSchema
     = Map<String, FieldSchema>; // Example: {'fields': {'createdAt': {...}}}
-
-/// Abstract class for types that can be serialized to JSON for Firestore 'add' operations.
-abstract class ToJsonSerializable {
-  Map<String, Object?> toJson();
-}
 
 /// Abstract base class for FireSchema-generated Dart collection references.
 /// Provides common CRUD operations and path handling using `withConverter`.
@@ -65,8 +61,8 @@ abstract class BaseCollectionRef<TData, TAddData extends ToJsonSerializable> {
   @protected
   Map<String, dynamic> applyDefaults(Map<String, dynamic> data) {
     final dataWithDefaults = Map<String, dynamic>.from(data);
-    final fields =
-        schema?['fields'] as Map<String, dynamic>?; // Assuming schema structure
+    final fields = schema?[
+        'fields']; // Cast is unnecessary as FieldSchema is Map<String, dynamic>
 
     if (fields != null) {
       fields.forEach((fieldName, fieldDef) {

@@ -5,6 +5,7 @@
 // ignore_for_file: unused_import, unused_local_variable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import runtime types
 // Import other necessary packages if needed
 
 
@@ -160,13 +161,14 @@ class ItemsData {
       address: address ?? this.address,
     );
   }
+} // End of ItemsData class
 
   // TODO: Add toString, equals, hashCode implementations?
 
 
 /// Represents the data structure for adding a new 'Items' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
-class ItemsAddData {
+class ItemsAddData implements ToJsonSerializable {
 
 
   final String name;
@@ -195,27 +197,28 @@ class ItemsAddData {
   /// Excludes fields that are null to avoid overwriting server-generated values.
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
-    // Only include non-null values in the map for 'add'
-    if (name != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['name'] = name;
-    }
-    // Only include non-null values in the map for 'add'
+
+    // Required fields are always included
+    // TODO: Handle nested toJson if needed for complex types
+    map['name'] = name;
+
+    // Only include non-null values in the map for optional fields
     if (value != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['value'] = value;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (createdAt != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['createdAt'] = createdAt;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (address != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['address'] = address;
     }
     return map;
   }
-}
 }

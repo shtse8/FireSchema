@@ -140,7 +140,7 @@ export class UsersCollection extends BaseCollectionRef<UsersData, UsersAddData> 
    */
   query(): UsersQueryBuilder {
     // Returns the specific generated QueryBuilder
-    return new UsersQueryBuilder(this.firestore, this.ref);
+    return new UsersQueryBuilder(this.firestore, this.ref); // Pass firestore and ref
   }
 
   // --- Subcollection Accessors ---

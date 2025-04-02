@@ -5,6 +5,7 @@
 // ignore_for_file: unused_import, unused_local_variable
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import runtime types
 // Import other necessary packages if needed
 
 
@@ -137,13 +138,14 @@ class PostsData {
       publishedAt: publishedAt ?? this.publishedAt,
     );
   }
+} // End of PostsData class
 
   // TODO: Add toString, equals, hashCode implementations?
 
 
 /// Represents the data structure for adding a new 'Posts' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
-class PostsAddData {
+class PostsAddData implements ToJsonSerializable {
 
 
   final String title;
@@ -167,22 +169,22 @@ class PostsAddData {
   /// Excludes fields that are null to avoid overwriting server-generated values.
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
-    // Only include non-null values in the map for 'add'
-    if (title != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['title'] = title;
-    }
-    // Only include non-null values in the map for 'add'
+
+    // Required fields are always included
+    // TODO: Handle nested toJson if needed for complex types
+    map['title'] = title;
+
+    // Only include non-null values in the map for optional fields
     if (content != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['content'] = content;
     }
-    // Only include non-null values in the map for 'add'
+
+    // Only include non-null values in the map for optional fields
     if (publishedAt != null) {
       // TODO: Handle nested toJson if needed for complex types
       map['publishedAt'] = publishedAt;
     }
     return map;
   }
-}
 }

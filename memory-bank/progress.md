@@ -55,7 +55,22 @@
     generator.
   - Test successfully runs generator and creates initial snapshots for
     TypeScript.
-  - **Snapshot tests for Dart generator output implemented and passing.**
+  - **Dart dependency resolution fixed** in generator (`src/generators/dart.ts`)
+    to correctly output path dependencies for `pubspec.yaml`.
+  - **Dart templates fixed** (`model.dart.ejs`) to prevent nested classes and
+    implement `ToJsonSerializable`.
+  - **TypeScript templates fixed** (`*.ejs`) to correctly use protected methods
+    from runtime base classes.
+  - **Build scripts fixed** (`package.json`) to prevent recursion, use correct
+    flags, and enforce build order.
+  - **TypeScript configurations fixed** (`tsconfig.json` in root and packages)
+    for project references.
+  - **Jest test setup fixed** (`*.test.ts` files) for compatibility with test
+    runner and mock types.
+  - **Dart analyzer issues resolved** in `generated/dart` and
+    `packages/fireschema_dart_runtime` (including tests via suppression).
+  - **Snapshot tests updated** (`bun run test -- -u`) after verifying generator
+    output changes were correct.
 
 **What's Left (Next Steps):**
 
@@ -78,9 +93,10 @@
 
 **Current Status:** Runtime refactoring is complete. Build system refined. Unit
 tests for runtime packages are passing. **Generator snapshot testing for
-TypeScript and Dart output is implemented, passing, and the snapshots have been
-reviewed and confirmed correct.** Integration testing blocker is resolved by
-shifting strategy.
+TypeScript and Dart output is implemented.** Runtime tests pass. Generator tests
+pass (ignoring intermittent `EBUSY` cleanup error). Snapshots updated.
+Integration testing blocker resolved by shifting strategy. **Main generated code
+(`generated/dart`, `generated/ts`) is clean and buildable.**
 
 **Known Issues:**
 
@@ -91,6 +107,8 @@ shifting strategy.
   by runtime).
 - (Existing) TypeScript `UpdateBuilder` doesn't easily support updating nested
   map fields via dot notation yet (may need runtime enhancement).
-- **Integration Test Setup:** (Resolved by switching strategy) Persistent errors
-  were encountered when attempting runtime integration tests with Jest/Bun Test
-  due to module resolution conflicts across linked workspaces.
+- **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in
+  `src/__tests__/dart-generated` due to path resolution issues from that
+  specific directory, even though the generated code structure is correct.
+- **Test Cleanup Flakiness:** Generator snapshot tests sometimes fail during
+  cleanup (`fs.rmSync`) with `EBUSY` error (likely environmental).

@@ -56,134 +56,130 @@ export class UsersUpdateBuilder extends BaseUpdateBuilder<UsersData> {
   // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
+
+
+
+
+
+
   /** Sets the value for the 'displayName' field. */
   setDisplayName(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('displayName', value);
   }
 
 
   /** Sets the value for the 'email' field. */
   setEmail(value: string): this {
-    // Call the protected _set method from the base class
     return this._set('email', value);
   }
 
 
   /** Sets the value for the 'createdAt' field. */
   setCreatedAt(value: Timestamp): this {
-    // Call the protected _set method from the base class
     return this._set('createdAt', value);
   }
 
   /** Sets the 'createdAt' field to the server timestamp. */
   setCreatedAtToServerTimestamp(): this {
-    // Call the protected _serverTimestamp helper
     return this._serverTimestamp('createdAt');
-    // Alternatively: return this._set('createdAt', serverTimestamp());
   }
   /** Deletes the 'createdAt' field. */
   deleteCreatedAt(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('createdAt');
-    // Alternatively: return this._set('createdAt', deleteField());
   }
 
   /** Sets the value for the 'lastLogin' field. */
   setLastLogin(value: Timestamp): this {
-    // Call the protected _set method from the base class
     return this._set('lastLogin', value);
   }
 
   /** Deletes the 'lastLogin' field. */
   deleteLastLogin(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('lastLogin');
-    // Alternatively: return this._set('lastLogin', deleteField());
   }
 
   /** Sets the value for the 'age' field. */
   setAge(value: number): this {
-    // Call the protected _set method from the base class
     return this._set('age', value);
   }
 
   /** Atomically increments the 'age' field. */
   incrementAge(value: number): this {
-    // Call the protected _increment helper (or _set with increment(value))
     return this._increment('age', value);
-    // Alternatively: return this._set('age', increment(value));
   }
   /** Deletes the 'age' field. */
   deleteAge(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('age');
-    // Alternatively: return this._set('age', deleteField());
   }
 
   /** Sets the value for the 'isActive' field. */
   setIsActive(value: boolean): this {
-    // Call the protected _set method from the base class
     return this._set('isActive', value);
   }
 
   /** Deletes the 'isActive' field. */
   deleteIsActive(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('isActive');
-    // Alternatively: return this._set('isActive', deleteField());
   }
 
-  /** Sets the value for the 'settings' field. */
-  setSettings(value: { theme?: string; notificationsEnabled?: boolean }): this {
-    // Call the protected _set method from the base class
-    return this._set('settings', value);
+
+
+
+
+
+  /** Sets the value for the 'settings.theme' field. */
+  setSettings_Theme(value: string): this {
+    return this._set('settings.theme', value);
   }
 
-  /** Deletes the 'settings' field. */
-  deleteSettings(): this {
-    // Call the protected _deleteField helper
-    return this._deleteField('settings');
-    // Alternatively: return this._set('settings', deleteField());
+  /** Deletes the 'settings.theme' field. */
+  deleteSettings_Theme(): this {
+    return this._deleteField('settings.theme');
   }
+
+
+
+
+
+  /** Sets the value for the 'settings.notificationsEnabled' field. */
+  setSettings_NotificationsEnabled(value: boolean): this {
+    return this._set('settings.notificationsEnabled', value);
+  }
+
+  /** Deletes the 'settings.notificationsEnabled' field. */
+  deleteSettings_NotificationsEnabled(): this {
+    return this._deleteField('settings.notificationsEnabled');
+  }
+
+
 
   /** Sets the value for the 'tags' field. */
   setTags(value: string[]): this {
-    // Call the protected _set method from the base class
     return this._set('tags', value);
   }
 
   /** Atomically adds elements to the 'tags' array field. */
   arrayUnionTags(values: string[] | string): this {
-    // Call the protected _arrayUnion helper
     return this._arrayUnion('tags', Array.isArray(values) ? values : [values]);
-    // Alternatively: return this._set('tags', arrayUnion(...(Array.isArray(values) ? values : [values])));
   }
 
   /** Atomically removes elements from the 'tags' array field. */
   arrayRemoveTags(values: string[] | string): this {
-    // Call the protected _arrayRemove helper
     return this._arrayRemove('tags', Array.isArray(values) ? values : [values]);
-    // Alternatively: return this._set('tags', arrayRemove(...(Array.isArray(values) ? values : [values])));
   }
   /** Deletes the 'tags' field. */
   deleteTags(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('tags');
-    // Alternatively: return this._set('tags', deleteField());
   }
 
   /** Sets the value for the 'primaryAddressRef' field. */
   setPrimaryAddressRef(value: DocumentReference<AddressesData>): this {
-    // Call the protected _set method from the base class
     return this._set('primaryAddressRef', value);
   }
 
   /** Deletes the 'primaryAddressRef' field. */
   deletePrimaryAddressRef(): this {
-    // Call the protected _deleteField helper
     return this._deleteField('primaryAddressRef');
-    // Alternatively: return this._set('primaryAddressRef', deleteField());
   }
 
   // --- End Field Setters ---
