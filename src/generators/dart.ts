@@ -87,15 +87,17 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
   // --- Generate pubspec.yaml (Optional) ---
   if (target.package) {
     try {
-        // Use path relative to project root
-        const relativeRuntimePath = 'packages/fireschema_dart_runtime'.replace(/\\/g, '/');
-
+        // Calculate path relative from the output directory to the runtime package
+        // Use process.cwd() as the generator is run from the project root
+        const runtimePackageDir = path.resolve(process.cwd(), 'packages/fireschema_dart_runtime');
+        const relativeRuntimePath = path.relative(target.outputDir, runtimePackageDir).replace(/\\/g, '/'); // Ensure forward slashes
 
         // Basic pubspec content
         const pubspecContent = `
 name: ${target.package.name}
 description: ${target.package.description || `Generated Firestore ODM for ${target.package.name}`}
 version: ${target.package.version || '0.1.0'}
+publish_to: none # Prevent accidental publishing with path dependencies
 # repository: # Optional: Add repository URL if available
 
 environment:

@@ -10,25 +10,82 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 
 
 
+
+
+/// Represents the data structure for a nested 'UsersSettingsMap' map.
+
+class UsersSettingsMap implements ToJsonSerializable {
+
+  /// theme (string)
+  final String? theme;
+
+  /// notificationsEnabled (boolean)
+  final bool? notificationsEnabled;
+
+  const UsersSettingsMap({
+    this.theme,
+    this.notificationsEnabled,
+  });
+
+  /// Creates a UsersSettingsMap instance from a Map.
+  factory UsersSettingsMap.fromJson(Map<String, dynamic> data) {
+    return UsersSettingsMap(
+
+      theme: data['theme'] as String?,
+      notificationsEnabled: data['notificationsEnabled'] as bool?,
+    );
+  }
+
+  /// Converts this UsersSettingsMap instance to a Map suitable for Firestore.
+  Map<String, dynamic> toJson() {
+    return {
+      'theme': theme,
+      'notificationsEnabled': notificationsEnabled,
+    };
+  }
+
+  /// Creates a copy of this instance with potentially modified fields.
+  UsersSettingsMap copyWith({
+    String? theme,
+    bool? notificationsEnabled,
+  }) {
+    return UsersSettingsMap(
+
+      theme: theme ?? this.theme,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+    );
+  }
+
+} // End of UsersSettingsMap class
+
 /// Represents the data structure for a 'Users' document.
 /// Description: Stores user profile information.
 class UsersData {
+
   /// User's public display name (string, required)
   final String displayName;
+
   /// email (string, required)
   final String email;
+
   /// Timestamp when the user was created (timestamp)
   final Timestamp? createdAt;
+
   /// lastLogin (timestamp)
   final Timestamp? lastLogin;
+
   /// age (number)
   final num? age;
+
   /// isActive (boolean)
   final bool? isActive;
+
   /// settings (map)
-  final Map<String, dynamic>? settings;
+  final UsersSettingsMap? settings;
+
   /// tags (array)
   final List<String>? tags;
+
   /// primaryAddressRef (reference)
   final DocumentReference<Map<String, dynamic>>? primaryAddressRef;
 
@@ -44,102 +101,30 @@ class UsersData {
     this.primaryAddressRef,
   });
 
+  /// Creates a UsersData instance from a Map.
+  factory UsersData.fromJson(Map<String, dynamic> data) {
+    return UsersData(
+
+      displayName: data['displayName'] as String? ?? (throw Exception("Missing required field: displayName in input data")),
+      email: data['email'] as String? ?? (throw Exception("Missing required field: email in input data")),
+      createdAt: data['createdAt'] as Timestamp?,
+      lastLogin: data['lastLogin'] as Timestamp?,
+      age: data['age'] as num?,
+      isActive: data['isActive'] as bool?,
+      settings: data['settings'] == null ? null : UsersSettingsMap.fromJson(data['settings'] as Map<String, dynamic>),
+      tags: (data['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      primaryAddressRef: data['primaryAddressRef'] as DocumentReference<Map<String, dynamic>>?,
+    );
+  }
+
   /// Creates a UsersData instance from a Firestore DocumentSnapshot.
   factory UsersData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
+        // Escape the $ to prevent EJS interpolation
         throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
     return UsersData.fromJson(data); // Reuse fromJson logic
-  }
-
-   /// Creates a UsersData instance from a Map.
-  factory UsersData.fromJson(Map<String, dynamic> data) {
-     return UsersData(
-
-
-
-
-
-
-
-
-      displayName: data['displayName'] as String? ?? (throw Exception("Missing required field: displayName in $data")),
-
-
-
-
-
-
-
-
-      email: data['email'] as String? ?? (throw Exception("Missing required field: email in $data")),
-
-
-
-
-
-
-
-
-
-      createdAt: data['createdAt'] as Timestamp?,
-
-
-
-
-
-
-
-
-
-      lastLogin: data['lastLogin'] as Timestamp?,
-
-
-
-
-
-
-
-
-      age: data['age'] as num?,
-
-
-
-
-
-
-
-
-      isActive: data['isActive'] as bool?,
-
-
-
-
-
-
-
-
-      settings: data['settings'] as Map<String, dynamic>?,
-
-
-
-
-
-
-
-
-
-      tags: (data['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-
-
-
-
-
-
-
-      primaryAddressRef: data['primaryAddressRef'] as DocumentReference<Map<String, dynamic>>?,
-    );
   }
 
   /// Creates a UsersData instance from a Firestore DocumentSnapshot.
@@ -153,7 +138,6 @@ class UsersData {
       throw Exception('Snapshot data was null!');
     }
     // We can reuse the existing fromJson logic.
-    // Add the document ID to the data map if you want it in the model.
     // data['id'] = snapshot.id; // Optional: include document ID
     return UsersData.fromJson(data);
   }
@@ -161,86 +145,14 @@ class UsersData {
   /// Converts this UsersData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-
-
-
-
-
-
-
-
       'displayName': displayName,
-
-
-
-
-
-
-
-
       'email': email,
-
-
-
-
-
-
-
-
       'createdAt': createdAt,
-
-
-
-
-
-
-
-
       'lastLogin': lastLogin,
-
-
-
-
-
-
-
-
       'age': age,
-
-
-
-
-
-
-
-
       'isActive': isActive,
-
-
-
-
-
-
-
-
-      'settings': settings,
-
-
-
-
-
-
-
-
+      'settings': settings?.toJson(),
       'tags': tags,
-
-
-
-
-
-
-
-
       'primaryAddressRef': primaryAddressRef,
     };
   }
@@ -249,7 +161,6 @@ class UsersData {
   /// Required for Firestore `withConverter`.
   Map<String, Object?> toFirestore(SetOptions? options) {
     // We can reuse the existing toJson logic.
-    // Firestore expects Map<String, Object?>
     return toJson();
   }
 
@@ -261,11 +172,12 @@ class UsersData {
     Timestamp? lastLogin,
     num? age,
     bool? isActive,
-    Map<String, dynamic>? settings,
+    UsersSettingsMap? settings,
     List<String>? tags,
     DocumentReference<Map<String, dynamic>>? primaryAddressRef,
   }) {
     return UsersData(
+
       displayName: displayName ?? this.displayName,
       email: email ?? this.email,
       createdAt: createdAt ?? this.createdAt,
@@ -277,7 +189,11 @@ class UsersData {
       primaryAddressRef: primaryAddressRef ?? this.primaryAddressRef,
     );
   }
+
 } // End of UsersData class
+
+
+
 
   // TODO: Add toString, equals, hashCode implementations?
 
@@ -287,30 +203,39 @@ class UsersData {
 class UsersAddData implements ToJsonSerializable {
 
 
+  /// User's public display name (string, required)
   final String displayName;
 
 
+  /// email (string, required)
   final String email;
 
 
+  /// Timestamp when the user was created (timestamp)
   final Timestamp? createdAt;
 
 
+  /// lastLogin (timestamp)
   final Timestamp? lastLogin;
 
 
+  /// age (number)
   final num? age;
 
 
+  /// isActive (boolean)
   final bool? isActive;
 
 
-  final Map<String, dynamic>? settings;
+  /// settings (map)
+  final UsersSettingsMap? settings;
 
 
+  /// tags (array)
   final List<String>? tags;
 
 
+  /// primaryAddressRef (reference)
   final DocumentReference<Map<String, dynamic>>? primaryAddressRef;
 
   const UsersAddData({
@@ -336,56 +261,57 @@ class UsersAddData implements ToJsonSerializable {
 
   /// Converts this instance to a Map suitable for Firestore add operation.
   /// Excludes fields that are null to avoid overwriting server-generated values.
+  @override // Indicate override of interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
 
-    // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
-    map['displayName'] = displayName;
 
     // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
+    map['displayName'] = displayName;
+
+
+    // Required fields are always included
     map['email'] = email;
+
 
     // Only include non-null values in the map for optional fields
     if (createdAt != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['createdAt'] = createdAt;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (lastLogin != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['lastLogin'] = lastLogin;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (age != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['age'] = age;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (isActive != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['isActive'] = isActive;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (settings != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['settings'] = settings;
+      map['settings'] = settings?.toJson();
     }
+
 
     // Only include non-null values in the map for optional fields
     if (tags != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['tags'] = tags;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (primaryAddressRef != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['primaryAddressRef'] = primaryAddressRef;
     }
     return map;

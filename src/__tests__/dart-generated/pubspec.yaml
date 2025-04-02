@@ -1,6 +1,7 @@
 name: test_generated_dart
 description: Test Dart generated code
 version: 1.0.0
+publish_to: none # Prevent accidental publishing with path dependencies
 # repository: # Optional: Add repository URL if available
 
 environment:
@@ -12,7 +13,7 @@ dependencies:
     sdk: flutter
   cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
   fireschema_dart_runtime:
-    path: packages/fireschema_dart_runtime # Use path relative to project root
+    path: ../packages/fireschema_dart_runtime # Use path relative to project root
   # Add other necessary dependencies if the generated code requires them
 
 dev_dependencies:

@@ -10,13 +10,18 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 
 
 
+
+
 /// Represents the data structure for a 'Posts' document.
 /// Description: Posts created by the user
 class PostsData {
+
   /// title (string, required)
   final String title;
+
   /// content (string)
   final String? content;
+
   /// publishedAt (timestamp)
   final Timestamp? publishedAt;
 
@@ -26,47 +31,24 @@ class PostsData {
     this.publishedAt,
   });
 
+  /// Creates a PostsData instance from a Map.
+  factory PostsData.fromJson(Map<String, dynamic> data) {
+    return PostsData(
+
+      title: data['title'] as String? ?? (throw Exception("Missing required field: title in input data")),
+      content: data['content'] as String?,
+      publishedAt: data['publishedAt'] as Timestamp?,
+    );
+  }
+
   /// Creates a PostsData instance from a Firestore DocumentSnapshot.
   factory PostsData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
+        // Escape the $ to prevent EJS interpolation
         throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
     return PostsData.fromJson(data); // Reuse fromJson logic
-  }
-
-   /// Creates a PostsData instance from a Map.
-  factory PostsData.fromJson(Map<String, dynamic> data) {
-     return PostsData(
-
-
-
-
-
-
-
-
-      title: data['title'] as String? ?? (throw Exception("Missing required field: title in $data")),
-
-
-
-
-
-
-
-
-      content: data['content'] as String?,
-
-
-
-
-
-
-
-
-
-      publishedAt: data['publishedAt'] as Timestamp?,
-    );
   }
 
   /// Creates a PostsData instance from a Firestore DocumentSnapshot.
@@ -80,7 +62,6 @@ class PostsData {
       throw Exception('Snapshot data was null!');
     }
     // We can reuse the existing fromJson logic.
-    // Add the document ID to the data map if you want it in the model.
     // data['id'] = snapshot.id; // Optional: include document ID
     return PostsData.fromJson(data);
   }
@@ -88,32 +69,8 @@ class PostsData {
   /// Converts this PostsData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-
-
-
-
-
-
-
-
       'title': title,
-
-
-
-
-
-
-
-
       'content': content,
-
-
-
-
-
-
-
-
       'publishedAt': publishedAt,
     };
   }
@@ -122,7 +79,6 @@ class PostsData {
   /// Required for Firestore `withConverter`.
   Map<String, Object?> toFirestore(SetOptions? options) {
     // We can reuse the existing toJson logic.
-    // Firestore expects Map<String, Object?>
     return toJson();
   }
 
@@ -133,12 +89,17 @@ class PostsData {
     Timestamp? publishedAt,
   }) {
     return PostsData(
+
       title: title ?? this.title,
       content: content ?? this.content,
       publishedAt: publishedAt ?? this.publishedAt,
     );
   }
+
 } // End of PostsData class
+
+
+
 
   // TODO: Add toString, equals, hashCode implementations?
 
@@ -148,12 +109,15 @@ class PostsData {
 class PostsAddData implements ToJsonSerializable {
 
 
+  /// title (string, required)
   final String title;
 
 
+  /// content (string)
   final String? content;
 
 
+  /// publishedAt (timestamp)
   final Timestamp? publishedAt;
 
   const PostsAddData({
@@ -167,22 +131,23 @@ class PostsAddData implements ToJsonSerializable {
 
   /// Converts this instance to a Map suitable for Firestore add operation.
   /// Excludes fields that are null to avoid overwriting server-generated values.
+  @override // Indicate override of interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
 
+
     // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
     map['title'] = title;
+
 
     // Only include non-null values in the map for optional fields
     if (content != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['content'] = content;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (publishedAt != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['publishedAt'] = publishedAt;
     }
     return map;

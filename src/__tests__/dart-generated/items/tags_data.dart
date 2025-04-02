@@ -10,9 +10,12 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 
 
 
+
+
 /// Represents the data structure for a 'Tags' document.
 /// Description: Tags for an item.
 class TagsData {
+
   /// label (string, required)
   final String label;
 
@@ -20,28 +23,22 @@ class TagsData {
     required this.label,
   });
 
+  /// Creates a TagsData instance from a Map.
+  factory TagsData.fromJson(Map<String, dynamic> data) {
+    return TagsData(
+
+      label: data['label'] as String? ?? (throw Exception("Missing required field: label in input data")),
+    );
+  }
+
   /// Creates a TagsData instance from a Firestore DocumentSnapshot.
   factory TagsData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
+        // Escape the $ to prevent EJS interpolation
         throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
     return TagsData.fromJson(data); // Reuse fromJson logic
-  }
-
-   /// Creates a TagsData instance from a Map.
-  factory TagsData.fromJson(Map<String, dynamic> data) {
-     return TagsData(
-
-
-
-
-
-
-
-
-      label: data['label'] as String? ?? (throw Exception("Missing required field: label in $data")),
-    );
   }
 
   /// Creates a TagsData instance from a Firestore DocumentSnapshot.
@@ -55,7 +52,6 @@ class TagsData {
       throw Exception('Snapshot data was null!');
     }
     // We can reuse the existing fromJson logic.
-    // Add the document ID to the data map if you want it in the model.
     // data['id'] = snapshot.id; // Optional: include document ID
     return TagsData.fromJson(data);
   }
@@ -63,14 +59,6 @@ class TagsData {
   /// Converts this TagsData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-
-
-
-
-
-
-
-
       'label': label,
     };
   }
@@ -79,7 +67,6 @@ class TagsData {
   /// Required for Firestore `withConverter`.
   Map<String, Object?> toFirestore(SetOptions? options) {
     // We can reuse the existing toJson logic.
-    // Firestore expects Map<String, Object?>
     return toJson();
   }
 
@@ -88,10 +75,15 @@ class TagsData {
     String? label,
   }) {
     return TagsData(
+
       label: label ?? this.label,
     );
   }
+
 } // End of TagsData class
+
+
+
 
   // TODO: Add toString, equals, hashCode implementations?
 
@@ -101,6 +93,7 @@ class TagsData {
 class TagsAddData implements ToJsonSerializable {
 
 
+  /// label (string, required)
   final String label;
 
   const TagsAddData({
@@ -110,11 +103,12 @@ class TagsAddData implements ToJsonSerializable {
 
   /// Converts this instance to a Map suitable for Firestore add operation.
   /// Excludes fields that are null to avoid overwriting server-generated values.
+  @override // Indicate override of interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
 
+
     // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
     map['label'] = label;
     return map;
   }

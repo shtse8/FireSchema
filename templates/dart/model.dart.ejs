@@ -8,90 +8,204 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import runtime types
 // Import other necessary packages if needed
 
-<%# Helper function to get Dart type - defined within the template for simplicity %>
+<%# Helper functions defined within the template %>
 <%_
-const getDartType = (field, options) => {
-  // TODO: Add option for DateTime vs Timestamp
+// Generates a PascalCase name for nested map classes
+const getNestedClassName = (parentModelName, fieldName) => {
+  return `${parentModelName}${camelToPascalCase(fieldName)}Map`;
+};
+
+// Determines the Dart type string for a field schema
+const getDartType = (field, options, parentModelName) => {
   switch (field.type) {
     case 'string': return 'String';
-    case 'number': return 'num'; // Or double/int based on further schema info?
+    case 'number': return 'num'; // Consider int/double based on format if available
     case 'boolean': return 'bool';
     case 'timestamp': return 'Timestamp'; // from cloud_firestore
     case 'geopoint': return 'GeoPoint'; // from cloud_firestore
     case 'reference':
-      const refModelName = field.referenceTo ? camelToPascalCase(field.referenceTo) + 'Data' : 'DocumentSnapshot';
-      // DocumentReference itself isn't generic in the same way in Dart firestore client.
-      return `DocumentReference<Map<String, dynamic>>`; // Or DocumentReference?
+      // DocumentReference<T> exists but conversion happens at collection level.
+      // For model fields, store as DocumentReference<Map<String, dynamic>>.
+      return `DocumentReference<Map<String, dynamic>>`;
     case 'array':
       if (!field.items) return 'List<dynamic>';
-      return `List<${getDartType(field.items, options)}>`;
+      // Pass parentModelName for potential nested class names within arrays
+      return `List<${getDartType(field.items, options, parentModelName)}>`;
     case 'map':
-      if (!field.properties) return 'Map<String, dynamic>';
-      // TODO: Generate typed map class if possible/desired
+      // If the map has defined properties, generate and use a nested class type
+      if (field.properties && Object.keys(field.properties).length > 0) {
+        return getNestedClassName(parentModelName, field.fieldName);
+      }
+      // Otherwise, use a generic map
       return 'Map<String, dynamic>';
     default: return 'dynamic';
   }
 };
-_%>
 
-/// Represents the data structure for a '<%- modelName %>' document.
-/// Description: <%- collection.description || 'N/A' %>
-class <%- modelName %>Data {
-<% Object.values(collection.fields).forEach(field => { -%>
-  /// <%- field.description || field.fieldName %> (<%- field.type %><%- field.required ? ', required' : '' %>)
-  final <%- getDartType(field, options) %><%- field.required ? '' : '?' %> <%- field.fieldName %>;
-<% }); -%>
+// Generates the fromJson parsing logic for a field
+const generateFromJsonLogic = (field, options, parentModelName) => {
+  const dartType = getDartType(field, options, parentModelName);
+  const isNullable = !field.required;
+  const fieldAccess = `data['${field.fieldName}']`;
+  let parsingLogic = '';
 
-  const <%- modelName %>Data({
-<% Object.values(collection.fields).forEach(field => { -%>
-    <%- field.required ? 'required ' : '' %>this.<%- field.fieldName %>,
-<% }); -%>
+  switch (field.type) {
+    case 'array':
+      if (!field.items) {
+        parsingLogic = `${fieldAccess} as List<dynamic>?`;
+      } else {
+        const itemType = getDartType(field.items, options, parentModelName);
+        const itemFromJsonLogic = generateFromJsonLogic(field.items, options, parentModelName).replace(`data['${field.items.fieldName}']`, 'e'); // Generate item logic recursively
+        const itemIsNestedClass = field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0;
+
+        if (itemIsNestedClass) {
+           // Use the nested class's fromJson factory
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => ${itemType}.fromJson(e as Map<String, dynamic>)).toList()`;
+        } else if (['timestamp', 'geopoint', 'reference'].includes(field.items.type)) {
+           // Handle Firestore specific types within lists
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`;
+        } else if (field.items.type === 'array' || field.items.type === 'map') {
+           // Basic cast for list of dynamic lists/maps (less common)
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`;
+        }
+        else {
+           // Default cast for lists of primitives
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`;
+        }
+      }
+      break;
+    case 'map':
+      if (field.properties && Object.keys(field.properties).length > 0) {
+        // Use the nested class's fromJson factory
+        parsingLogic = `${fieldAccess} == null ? null : ${dartType}.fromJson(${fieldAccess} as Map<String, dynamic>)`;
+      } else {
+        // Basic map parsing
+        parsingLogic = `${fieldAccess} as ${dartType}?`;
+      }
+      break;
+    case 'timestamp':
+    case 'geopoint':
+    case 'reference':
+      // Direct cast for Firestore specific types
+      parsingLogic = `${fieldAccess} as ${dartType}?`;
+      break;
+    default:
+      // Default casting for primitives (String, num, bool)
+      parsingLogic = `${fieldAccess} as ${dartType}?`;
+      break;
+  }
+
+  // Add null check for required fields
+  if (!isNullable) {
+    // Make error message more generic, removing direct reference to '$data'
+    parsingLogic += ` ?? (throw Exception("Missing required field: ${field.fieldName} in input data"))`;
+  }
+  return parsingLogic;
+};
+
+// Generates the toJson serialization logic for a field
+const generateToJsonLogic = (field, options, parentModelName) => {
+   let valueAccess = field.fieldName;
+   switch (field.type) {
+       case 'array':
+           if (field.items && field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0) {
+               // Array of nested objects: map over and call toJson on each item
+               valueAccess = `${field.fieldName}?.map((e) => e.toJson()).toList()`;
+           }
+           // Primitives/other types in arrays are handled directly by Firestore
+           break;
+       case 'map':
+           if (field.properties && Object.keys(field.properties).length > 0) {
+               // Nested object: call its toJson method
+               valueAccess = `${field.fieldName}?.toJson()`;
+           }
+           // Generic maps are handled directly
+           break;
+       // Primitives and Firestore types (Timestamp, GeoPoint, Reference) are handled directly
+   }
+   return valueAccess;
+};
+
+// --- Recursive function to generate nested classes ---
+const generateClass = (className, fields, options, isNested = false) => {
+  let classString = ``;
+  // Generate nested classes first if this is the top-level call
+  if (!isNested) {
+      Object.values(fields).forEach(field => {
+          if (field.type === 'map' && field.properties && Object.keys(field.properties).length > 0) {
+              const nestedClassName = getNestedClassName(className, field.fieldName);
+              classString += generateClass(nestedClassName, field.properties, options, true); // Recursive call
+          } else if (field.type === 'array' && field.items && field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0) {
+              const nestedClassName = getNestedClassName(className, field.items.fieldName || field.fieldName + 'Item'); // Use item fieldName or derive
+              // Avoid duplicate generation if the same map structure is used elsewhere
+              // This simple check might need refinement for complex schemas
+              if (!generatedNestedClasses.has(nestedClassName)) {
+                 classString += generateClass(nestedClassName, field.items.properties, options, true);
+                 generatedNestedClasses.add(nestedClassName);
+              }
+          }
+      });
+  }
+
+  // --- Start of Class Definition ---
+  classString += `
+/// Represents the data structure for ${isNested ? `a nested '${className}' map` : `a '${className}' document`}.
+${isNested ? '' : `/// Description: ${collection.description || 'N/A'}`}
+class ${className}${isNested ? '' : 'Data'} ${isNested ? 'implements ToJsonSerializable ' : ''}{
+`; // Add ToJsonSerializable for nested classes
+
+  // --- Fields ---
+  Object.values(fields).forEach(field => {
+    const fieldDartType = getDartType(field, options, className); // Pass current class name
+    classString += `
+  /// ${field.description || field.fieldName} (${field.type}${field.required ? ', required' : ''})
+  final ${fieldDartType}${field.required ? '' : '?'} ${field.fieldName};
+`;
   });
 
-  /// Creates a <%- modelName %>Data instance from a Firestore DocumentSnapshot.
-  factory <%- modelName %>Data.fromSnapshot(DocumentSnapshot snapshot) {
-    final data = snapshot.data() as Map<String, dynamic>?;
-    if (data == null) {
-        throw Exception("Document data was null on snapshot ${snapshot.id}!");
-    }
-    return <%- modelName %>Data.fromJson(data); // Reuse fromJson logic
-  }
+  // --- Constructor ---
+  classString += `
+  const ${className}${isNested ? '' : 'Data'}({`;
+  Object.values(fields).forEach(field => {
+    classString += `
+    ${field.required ? 'required ' : ''}this.${field.fieldName},`;
+  });
+  classString += `
+  });
+`;
 
-   /// Creates a <%- modelName %>Data instance from a Map.
-  factory <%- modelName %>Data.fromJson(Map<String, dynamic> data) {
-     return <%- modelName %>Data(
-<% Object.values(collection.fields).forEach(field => { -%>
-<%   const dartType = getDartType(field, options); %>
-<%   const isNullable = !field.required; %>
-<%   const fieldAccess = `data['${field.fieldName}']`; %>
-<%   let parsingLogic; %>
-<%   if (field.type === 'array' && field.items) { %>
-<%     const itemType = getDartType(field.items, options); %>
-<%     // Handle list parsing with type casting for items %>
-<%     parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`; %>
-<%   } else if (field.type === 'map') { %>
-<%     // Basic map parsing, TODO: Needs recursive parsing for nested typed maps %>
-<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
-<%   } else if (field.type === 'timestamp') { %>
-<%     // Timestamps are handled directly by Firestore SDK types when reading from snapshot %>
-<%     // If reading from generic JSON, might need Timestamp.fromDate(DateTime.parse(value)) %>
-<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
-<%   } else if (field.type === 'geopoint') { %>
-<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
-<%   } else if (field.type === 'reference') { %>
-<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
-<%   } else { %>
-<%     // Default casting for primitives (String, num, bool) %>
-<%     parsingLogic = `${fieldAccess} as ${dartType}?`; %>
-<%   } %>
-      <%- field.fieldName %>: <%- parsingLogic %><%- isNullable ? '' : ` ?? (throw Exception("Missing required field: ${field.fieldName} in $data"))` %>,
-<% }); -%>
+  // --- fromJson Factory ---
+  classString += `
+  /// Creates a ${className}${isNested ? '' : 'Data'} instance from a Map.
+  factory ${className}${isNested ? '' : 'Data'}.fromJson(Map<String, dynamic> data) {
+    return ${className}${isNested ? '' : 'Data'}(
+`;
+  Object.values(fields).forEach(field => {
+    const fromJsonLogic = generateFromJsonLogic(field, options, className); // Pass current class name
+    classString += `
+      ${field.fieldName}: ${fromJsonLogic},`;
+  });
+  classString += `
     );
   }
+`;
 
-  /// Creates a <%- modelName %>Data instance from a Firestore DocumentSnapshot.
-  /// Required for Firestore `withConverter`.
-  factory <%- modelName %>Data.fromFirestore(
+  // --- fromSnapshot / fromFirestore (Only for top-level class) ---
+  if (!isNested) {
+    classString += `
+  /// Creates a ${className}Data instance from a Firestore DocumentSnapshot.
+  factory ${className}Data.fromSnapshot(DocumentSnapshot snapshot) {
+    final data = snapshot.data() as Map<String, dynamic>?;
+    if (data == null) {
+        // Escape the $ to prevent EJS interpolation
+        throw Exception("Document data was null on snapshot \${snapshot.id}!");
+    }
+    return ${className}Data.fromJson(data); // Reuse fromJson logic
+  }
+
+  /// Creates a ${className}Data instance from a Firestore DocumentSnapshot.
+  /// Required for Firestore \`withConverter\`.
+  factory ${className}Data.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
   ) {
@@ -100,49 +214,77 @@ class <%- modelName %>Data {
       throw Exception('Snapshot data was null!');
     }
     // We can reuse the existing fromJson logic.
-    // Add the document ID to the data map if you want it in the model.
     // data['id'] = snapshot.id; // Optional: include document ID
-    return <%- modelName %>Data.fromJson(data);
+    return ${className}Data.fromJson(data);
+  }
+`;
   }
 
-  /// Converts this <%- modelName %>Data instance to a Map suitable for Firestore.
+  // --- toJson Method ---
+  classString += `
+  /// Converts this ${className}${isNested ? '' : 'Data'} instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
-    return {
-<% Object.values(collection.fields).forEach(field => { -%>
-<%   let valueAccess = field.fieldName; %>
-<%   // TODO: Add recursive toJson calls for nested maps/lists if they have toJson methods %>
-<%   // Example for a list of objects with toJson: %>
-<%   // if (field.type === 'array' && field.items && field.items.type === 'map') { %>
-<%   //   valueAccess = `${field.fieldName}?.map((e) => e.toJson()).toList()`; %>
-<%   // } else if (field.type === 'map') { %>
-<%   //   valueAccess = `${field.fieldName}?.toJson()`; %>
-<%   // } %>
-      '<%- field.fieldName %>': <%- valueAccess %>,
-<% }); -%>
+    return {`;
+  Object.values(fields).forEach(field => {
+    const toJsonLogic = generateToJsonLogic(field, options, className); // Pass current class name
+    classString += `
+      '${field.fieldName}': ${toJsonLogic},`;
+  });
+  classString += `
     };
   }
+`;
 
-  /// Converts this <%- modelName %>Data instance to a Map suitable for Firestore.
-  /// Required for Firestore `withConverter`.
+  // --- toFirestore (Only for top-level class) ---
+  if (!isNested) {
+    classString += `
+  /// Converts this ${className}Data instance to a Map suitable for Firestore.
+  /// Required for Firestore \`withConverter\`.
   Map<String, Object?> toFirestore(SetOptions? options) {
     // We can reuse the existing toJson logic.
-    // Firestore expects Map<String, Object?>
     return toJson();
   }
+`;
+  }
 
+  // --- copyWith Method ---
+  classString += `
   /// Creates a copy of this instance with potentially modified fields.
-  <%- modelName %>Data copyWith({
-<% Object.values(collection.fields).forEach(field => { -%>
-    <%- getDartType(field, options) %>? <%- field.fieldName %>,
-<% }); -%>
+  ${className}${isNested ? '' : 'Data'} copyWith({`;
+  Object.values(fields).forEach(field => {
+     const fieldDartType = getDartType(field, options, className);
+     classString += `
+    ${fieldDartType}? ${field.fieldName},`;
+  });
+  classString += `
   }) {
-    return <%- modelName %>Data(
-<% Object.values(collection.fields).forEach(field => { -%>
-      <%- field.fieldName %>: <%- field.fieldName %> ?? this.<%- field.fieldName %>,
-<% }); -%>
+    return ${className}${isNested ? '' : 'Data'}(
+`;
+  Object.values(fields).forEach(field => {
+    classString += `
+      ${field.fieldName}: ${field.fieldName} ?? this.${field.fieldName},`;
+  });
+  classString += `
     );
   }
-} // End of <%- modelName %>Data class
+`;
+
+  // --- End of Class ---
+  classString += `
+} // End of ${className}${isNested ? '' : 'Data'} class
+`;
+  return classString;
+};
+
+// Keep track of generated nested classes to avoid duplicates
+const generatedNestedClasses = new Set();
+
+_%>
+
+<%# Generate the main class and any necessary nested classes %>
+<%- generateClass(modelName, collection.fields, options) %>
+
+<%# Removed the explicit generation here as it's now handled by generateClass() %>
 
   // TODO: Add toString, equals, hashCode implementations?
 
@@ -151,13 +293,14 @@ class <%- modelName %>Data {
 /// Fields with default values (like server timestamps) or optional fields are nullable.
 class <%- modelName %>AddData implements ToJsonSerializable {
 <% Object.values(collection.fields).forEach(field => { -%>
-<%   const dartType = getDartType(field, options); %>
+<%   const dartType = getDartType(field, options, modelName); %>
 <%   // Determine if the field should be required in AddData
    // Required if: it's marked required in schema AND has no default value
    // Optional if: it's not required OR it has a default value
    const isRequiredForAdd = field.required && !field.defaultValue;
    const isOptionalForAdd = !field.required || !!field.defaultValue;
 %>
+  /// <%- field.description || field.fieldName %> (<%- field.type %><%- isRequiredForAdd ? ', required' : '' %>)
   final <%- dartType %><%- isOptionalForAdd ? '?' : '' %> <%- field.fieldName %>;
 <% }); -%>
 
@@ -170,20 +313,20 @@ class <%- modelName %>AddData implements ToJsonSerializable {
 
   /// Converts this instance to a Map suitable for Firestore add operation.
   /// Excludes fields that are null to avoid overwriting server-generated values.
+  @override // Indicate override of interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
 <% Object.values(collection.fields).forEach(field => { -%>
 <%   const isOptionalForAdd = !field.required || !!field.defaultValue; %>
+<%   const toJsonLogic = generateToJsonLogic(field, options, modelName); %>
 <%   if (isOptionalForAdd) { -%>
     // Only include non-null values in the map for optional fields
     if (<%- field.fieldName %> != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['<%- field.fieldName %>'] = <%- field.fieldName %>;
+      map['<%- field.fieldName %>'] = <%- toJsonLogic %>;
     }
 <%   } else { -%>
     // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
-    map['<%- field.fieldName %>'] = <%- field.fieldName %>;
+    map['<%- field.fieldName %>'] = <%- toJsonLogic %>;
 <%   } -%>
 <% }); -%>
     return map;

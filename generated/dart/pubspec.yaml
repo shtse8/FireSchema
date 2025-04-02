@@ -1,6 +1,7 @@
 name: my_project_firestore_models_dart
 description: Generated Dart models for Firestore
 version: 0.1.0
+publish_to: none # Prevent accidental publishing with path dependencies
 # repository: # Optional: Add repository URL if available
 
 environment:
@@ -12,7 +13,7 @@ dependencies:
     sdk: flutter
   cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
   fireschema_dart_runtime:
-    path: ../../../packages/fireschema_dart_runtime # Use relative path for local runtime
+    path: ../../packages/fireschema_dart_runtime # Use path relative to project root
   # Add other necessary dependencies if the generated code requires them
 
 dev_dependencies:

@@ -10,13 +10,18 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 
 
 
+
+
 /// Represents the data structure for a 'Addresses' document.
 /// Description: Stores user addresses
 class AddressesData {
+
   /// street (string, required)
   final String street;
+
   /// city (string, required)
   final String city;
+
   /// zip (string)
   final String? zip;
 
@@ -26,46 +31,24 @@ class AddressesData {
     this.zip,
   });
 
+  /// Creates a AddressesData instance from a Map.
+  factory AddressesData.fromJson(Map<String, dynamic> data) {
+    return AddressesData(
+
+      street: data['street'] as String? ?? (throw Exception("Missing required field: street in input data")),
+      city: data['city'] as String? ?? (throw Exception("Missing required field: city in input data")),
+      zip: data['zip'] as String?,
+    );
+  }
+
   /// Creates a AddressesData instance from a Firestore DocumentSnapshot.
   factory AddressesData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
+        // Escape the $ to prevent EJS interpolation
         throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
     return AddressesData.fromJson(data); // Reuse fromJson logic
-  }
-
-   /// Creates a AddressesData instance from a Map.
-  factory AddressesData.fromJson(Map<String, dynamic> data) {
-     return AddressesData(
-
-
-
-
-
-
-
-
-      street: data['street'] as String? ?? (throw Exception("Missing required field: street in $data")),
-
-
-
-
-
-
-
-
-      city: data['city'] as String? ?? (throw Exception("Missing required field: city in $data")),
-
-
-
-
-
-
-
-
-      zip: data['zip'] as String?,
-    );
   }
 
   /// Creates a AddressesData instance from a Firestore DocumentSnapshot.
@@ -79,7 +62,6 @@ class AddressesData {
       throw Exception('Snapshot data was null!');
     }
     // We can reuse the existing fromJson logic.
-    // Add the document ID to the data map if you want it in the model.
     // data['id'] = snapshot.id; // Optional: include document ID
     return AddressesData.fromJson(data);
   }
@@ -87,32 +69,8 @@ class AddressesData {
   /// Converts this AddressesData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-
-
-
-
-
-
-
-
       'street': street,
-
-
-
-
-
-
-
-
       'city': city,
-
-
-
-
-
-
-
-
       'zip': zip,
     };
   }
@@ -121,7 +79,6 @@ class AddressesData {
   /// Required for Firestore `withConverter`.
   Map<String, Object?> toFirestore(SetOptions? options) {
     // We can reuse the existing toJson logic.
-    // Firestore expects Map<String, Object?>
     return toJson();
   }
 
@@ -132,12 +89,17 @@ class AddressesData {
     String? zip,
   }) {
     return AddressesData(
+
       street: street ?? this.street,
       city: city ?? this.city,
       zip: zip ?? this.zip,
     );
   }
+
 } // End of AddressesData class
+
+
+
 
   // TODO: Add toString, equals, hashCode implementations?
 
@@ -147,12 +109,15 @@ class AddressesData {
 class AddressesAddData implements ToJsonSerializable {
 
 
+  /// street (string, required)
   final String street;
 
 
+  /// city (string, required)
   final String city;
 
 
+  /// zip (string)
   final String? zip;
 
   const AddressesAddData({
@@ -166,20 +131,21 @@ class AddressesAddData implements ToJsonSerializable {
 
   /// Converts this instance to a Map suitable for Firestore add operation.
   /// Excludes fields that are null to avoid overwriting server-generated values.
+  @override // Indicate override of interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
 
-    // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
-    map['street'] = street;
 
     // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
+    map['street'] = street;
+
+
+    // Required fields are always included
     map['city'] = city;
+
 
     // Only include non-null values in the map for optional fields
     if (zip != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['zip'] = zip;
     }
     return map;

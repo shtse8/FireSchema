@@ -10,17 +10,85 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 
 
 
+
+
+/// Represents the data structure for a nested 'ItemsAddressMap' map.
+
+class ItemsAddressMap implements ToJsonSerializable {
+
+  /// street (string, required)
+  final String street;
+
+  /// city (string, required)
+  final String city;
+
+  /// zip (string)
+  final String? zip;
+
+  /// coords (map)
+  final ItemsAddressMapCoordsMap? coords;
+
+  const ItemsAddressMap({
+    required this.street,
+    required this.city,
+    this.zip,
+    this.coords,
+  });
+
+  /// Creates a ItemsAddressMap instance from a Map.
+  factory ItemsAddressMap.fromJson(Map<String, dynamic> data) {
+    return ItemsAddressMap(
+
+      street: data['street'] as String? ?? (throw Exception("Missing required field: street in input data")),
+      city: data['city'] as String? ?? (throw Exception("Missing required field: city in input data")),
+      zip: data['zip'] as String?,
+      coords: data['coords'] == null ? null : ItemsAddressMapCoordsMap.fromJson(data['coords'] as Map<String, dynamic>),
+    );
+  }
+
+  /// Converts this ItemsAddressMap instance to a Map suitable for Firestore.
+  Map<String, dynamic> toJson() {
+    return {
+      'street': street,
+      'city': city,
+      'zip': zip,
+      'coords': coords?.toJson(),
+    };
+  }
+
+  /// Creates a copy of this instance with potentially modified fields.
+  ItemsAddressMap copyWith({
+    String? street,
+    String? city,
+    String? zip,
+    ItemsAddressMapCoordsMap? coords,
+  }) {
+    return ItemsAddressMap(
+
+      street: street ?? this.street,
+      city: city ?? this.city,
+      zip: zip ?? this.zip,
+      coords: coords ?? this.coords,
+    );
+  }
+
+} // End of ItemsAddressMap class
+
 /// Represents the data structure for a 'Items' document.
 /// Description: A collection of test items.
 class ItemsData {
+
   /// name (string, required)
   final String name;
+
   /// value (number)
   final num? value;
+
   /// createdAt (timestamp, required)
   final Timestamp createdAt;
+
   /// address (map)
-  final Map<String, dynamic>? address;
+  final ItemsAddressMap? address;
 
   const ItemsData({
     required this.name,
@@ -29,56 +97,25 @@ class ItemsData {
     this.address,
   });
 
+  /// Creates a ItemsData instance from a Map.
+  factory ItemsData.fromJson(Map<String, dynamic> data) {
+    return ItemsData(
+
+      name: data['name'] as String? ?? (throw Exception("Missing required field: name in input data")),
+      value: data['value'] as num?,
+      createdAt: data['createdAt'] as Timestamp? ?? (throw Exception("Missing required field: createdAt in input data")),
+      address: data['address'] == null ? null : ItemsAddressMap.fromJson(data['address'] as Map<String, dynamic>),
+    );
+  }
+
   /// Creates a ItemsData instance from a Firestore DocumentSnapshot.
   factory ItemsData.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
+        // Escape the $ to prevent EJS interpolation
         throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
     return ItemsData.fromJson(data); // Reuse fromJson logic
-  }
-
-   /// Creates a ItemsData instance from a Map.
-  factory ItemsData.fromJson(Map<String, dynamic> data) {
-     return ItemsData(
-
-
-
-
-
-
-
-
-      name: data['name'] as String? ?? (throw Exception("Missing required field: name in $data")),
-
-
-
-
-
-
-
-
-      value: data['value'] as num?,
-
-
-
-
-
-
-
-
-
-      createdAt: data['createdAt'] as Timestamp? ?? (throw Exception("Missing required field: createdAt in $data")),
-
-
-
-
-
-
-
-
-      address: data['address'] as Map<String, dynamic>?,
-    );
   }
 
   /// Creates a ItemsData instance from a Firestore DocumentSnapshot.
@@ -92,7 +129,6 @@ class ItemsData {
       throw Exception('Snapshot data was null!');
     }
     // We can reuse the existing fromJson logic.
-    // Add the document ID to the data map if you want it in the model.
     // data['id'] = snapshot.id; // Optional: include document ID
     return ItemsData.fromJson(data);
   }
@@ -100,42 +136,10 @@ class ItemsData {
   /// Converts this ItemsData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-
-
-
-
-
-
-
-
       'name': name,
-
-
-
-
-
-
-
-
       'value': value,
-
-
-
-
-
-
-
-
       'createdAt': createdAt,
-
-
-
-
-
-
-
-
-      'address': address,
+      'address': address?.toJson(),
     };
   }
 
@@ -143,7 +147,6 @@ class ItemsData {
   /// Required for Firestore `withConverter`.
   Map<String, Object?> toFirestore(SetOptions? options) {
     // We can reuse the existing toJson logic.
-    // Firestore expects Map<String, Object?>
     return toJson();
   }
 
@@ -152,16 +155,21 @@ class ItemsData {
     String? name,
     num? value,
     Timestamp? createdAt,
-    Map<String, dynamic>? address,
+    ItemsAddressMap? address,
   }) {
     return ItemsData(
+
       name: name ?? this.name,
       value: value ?? this.value,
       createdAt: createdAt ?? this.createdAt,
       address: address ?? this.address,
     );
   }
+
 } // End of ItemsData class
+
+
+
 
   // TODO: Add toString, equals, hashCode implementations?
 
@@ -171,16 +179,20 @@ class ItemsData {
 class ItemsAddData implements ToJsonSerializable {
 
 
+  /// name (string, required)
   final String name;
 
 
+  /// value (number)
   final num? value;
 
 
+  /// createdAt (timestamp)
   final Timestamp? createdAt;
 
 
-  final Map<String, dynamic>? address;
+  /// address (map)
+  final ItemsAddressMap? address;
 
   const ItemsAddData({
 
@@ -195,29 +207,30 @@ class ItemsAddData implements ToJsonSerializable {
 
   /// Converts this instance to a Map suitable for Firestore add operation.
   /// Excludes fields that are null to avoid overwriting server-generated values.
+  @override // Indicate override of interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
 
+
     // Required fields are always included
-    // TODO: Handle nested toJson if needed for complex types
     map['name'] = name;
+
 
     // Only include non-null values in the map for optional fields
     if (value != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['value'] = value;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (createdAt != null) {
-      // TODO: Handle nested toJson if needed for complex types
       map['createdAt'] = createdAt;
     }
 
+
     // Only include non-null values in the map for optional fields
     if (address != null) {
-      // TODO: Handle nested toJson if needed for complex types
-      map['address'] = address;
+      map['address'] = address?.toJson();
     }
     return map;
   }
