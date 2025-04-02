@@ -50,8 +50,6 @@
 
 - **Runtime Refinements:**
   - Address TODOs within runtime base classes (e.g., more default types).
-  - Refine Dart `fromJson`/`toJson` for complex nested types (maps, arrays of
-    references).
   - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
     (DONE)**
   - Improve `AddData`/`UpdateData` type generation (Dart defaults, read-only).
