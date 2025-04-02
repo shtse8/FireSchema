@@ -315,6 +315,130 @@ void main() async {
 }
 ```
 
+## Advanced Usage
+
+### Subcollections
+
+Generated collection classes include helper methods to access defined
+subcollections.
+
+**TypeScript:**
+
+```typescript
+// Assuming usersCollection and newUserRef from previous example
+
+// Get a reference to the 'posts' subcollection for a specific user
+const userPostsCollection = usersCollection.posts(newUserRef.id);
+
+// Add a document to the subcollection
+const newPostRef = await userPostsCollection.add({
+  title: "Subcollection Post",
+  content: "Content here...",
+  publishedAt: Timestamp.now(), // Use Timestamp from firebase/firestore
+});
+console.log(`Added post ${newPostRef.id} to user ${newUserRef.id}`);
+
+// Query the subcollection
+const userPosts = await userPostsCollection.query()
+  .whereTitle("==", "Subcollection Post")
+  .getData();
+console.log(`Found ${userPosts.length} post(s) in subcollection.`);
+```
+
+**Dart:**
+
+```dart
+// Assuming usersCollection and newUserRef from previous example
+
+// Get a reference to the 'posts' subcollection for a specific user
+final userPostsCollection = usersCollection.posts(newUserRef.id);
+
+// Add a document to the subcollection
+final newPostRef = await userPostsCollection.add(PostsAddData(
+  title: 'Subcollection Post',
+  content: 'Content here...',
+  publishedAt: Timestamp.now(), // Use Timestamp from cloud_firestore
+));
+print('Added post ${newPostRef.id} to user ${newUserRef.id}');
+
+// Query the subcollection
+final userPosts = await userPostsCollection.query()
+    .whereTitle(isEqualTo: 'Subcollection Post')
+    .getData();
+print('Found ${userPosts.length} post(s) in subcollection.');
+```
+
+### References (`DocumentReference`)
+
+Fields defined with `type: "reference"` and `referenceTo: "otherCollection"` are
+generated as `DocumentReference` types.
+
+**TypeScript:**
+
+```typescript
+import { AddressesCollection } from "./generated/firestore-ts/addresses.collection";
+
+// Assuming usersCollection, newUserRef, and firestore from previous examples
+const addressesCollection = new AddressesCollection(firestore);
+
+// Create an address document
+const newAddressRef = await addressesCollection.add({
+  street: "123 Main St",
+  city: "Anytown",
+  zip: "12345",
+});
+
+// Update the user document to include the reference
+await usersCollection.update(newUserRef.id)
+  .setPrimaryAddressRef(newAddressRef) // Pass the DocumentReference
+  .commit();
+
+// Fetch the user and access the reference
+const updatedUserData = await usersCollection.get(newUserRef.id);
+if (updatedUserData?.primaryAddressRef) {
+  console.log(
+    "User's primary address path:",
+    updatedUserData.primaryAddressRef.path,
+  );
+  // To get the actual address data, you need to fetch it separately:
+  // const addressSnap = await updatedUserData.primaryAddressRef.get();
+  // const addressData = addressSnap.data(); // Note: This won't be typed automatically by default
+}
+```
+
+**Dart:**
+
+```dart
+import 'generated/firestore_dart/addresses_collection.dart';
+import 'generated/firestore_dart/addresses_data.dart';
+
+// Assuming usersCollection, newUserRef, and firestore from previous examples
+final addressesCollection = AddressesCollection(firestore: firestore);
+
+// Create an address document
+final newAddressRef = await addressesCollection.add(AddressesAddData(
+  street: '123 Main St',
+  city: 'Anytown',
+  zip: '12345',
+));
+
+// Update the user document to include the reference
+// Note: Dart DocumentReference isn't generic in the same way as TS,
+// so we pass the raw reference.
+await usersCollection.update(newUserRef.id)
+  .setPrimaryAddressRef(newAddressRef) // Pass the DocumentReference
+  .commit();
+
+// Fetch the user and access the reference
+final updatedUserData = await usersCollection.get(newUserRef.id);
+if (updatedUserData?.primaryAddressRef != null) {
+  print('User\'s primary address path: ${updatedUserData!.primaryAddressRef!.path}');
+  // To get the actual address data, you need to fetch it separately:
+  // final addressSnap = await updatedUserData.primaryAddressRef!.get();
+  // final addressData = addressSnap.data(); // This will be Map<String, dynamic>
+}
+```
+
 ## Configuration (`fireschema.config.json`)
 
 ```json
