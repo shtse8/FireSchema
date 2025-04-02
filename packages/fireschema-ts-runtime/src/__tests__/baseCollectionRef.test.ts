@@ -116,6 +116,18 @@ describe('BaseCollectionRef', () => {
     expect(mockDoc).toHaveBeenCalledWith(mockCollectionRef, docId); // Ensure doc is called on the collection ref
   });
 
+  it('should call doc with an empty ID', () => {
+    const collectionId = 'testItems';
+    const docId = ''; // Empty ID
+    const testCollection = new TestCollectionRef(mockFirestore, collectionId);
+    testCollection.doc(docId); // Call the function
+
+    // mockDoc should still be called, Firestore handles empty ID generation later if needed
+    expect(mockDoc).toHaveBeenCalledTimes(1);
+    expect(mockDoc).toHaveBeenCalledWith(mockCollectionRef, docId);
+  });
+
+
   // --- applyDefaults() Tests ---
   it('should apply serverTimestamp default value', () => {
     const schema: CollectionSchema = {
@@ -159,6 +171,29 @@ describe('BaseCollectionRef', () => {
       expect(mockAddDoc).toHaveBeenCalledWith(mockCollectionRef, expectedData);
     });
   });
+
+   it('should ignore non-serverTimestamp default values currently', () => {
+    const schema: CollectionSchema = {
+      fields: {
+        name: { defaultValue: 'Default Name' }, // Non-serverTimestamp default
+        value: { defaultValue: 0 },
+      },
+    };
+    const testCollection = new TestCollectionRef(mockFirestore, 'items', schema);
+    const inputData: TestAddData = { name: 'Specific Name' }; // Provide name, omit value
+    // Expect defaults NOT to be applied, only input data passed
+    const expectedData = { name: 'Specific Name' };
+
+    mockAddDoc.mockResolvedValue(mockDocumentRef);
+
+    return testCollection.add(inputData).then(() => {
+      expect(mockServerTimestamp).not.toHaveBeenCalled();
+      expect(mockAddDoc).toHaveBeenCalledTimes(1);
+      // Check that non-serverTimestamp defaults were NOT applied
+      expect(mockAddDoc).toHaveBeenCalledWith(mockCollectionRef, expectedData);
+    });
+  });
+
 
   // --- add() Tests ---
   it('should call addDoc with default-applied data', async () => {

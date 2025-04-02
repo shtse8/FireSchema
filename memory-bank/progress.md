@@ -44,32 +44,33 @@
   (builds, scripts, installs) for better performance, while maintaining Node.js
   compatibility for published packages.
 
-**What's Left (High Level):**
+**What's Left (Next Steps):**
 
-- **Refactor to Runtime Libraries (In Progress):**
-  - Build/Link runtime packages correctly within the monorepo (Build process
-    improved, linking seems okay via `npm install`).
-  - Write unit tests for runtime libraries (infrastructure ready).
-  - Write integration tests for generated code (infrastructure ready).
-  - ~~Update `README.md` and examples.~~ (Done)
-  - Refine runtime base class implementations (e.g., Dart `add` method, schema
-    passing).
-  - Address TODOs within runtime base classes.
-- Refinements to Dart `fromJson`/`toJson` for complex nested types.
-- Refinements to `AddData`/`UpdateData` types (especially Dart
-  defaults/read-only).
-- Comprehensive testing (Unit tests for runtimes - infrastructure ready;
-  Integration tests - infrastructure ready).
-- Robust error handling and reporting.
-- Documentation improvements (advanced usage, schema details).
+- **Testing (Infrastructure Ready):**
+  - Write comprehensive unit tests for runtime library base classes
+    (`@fireschema/ts-runtime`, `fireschema_dart_runtime`).
+  - Write integration tests for the generated code (using examples or dedicated
+    test project, potentially with emulators/fakes).
+- **Runtime & Generator Refinements:**
+  - Address TODOs within runtime base classes (e.g., `add` method type handling,
+    more default types).
+  - Refine Dart `fromJson`/`toJson` for complex nested types (maps, arrays of
+    references).
+  - Improve `AddData`/`UpdateData` type generation (Dart defaults, read-only).
+  - Support updating nested map fields via dot notation in TS `UpdateBuilder`.
+  - Support more complex validation rules from JSON Schema in the generator.
+  - Improve error handling and reporting during generation and in runtimes.
+- **Documentation & Publishing:**
+  - Add more detailed documentation (advanced usage, schema details).
+  - Prepare packages for publishing (consider build steps, versioning).
 
-**Current Status:** The core code structure for the runtime libraries and the
-updated generators/templates is in place. The build process has been refined,
-documentation (`README.md`) and examples (`examples/`) have been updated, and
-the generator successfully produces code using the runtime approach, and the
-generated Dart code passes static analysis. Basic test infrastructure is now in
-place for the runtime libraries. The next steps involve writing actual unit and
-integration tests, and addressing further runtime refinements (like TODOs).
+**Current Status:** The major refactoring to use separate runtime libraries is
+structurally complete. Generators and templates have been updated, the build
+process works, documentation (`README.md`, Memory Bank) and examples reflect the
+new architecture, and generated code (including Dart) passes basic checks.
+Development tooling has been switched to Bun for performance. Basic test
+infrastructure is set up for both runtime packages. The immediate focus shifts
+to implementing comprehensive tests and refining the runtime libraries.
 
 **Known Issues:**
 
@@ -80,10 +81,5 @@ integration tests, and addressing further runtime refinements (like TODOs).
   by runtime).
 - (Existing) TypeScript `UpdateBuilder` doesn't easily support updating nested
   map fields via dot notation yet (may need runtime enhancement).
-- ~~(Resolved) Build process for monorepo (linking TS runtime, building
-  runtimes) needs implementation/verification.~~ (Build script improved, seems
-  functional).
-- ~~(Resolved) Dart runtime dependency errors persist...~~ (Generator errors
-  fixed, runtime dependency itself is handled by user install).
-- ~~(Resolved) Null safety issues identified in existing generated Dart query
-  code...~~ (Fixed by making parameters nullable in template).
+- (No critical unresolved issues blocking next steps; existing items are
+  refinement targets)
