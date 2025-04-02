@@ -170,7 +170,13 @@ generating all logic directly. **(Completed)**
   - Updated example schema (`examples/firestore.schema.json`) to mark
     `users.createdAt` as read-only.
   - Verified generated code passes `dart analyze`. **Current Status & Next
-    Steps:**
+- **Dart `UpdateBuilder` Read-Only Fields:**
+  - Modified Dart update builder template
+    (`templates/dart/updateBuilder.dart.ejs`) to recognize
+    `"x-read-only": true`.
+  - Fields marked with `x-read-only` are now excluded from the generated
+    `set<FieldName>` methods in the `...UpdateBuilder` class.
+  - Verified generated code passes `dart analyze`. Steps:**
 
 - **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
   debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`

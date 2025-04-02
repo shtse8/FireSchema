@@ -19,7 +19,7 @@ class <%- modelName %>UpdateBuilder extends BaseUpdateBuilder<<%- modelName %>Da
   // Constructor and internal updateData map are inherited from BaseUpdateBuilder
 
   // --- Field Setters ---
-<% Object.values(collection.fields).forEach(field => { -%>
+<% Object.values(collection.fields).filter(field => !field['x-read-only']).forEach(field => { -%>
 <%   const dartType = getDartType(field, options); -%>
   /// Sets the value for the '<%- field.fieldName %>' field.
   <%- modelName %>UpdateBuilder set<%- capitalizeFirstLetter(field.fieldName) %>(<%- dartType %><%- !field.required ? '?' : '' %> value) {

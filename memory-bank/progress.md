@@ -53,7 +53,7 @@
   - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
     (DONE)**
   - Improve `AddData`/`UpdateData` type generation (Dart defaults [AddData
-    done], read-only [AddData done]).
+    done], read-only [AddData done, UpdateBuilder done]).
   - Support updating nested map fields via dot notation in TS `UpdateBuilder`.
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema.
