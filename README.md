@@ -531,6 +531,25 @@ FireSchema uses JSON Schema (`draft-07`) to define collections and fields.
 _(Refer to `src/schema-definition.json` for the formal validation schema and
 `examples/firestore.schema.json` for a practical example.)_
 
+## Limitations
+
+- **Dart `pattern` Validation:** Generating constructor `assert` statements for
+  the `pattern` validation rule in Dart is currently blocked due to EJS template
+  compilation issues when using `RegExp`.
+- **JSON Schema Support:** While basic types, `required`, `defaultValue`,
+  string/number validation rules (`minLength`, `maxLength`, `pattern`,
+  `minimum`, `maximum`), `items`, `properties`, and `referenceTo` are supported,
+  many other JSON Schema validation keywords (e.g., `enum`, `format`,
+  `multipleOf`, `exclusiveMinimum`, `uniqueItems`) are not currently used for
+  code generation or runtime validation.
+- **TypeScript Validation:** Validation rules (`minLength`, etc.) are currently
+  only added as TSDoc comments in TypeScript, not enforced at runtime by the
+  generated code.
+- **Nested Map Updates:** The generated `UpdateBuilder` classes do not currently
+  support updating fields within nested maps using dot notation (e.g.,
+  `settings.theme`). Updates to nested maps require setting the entire map field
+  or using raw Firestore update calls.
+
 ## Development
 
 1. Clone the repository.
