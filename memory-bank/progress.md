@@ -32,7 +32,8 @@
 - **README.md updated** with new installation/usage instructions reflecting
   runtime packages.
 - **Generated code in `generated/` successfully regenerated** using the updated
-  example config and runtime-refactored generator (Dart errors resolved).
+  example config and runtime-refactored generator (Dart analysis errors
+  resolved).
 - **Build process refined** in root `package.json` for better reliability
   (clean, build workspaces, build root).
 - **Basic test infrastructure set up** for both runtime packages:
@@ -45,8 +46,8 @@
 - **Refactor to Runtime Libraries (In Progress):**
   - Build/Link runtime packages correctly within the monorepo (Build process
     improved, linking seems okay via `npm install`).
-  - Test generated code with runtime libraries (integration tests -
-    infrastructure ready).
+  - Write unit tests for runtime libraries (infrastructure ready).
+  - Write integration tests for generated code (infrastructure ready).
   - ~~Update `README.md` and examples.~~ (Done)
   - Refine runtime base class implementations (e.g., Dart `add` method, schema
     passing).
@@ -54,18 +55,18 @@
 - Refinements to Dart `fromJson`/`toJson` for complex nested types.
 - Refinements to `AddData`/`UpdateData` types (especially Dart
   defaults/read-only).
-- Comprehensive testing (unit tests for runtimes - infrastructure ready,
-  integration tests - infrastructure ready).
+- Comprehensive testing (Unit tests for runtimes - infrastructure ready;
+  Integration tests - infrastructure ready).
 - Robust error handling and reporting.
 - Documentation improvements (advanced usage, schema details).
 
 **Current Status:** The core code structure for the runtime libraries and the
 updated generators/templates is in place. The build process has been refined,
 documentation (`README.md`) and examples (`examples/`) have been updated, and
-the generator successfully produces code using the runtime approach. Basic test
-infrastructure is now in place for the runtime libraries. The next steps involve
-writing actual unit and integration tests, and addressing further runtime
-refinements.
+the generator successfully produces code using the runtime approach, and the
+generated Dart code passes static analysis. Basic test infrastructure is now in
+place for the runtime libraries. The next steps involve writing actual unit and
+integration tests, and addressing further runtime refinements (like TODOs).
 
 **Known Issues:**
 
@@ -81,5 +82,5 @@ refinements.
   functional).
 - ~~(Resolved) Dart runtime dependency errors persist...~~ (Generator errors
   fixed, runtime dependency itself is handled by user install).
-- (New) Null safety issues identified in existing generated Dart query code need
-  to be addressed in the updated Dart query template/runtime.
+- ~~(Resolved) Null safety issues identified in existing generated Dart query
+  code...~~ (Fixed by making parameters nullable in template).

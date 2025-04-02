@@ -35,7 +35,7 @@
   - Located in `packages/fireschema-ts-runtime`.
   - Provides `BaseCollectionRef`, `BaseQueryBuilder`, `BaseUpdateBuilder`.
   - Published as an npm package.
-  - **Peer Dependency:** `firebase` (v9/v10).
+  - **Peer Dependency:** `firebase` (^9.0.0 || ^10.0.0 || ^11.0.0).
 - **Dart Runtime (`fireschema_dart_runtime`):**
   - Located in `packages/fireschema_dart_runtime`.
   - Provides equivalent base classes/mixins for Dart.

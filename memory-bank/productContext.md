@@ -40,5 +40,6 @@ generate strongly-typed ODM code for their target languages.
   manipulation.
 - **Consistency:** Ensure data models are consistent across different codebases
   (TS/Dart).
-- **Minimal Dependencies:** Embed core runtime logic directly into generated
-  code to avoid extra package dependencies in user projects.
+- **Managed Dependencies:** Generated code relies on lightweight, installable
+  runtime packages (`@fireschema/ts-runtime`, `fireschema_dart_runtime`) to
+  centralize core logic and reduce generated code size.
