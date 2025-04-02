@@ -292,7 +292,7 @@ _%>
 /// Represents the data structure for adding a new '<%- modelName %>' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
 class <%- modelName %>AddData implements ToJsonSerializable {
-<% Object.values(collection.fields).forEach(field => { -%>
+<% Object.values(collection.fields).filter(field => !field['x-read-only']).forEach(field => { -%>
 <%   const dartType = getDartType(field, options, modelName); %>
 <%   // Determine if the field should be required in AddData
    // Required if: it's marked required in schema AND has no default value
@@ -305,7 +305,7 @@ class <%- modelName %>AddData implements ToJsonSerializable {
 <% }); -%>
 
   const <%- modelName %>AddData({
-<% Object.values(collection.fields).forEach(field => { -%>
+<% Object.values(collection.fields).filter(field => !field['x-read-only']).forEach(field => { -%>
 <%   const isRequiredForAdd = field.required && !field.defaultValue; %>
     <%- isRequiredForAdd ? 'required ' : '' %>this.<%- field.fieldName %>,
 <% }); -%>
@@ -316,7 +316,7 @@ class <%- modelName %>AddData implements ToJsonSerializable {
   @override // Indicate override of interface method
   Map<String, Object?> toJson() {
     final map = <String, Object?>{};
-<% Object.values(collection.fields).forEach(field => { -%>
+<% Object.values(collection.fields).filter(field => !field['x-read-only']).forEach(field => { -%>
 <%   const isOptionalForAdd = !field.required || !!field.defaultValue; %>
 <%   const toJsonLogic = generateToJsonLogic(field, options, modelName); %>
 <%   if (isOptionalForAdd) { -%>

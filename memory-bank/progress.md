@@ -52,7 +52,8 @@
   - Address TODOs within runtime base classes (e.g., more default types).
   - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
     (DONE)**
-  - Improve `AddData`/`UpdateData` type generation (Dart defaults, read-only).
+  - Improve `AddData`/`UpdateData` type generation (Dart defaults, read-only
+    [AddData done]).
   - Support updating nested map fields via dot notation in TS `UpdateBuilder`.
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema.

@@ -16,7 +16,8 @@
         "createdAt": {
           "type": "timestamp",
           "defaultValue": "serverTimestamp",
-          "description": "Timestamp when the user was created"
+          "description": "Timestamp when the user was created",
+          "x-read-only": true
         },
         "lastLogin": {
           "type": "timestamp",

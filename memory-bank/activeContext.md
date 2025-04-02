@@ -162,7 +162,15 @@ generating all logic directly. **(Completed)**
     strongly-typed parameters in the generated subclass methods (e.g.,
     `whereTags(whereIn: List<String>?)`).
   - Verified generated code passes `dart analyze` and runtime unit tests pass.
-    **Current Status & Next Steps:**
+- **Dart `AddData` Read-Only Fields:**
+  - Modified Dart model template (`templates/dart/model.dart.ejs`) to recognize
+    a custom `"x-read-only": true` property in the field schema.
+  - Fields marked with `x-read-only` are now excluded from the generated
+    `...AddData` class (fields, constructor parameters, `toJson` logic).
+  - Updated example schema (`examples/firestore.schema.json`) to mark
+    `users.createdAt` as read-only.
+  - Verified generated code passes `dart analyze`. **Current Status & Next
+    Steps:**
 
 - **CI/CD:** Automated publishing workflow via GitHub Actions is set up,
   debugged, and functional for tags matching `v*.*.*`. Requires `NPM_TOKEN`
