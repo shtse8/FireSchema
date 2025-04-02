@@ -60,11 +60,11 @@ jobs:
   # Publish Dart package using the official reusable workflow (OIDC)
   publish-dart:
     needs: build-and-test
-    permissions: # Permissions needed for OIDC
-      id-token: write
+    permissions:
+        id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
-      working-directory: ./packages/fireschema_dart_runtime
-      # If you configure a GitHub Environment called 'pub.dev' for added protection:
-      # environment: pub.dev
-      # environment: pub.dev
+        working-directory: ./packages/fireschema_dart_runtime
+        # If you configure a GitHub Environment called 'pub.dev' for added protection:
+        # environment: pub.dev
+        # environment: pub.dev
