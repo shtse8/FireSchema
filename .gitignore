@@ -112,3 +112,13 @@ dynamodb/
 
 # Example files (Keep tracked)
 # examples/
+
+# Dart/Flutter
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.iml
+*.ipr
+*.iws
