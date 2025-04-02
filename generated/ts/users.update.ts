@@ -4,165 +4,163 @@
  */
 import {
   DocumentReference,
-  updateDoc,
-  FieldValue,
-  serverTimestamp,
-  increment,
-  arrayUnion,
-  arrayRemove,
-  deleteField,
+  // updateDoc, // Handled by base class commit()
+  FieldValue, // Keep for potential direct use if needed, though base provides helpers
+  // serverTimestamp, // Handled by base class helper _serverTimestamp()
+  // increment, // Handled by base class helper _increment()
+  // arrayUnion, // Handled by base class helper _arrayUnion()
+  // arrayRemove, // Handled by base class helper _arrayRemove()
+  // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { UsersData } from './users.types';
 
-// Define the structure for update data, allowing FieldValue types
-// This is complex to type perfectly for nested fields, so internal representation is simpler.
-// type FieldValueUpdate<T> = {
-//   [K in keyof T]?: T[K] | FieldValue;
-// };
-
 /**
- * A typed builder for creating update operations for 'users' documents.
+ * A typed builder for creating update operations for 'users' documents, extending BaseUpdateBuilder.
  */
-export class UsersUpdateBuilder {
-  private _docRef: DocumentReference<UsersData>;
-  private _updateData: Record<string, any> = {}; // Use Record<string, any> internally
+export class UsersUpdateBuilder extends BaseUpdateBuilder<UsersData> {
 
-  constructor(docRef: DocumentReference<UsersData>) {
-    this._docRef = docRef;
-  }
+  // Constructor is inherited from BaseUpdateBuilder
+  // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
   /** Sets the value for the 'displayName' field. */
   setDisplayName(value: string): this {
-    this._updateData['displayName'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('displayName', value);
   }
 
 
   /** Sets the value for the 'email' field. */
   setEmail(value: string): this {
-    this._updateData['email'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('email', value);
   }
 
 
   /** Sets the value for the 'createdAt' field. */
   setCreatedAt(value: Timestamp): this {
-    this._updateData['createdAt'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('createdAt', value);
   }
 
   /** Sets the 'createdAt' field to the server timestamp. */
   setCreatedAtToServerTimestamp(): this {
-    this._updateData['createdAt'] = serverTimestamp();
-    return this;
+    // Call the protected _serverTimestamp helper
+    return this._serverTimestamp('createdAt');
+    // Alternatively: return this._set('createdAt', serverTimestamp());
   }
   /** Deletes the 'createdAt' field. */
   deleteCreatedAt(): this {
-    this._updateData['createdAt'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('createdAt');
+    // Alternatively: return this._set('createdAt', deleteField());
   }
 
   /** Sets the value for the 'lastLogin' field. */
   setLastLogin(value: Timestamp): this {
-    this._updateData['lastLogin'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('lastLogin', value);
   }
 
   /** Deletes the 'lastLogin' field. */
   deleteLastLogin(): this {
-    this._updateData['lastLogin'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('lastLogin');
+    // Alternatively: return this._set('lastLogin', deleteField());
   }
 
   /** Sets the value for the 'age' field. */
   setAge(value: number): this {
-    this._updateData['age'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('age', value);
   }
 
   /** Atomically increments the 'age' field. */
   incrementAge(value: number): this {
-    this._updateData['age'] = increment(value);
-    return this;
+    // Call the protected _increment helper (or _set with increment(value))
+    return this._increment('age', value);
+    // Alternatively: return this._set('age', increment(value));
   }
   /** Deletes the 'age' field. */
   deleteAge(): this {
-    this._updateData['age'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('age');
+    // Alternatively: return this._set('age', deleteField());
   }
 
   /** Sets the value for the 'isActive' field. */
   setIsActive(value: boolean): this {
-    this._updateData['isActive'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('isActive', value);
   }
 
   /** Deletes the 'isActive' field. */
   deleteIsActive(): this {
-    this._updateData['isActive'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('isActive');
+    // Alternatively: return this._set('isActive', deleteField());
   }
 
   /** Sets the value for the 'settings' field. */
   setSettings(value: { theme?: string; notificationsEnabled?: boolean }): this {
-    this._updateData['settings'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('settings', value);
   }
 
   /** Deletes the 'settings' field. */
   deleteSettings(): this {
-    this._updateData['settings'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('settings');
+    // Alternatively: return this._set('settings', deleteField());
   }
 
   /** Sets the value for the 'tags' field. */
   setTags(value: string[]): this {
-    this._updateData['tags'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('tags', value);
   }
 
   /** Atomically adds elements to the 'tags' array field. */
   arrayUnionTags(values: string[] | string): this {
-    this._updateData['tags'] = arrayUnion(...(Array.isArray(values) ? values : [values]));
-    return this;
+    // Call the protected _arrayUnion helper
+    return this._arrayUnion('tags', Array.isArray(values) ? values : [values]);
+    // Alternatively: return this._set('tags', arrayUnion(...(Array.isArray(values) ? values : [values])));
   }
 
   /** Atomically removes elements from the 'tags' array field. */
   arrayRemoveTags(values: string[] | string): this {
-    this._updateData['tags'] = arrayRemove(...(Array.isArray(values) ? values : [values]));
-    return this;
+    // Call the protected _arrayRemove helper
+    return this._arrayRemove('tags', Array.isArray(values) ? values : [values]);
+    // Alternatively: return this._set('tags', arrayRemove(...(Array.isArray(values) ? values : [values])));
   }
   /** Deletes the 'tags' field. */
   deleteTags(): this {
-    this._updateData['tags'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('tags');
+    // Alternatively: return this._set('tags', deleteField());
   }
 
   /** Sets the value for the 'primaryAddressRef' field. */
   setPrimaryAddressRef(value: DocumentReference<AddressesData>): this {
-    this._updateData['primaryAddressRef'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('primaryAddressRef', value);
   }
 
   /** Deletes the 'primaryAddressRef' field. */
   deletePrimaryAddressRef(): this {
-    this._updateData['primaryAddressRef'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('primaryAddressRef');
+    // Alternatively: return this._set('primaryAddressRef', deleteField());
   }
 
   // --- End Field Setters ---
 
-  /**
-   * Commits the update operations to Firestore.
-   * @returns A promise that resolves when the update is complete.
-   */
-  async commit(): Promise<void> {
-    if (Object.keys(this._updateData).length === 0) {
-      // No updates specified, maybe warn or just do nothing?
-      console.warn('Update commit called with no changes specified.');
-      return;
-    }
-    await updateDoc(this._docRef, this._updateData);
-  }
+  // commit() method is inherited from BaseUpdateBuilder
+
+  // --- Custom Update Methods Placeholder ---
+  // Example: markAsRead() { return this._set('read', true); }
 }

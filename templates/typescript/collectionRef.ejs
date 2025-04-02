@@ -4,23 +4,20 @@
  */
 import {
   Firestore,
-  CollectionReference,
+  CollectionReference, // Keep for type annotation if needed, but base handles creation
   DocumentReference,
-  collection,
-  doc,
-  getDoc,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp,
-  increment,
-  arrayUnion,
-  arrayRemove,
-  deleteField,
-  DocumentData, // Added for parentRef typing
-  // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
+  DocumentData, // Needed for parentRef typing and subCollection helper
+  // serverTimestamp, // Handled by base class applyDefaults
+  // increment, // Not used directly here
+  // arrayUnion, // Not used directly here
+  // arrayRemove, // Not used directly here
+  // deleteField, // Not used directly here
+  // Basic CRUD functions (collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc) are handled by base
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { <%- modelName %>Data } from './<%= collection.collectionId %>.types';
 import { <%- modelName %>QueryBuilder } from './<%= collection.collectionId %>.query';
 import { <%- modelName %>UpdateBuilder } from './<%= collection.collectionId %>.update';
@@ -34,96 +31,51 @@ import { <%- subModelName %>Collection } from './<%= collection.collectionId %>/
 
 // Define types for data manipulation.
 // AddData: Makes fields optional if they have a default value or are not required.
+// NOTE: This might need refinement if base class handles defaults differently.
 type <%- modelName %>AddData = {
 <% Object.entries(collection.fields).forEach(([fieldName, fieldDef]) => { -%>
 <%   const isOptional = !fieldDef.required || fieldDef.defaultValue !== undefined; -%>
   <%- fieldName %><%- isOptional ? '?' : '' %>: <%- modelName %>Data['<%- fieldName %>'];
 <% }); -%>
 };
-// UpdateData: Make all fields optional for partial updates.
-// Note: For UpdateData, the type should allow FieldValue types (increment, arrayUnion, etc.)
-//       This is complex to type perfectly, so we use Partial<> for now, and users must
-//       ensure they pass the correct FieldValue types where needed.
-type <%- modelName %>UpdateData = Partial<<%- modelName %>AddData>;
+// UpdateData: Type used by UpdateBuilder, defined there or implicitly via Firestore types.
 
 /**
- * Typed reference to the '<%- collection.collectionId %>' collection.
+ * Typed reference to the '<%- collection.collectionId %>' collection, extending BaseCollectionRef.
  */
-export class <%- modelName %>Collection {
-  public ref: CollectionReference<<%- modelName %>Data>; // Path: <%- parentPath ? parentPath + '/' : '' %><%- collection.collectionId %>
-
-  private firestore: Firestore; // Store firestore instance
-  private parentRef?: DocumentReference<DocumentData>; // Optional parent ref for subcollections
+export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName %>Data, <%- modelName %>AddData> {
 
   /**
    * @param firestore The Firestore instance.
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
   constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
-    this.firestore = firestore; // Store firestore instance
-    this.parentRef = parentRef;
-    if (parentRef) {
-      // Subcollection reference
-      this.ref = collection(parentRef, '<%- collection.collectionId %>') as CollectionReference<<%- modelName %>Data>;
-    } else {
-      // Root collection reference
-      this.ref = collection(firestore, '<%- collection.collectionId %>') as CollectionReference<<%- modelName %>Data>;
-    }
+    // Pass schema details (collection object) to the base class for features like default handling
+    const schema: CollectionSchema = {
+        fields: <%- JSON.stringify(collection.fields, null, 2) %> // Pass field definitions
+        // Add subcollection info if BaseCollectionRef needs it
+    };
+    super(firestore, '<%- collection.collectionId %>', schema, parentRef);
   }
 
-  /** Returns the DocumentReference for a given ID. */
-  doc(id: string): DocumentReference<<%- modelName %>Data> {
-    return doc(this.ref, id);
-  }
-
-  /** Adds a new document with the given data, returning the new DocumentReference. */
-  async add(data: <%- modelName %>AddData): Promise<DocumentReference<<%- modelName %>Data>> {
-    const dataWithDefaults = { ...data };
-    // Automatically add server timestamps for fields configured in the schema
-<% Object.values(collection.fields).forEach(field => { -%>
-<%   if (field.defaultValue === 'serverTimestamp') { -%>
-    // If '<%- field.fieldName %>' wasn't provided, add the serverTimestamp default
-    if (dataWithDefaults.<%- field.fieldName %> === undefined) {
-        (dataWithDefaults as any).<%- field.fieldName %> = serverTimestamp();
-    }
-<%   } -%>
-<% }); -%>
-    // TODO: Handle other non-serverTimestamp default values if needed
-    return addDoc(this.ref, dataWithDefaults as <%- modelName %>Data); // Cast needed as defaults are added
-  }
-
-  /** Sets the data for a document, overwriting existing data. */
-  async set(id: string, data: <%- modelName %>AddData): Promise<void> {
-    // Note: set might need its own data type if it should behave differently than add
-    // Also, set doesn't automatically apply defaults like add does.
-    await setDoc(this.doc(id), data as <%- modelName %>Data); // Cast needed as AddData is slightly different
-  }
+  // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
 
   /**
    * Creates a new UpdateBuilder instance for the document with the given ID.
    * @param id The ID of the document to update.
-   * @returns A new UpdateBuilder instance.
+   * @returns A new <%- modelName %>UpdateBuilder instance.
    */
   update(id: string): <%- modelName %>UpdateBuilder {
+    // Returns the specific generated UpdateBuilder
     return new <%- modelName %>UpdateBuilder(this.doc(id));
-  }
-
-  /** Deletes a document. */
-  async delete(id: string): Promise<void> {
-    await deleteDoc(this.doc(id));
-  }
-
-  /** Reads a single document. */
-  async get(id: string): Promise<<%- modelName %>Data | undefined> {
-    const snapshot = await getDoc(this.doc(id));
-    return snapshot.exists() ? snapshot.data() : undefined;
   }
 
   /**
    * Creates a new QueryBuilder instance for this collection.
-   * @returns A new QueryBuilder instance.
+   * @returns A new <%- modelName %>QueryBuilder instance.
    */
   query(): <%- modelName %>QueryBuilder {
+    // Returns the specific generated QueryBuilder
     return new <%- modelName %>QueryBuilder(this.firestore, this.ref);
   }
 
@@ -131,21 +83,20 @@ export class <%- modelName %>Collection {
 <% if (collection.subcollections) { %>
 <%   Object.keys(collection.subcollections).forEach(subId => { %>
 <%     const subModelName = capitalizeFirstLetter(subId); %>
+<%     const subCollectionDef = collection.subcollections[subId]; %>
   /**
    * Access the '<%- subId %>' subcollection for a specific document.
    * @param documentId The ID of the parent '<%- collection.collectionId %>' document.
    * @returns A typed reference to the '<%- subId %>' subcollection.
    */
   <%- subId %>(documentId: string): <%- subModelName %>Collection {
-    // Pass the untyped parent document reference
-    return new <%- subModelName %>Collection(this.firestore, this.ref.doc(documentId));
+    // Use the helper method from BaseCollectionRef
+    const subSchema: CollectionSchema = { fields: <%- JSON.stringify(subCollectionDef.fields, null, 2) %> };
+    return this.subCollection(documentId, '<%- subId %>', <%- subModelName %>Collection, subSchema);
   }
 <%   }); %>
 <% } %>
 
-  // Example: findByEmail(email: string) { ... }
-  // Example: listActiveUsers(limitCount: number) { ... }
-
-  // --- Helper for data conversion? ---
-  // Maybe add private methods for converting data before writes (e.g., handling default values)
+  // --- Custom Methods Placeholder ---
+  // Example: findByEmail(email: string) { ... } - Add custom query methods here if needed
 }

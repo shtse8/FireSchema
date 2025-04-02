@@ -8,12 +8,15 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
+    "build": "Remove-Item -Recurse -Force dist; npm run build --workspaces --if-present; tsc",
     "prepublishOnly": "npm run build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^22.13.16",

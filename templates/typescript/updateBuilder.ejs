@@ -4,92 +4,84 @@
  */
 import {
   DocumentReference,
-  updateDoc,
-  FieldValue,
-  serverTimestamp,
-  increment,
-  arrayUnion,
-  arrayRemove,
-  deleteField,
+  // updateDoc, // Handled by base class commit()
+  FieldValue, // Keep for potential direct use if needed, though base provides helpers
+  // serverTimestamp, // Handled by base class helper _serverTimestamp()
+  // increment, // Handled by base class helper _increment()
+  // arrayUnion, // Handled by base class helper _arrayUnion()
+  // arrayRemove, // Handled by base class helper _arrayRemove()
+  // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { <%- modelName %>Data } from './<%- collection.collectionId %>.types';
 
-// Define the structure for update data, allowing FieldValue types
-// This is complex to type perfectly for nested fields, so internal representation is simpler.
-// type FieldValueUpdate<T> = {
-//   [K in keyof T]?: T[K] | FieldValue;
-// };
-
 /**
- * A typed builder for creating update operations for '<%- collection.collectionId %>' documents.
+ * A typed builder for creating update operations for '<%- collection.collectionId %>' documents, extending BaseUpdateBuilder.
  */
-export class <%- modelName %>UpdateBuilder {
-  private _docRef: DocumentReference<<%- modelName %>Data>;
-  private _updateData: Record<string, any> = {}; // Use Record<string, any> internally
+export class <%- modelName %>UpdateBuilder extends BaseUpdateBuilder<<%- modelName %>Data> {
 
-  constructor(docRef: DocumentReference<<%- modelName %>Data>) {
-    this._docRef = docRef;
-  }
+  // Constructor is inherited from BaseUpdateBuilder
+  // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
 <% Object.values(collection.fields).forEach(field => { -%>
 <%   const fieldType = getTypeScriptType(field, options); -%>
   /** Sets the value for the '<%- field.fieldName %>' field. */
   set<%- capitalizeFirstLetter(field.fieldName) %>(value: <%- fieldType %>): this {
-    this._updateData['<%- field.fieldName %>'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('<%- field.fieldName %>', value);
   }
 
 <%   // --- Atomic Operations --- -%>
 <%   if (field.type === 'number') { -%>
   /** Atomically increments the '<%- field.fieldName %>' field. */
   increment<%- capitalizeFirstLetter(field.fieldName) %>(value: number): this {
-    this._updateData['<%- field.fieldName %>'] = increment(value);
-    return this;
+    // Call the protected _increment helper (or _set with increment(value))
+    return this._increment('<%- field.fieldName %>', value);
+    // Alternatively: return this._set('<%- field.fieldName %>', increment(value));
   }
 <%   } -%>
 <%   if (field.type === 'array') { -%>
 <%     const itemType = field.items ? getTypeScriptType(field.items, options) : 'any'; -%>
   /** Atomically adds elements to the '<%- field.fieldName %>' array field. */
   arrayUnion<%- capitalizeFirstLetter(field.fieldName) %>(values: <%- itemType %>[] | <%- itemType %>): this {
-    this._updateData['<%- field.fieldName %>'] = arrayUnion(...(Array.isArray(values) ? values : [values]));
-    return this;
+    // Call the protected _arrayUnion helper
+    return this._arrayUnion('<%- field.fieldName %>', Array.isArray(values) ? values : [values]);
+    // Alternatively: return this._set('<%- field.fieldName %>', arrayUnion(...(Array.isArray(values) ? values : [values])));
   }
 
   /** Atomically removes elements from the '<%- field.fieldName %>' array field. */
   arrayRemove<%- capitalizeFirstLetter(field.fieldName) %>(values: <%- itemType %>[] | <%- itemType %>): this {
-    this._updateData['<%- field.fieldName %>'] = arrayRemove(...(Array.isArray(values) ? values : [values]));
-    return this;
+    // Call the protected _arrayRemove helper
+    return this._arrayRemove('<%- field.fieldName %>', Array.isArray(values) ? values : [values]);
+    // Alternatively: return this._set('<%- field.fieldName %>', arrayRemove(...(Array.isArray(values) ? values : [values])));
   }
 <%   } -%>
 <%   if (field.type === 'timestamp' && field.defaultValue === 'serverTimestamp') { -%>
   /** Sets the '<%- field.fieldName %>' field to the server timestamp. */
   set<%- capitalizeFirstLetter(field.fieldName) %>ToServerTimestamp(): this {
-    this._updateData['<%- field.fieldName %>'] = serverTimestamp();
-    return this;
+    // Call the protected _serverTimestamp helper
+    return this._serverTimestamp('<%- field.fieldName %>');
+    // Alternatively: return this._set('<%- field.fieldName %>', serverTimestamp());
   }
 <%   } -%>
 <%   if (!field.required) { -%>
   /** Deletes the '<%- field.fieldName %>' field. */
   delete<%- capitalizeFirstLetter(field.fieldName) %>(): this {
-    this._updateData['<%- field.fieldName %>'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('<%- field.fieldName %>');
+    // Alternatively: return this._set('<%- field.fieldName %>', deleteField());
   }
 <%   } -%>
 
 <% }); -%>
   // --- End Field Setters ---
 
-  /**
-   * Commits the update operations to Firestore.
-   * @returns A promise that resolves when the update is complete.
-   */
-  async commit(): Promise<void> {
-    if (Object.keys(this._updateData).length === 0) {
-      // No updates specified, maybe warn or just do nothing?
-      console.warn('Update commit called with no changes specified.');
-      return;
-    }
-    await updateDoc(this._docRef, this._updateData);
-  }
+  // commit() method is inherited from BaseUpdateBuilder
+
+  // --- Custom Update Methods Placeholder ---
+  // Example: markAsRead() { return this._set('read', true); }
 }

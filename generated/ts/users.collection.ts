@@ -4,23 +4,20 @@
  */
 import {
   Firestore,
-  CollectionReference,
+  CollectionReference, // Keep for type annotation if needed, but base handles creation
   DocumentReference,
-  collection,
-  doc,
-  getDoc,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp,
-  increment,
-  arrayUnion,
-  arrayRemove,
-  deleteField,
-  DocumentData, // Added for parentRef typing
-  // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
+  DocumentData, // Needed for parentRef typing and subCollection helper
+  // serverTimestamp, // Handled by base class applyDefaults
+  // increment, // Not used directly here
+  // arrayUnion, // Not used directly here
+  // arrayRemove, // Not used directly here
+  // deleteField, // Not used directly here
+  // Basic CRUD functions (collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc) are handled by base
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { UsersData } from './users.types';
 import { UsersQueryBuilder } from './users.query';
 import { UsersUpdateBuilder } from './users.update';
@@ -34,6 +31,7 @@ import { PostsCollection } from './users/{usersId}/posts.collection';
 
 // Define types for data manipulation.
 // AddData: Makes fields optional if they have a default value or are not required.
+// NOTE: This might need refinement if base class handles defaults differently.
 type UsersAddData = {
   displayName: UsersData['displayName'];
   email: UsersData['email'];
@@ -45,90 +43,119 @@ type UsersAddData = {
   tags?: UsersData['tags'];
   primaryAddressRef?: UsersData['primaryAddressRef'];
 };
-// UpdateData: Make all fields optional for partial updates.
-// Note: For UpdateData, the type should allow FieldValue types (increment, arrayUnion, etc.)
-//       This is complex to type perfectly, so we use Partial<> for now, and users must
-//       ensure they pass the correct FieldValue types where needed.
-type UsersUpdateData = Partial<UsersAddData>;
+// UpdateData: Type used by UpdateBuilder, defined there or implicitly via Firestore types.
 
 /**
- * Typed reference to the 'users' collection.
+ * Typed reference to the 'users' collection, extending BaseCollectionRef.
  */
-export class UsersCollection {
-  public ref: CollectionReference<UsersData>; // Path: users
-
-  private firestore: Firestore; // Store firestore instance
-  private parentRef?: DocumentReference<DocumentData>; // Optional parent ref for subcollections
+export class UsersCollection extends BaseCollectionRef<UsersData, UsersAddData> {
 
   /**
    * @param firestore The Firestore instance.
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
   constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
-    this.firestore = firestore; // Store firestore instance
-    this.parentRef = parentRef;
-    if (parentRef) {
-      // Subcollection reference
-      this.ref = collection(parentRef, 'users') as CollectionReference<UsersData>;
-    } else {
-      // Root collection reference
-      this.ref = collection(firestore, 'users') as CollectionReference<UsersData>;
+    // Pass schema details (collection object) to the base class for features like default handling
+    const schema: CollectionSchema = {
+        fields: {
+  "displayName": {
+    "fieldName": "displayName",
+    "description": "User's public display name",
+    "type": "string",
+    "required": true
+  },
+  "email": {
+    "fieldName": "email",
+    "type": "string",
+    "required": true
+  },
+  "createdAt": {
+    "fieldName": "createdAt",
+    "description": "Timestamp when the user was created",
+    "type": "timestamp",
+    "required": false,
+    "defaultValue": "serverTimestamp"
+  },
+  "lastLogin": {
+    "fieldName": "lastLogin",
+    "type": "timestamp",
+    "required": false
+  },
+  "age": {
+    "fieldName": "age",
+    "type": "number",
+    "required": false
+  },
+  "isActive": {
+    "fieldName": "isActive",
+    "type": "boolean",
+    "required": false,
+    "defaultValue": true
+  },
+  "settings": {
+    "fieldName": "settings",
+    "type": "map",
+    "required": false,
+    "properties": {
+      "theme": {
+        "fieldName": "theme",
+        "type": "string",
+        "required": false,
+        "defaultValue": "light"
+      },
+      "notificationsEnabled": {
+        "fieldName": "notificationsEnabled",
+        "type": "boolean",
+        "required": false,
+        "defaultValue": true
+      }
     }
-  }
-
-  /** Returns the DocumentReference for a given ID. */
-  doc(id: string): DocumentReference<UsersData> {
-    return doc(this.ref, id);
-  }
-
-  /** Adds a new document with the given data, returning the new DocumentReference. */
-  async add(data: UsersAddData): Promise<DocumentReference<UsersData>> {
-    const dataWithDefaults = { ...data };
-    // Automatically add server timestamps for fields configured in the schema
-    // If 'createdAt' wasn't provided, add the serverTimestamp default
-    if (dataWithDefaults.createdAt === undefined) {
-        (dataWithDefaults as any).createdAt = serverTimestamp();
+  },
+  "tags": {
+    "fieldName": "tags",
+    "type": "array",
+    "required": false,
+    "items": {
+      "fieldName": "item",
+      "type": "string",
+      "required": false
     }
-    // TODO: Handle other non-serverTimestamp default values if needed
-    return addDoc(this.ref, dataWithDefaults as UsersData); // Cast needed as defaults are added
+  },
+  "primaryAddressRef": {
+    "fieldName": "primaryAddressRef",
+    "type": "reference",
+    "required": false,
+    "referenceTo": "addresses"
+  }
+} // Pass field definitions
+        // Add subcollection info if BaseCollectionRef needs it
+    };
+    super(firestore, 'users', schema, parentRef);
   }
 
-  /** Sets the data for a document, overwriting existing data. */
-  async set(id: string, data: UsersAddData): Promise<void> {
-    // Note: set might need its own data type if it should behave differently than add
-    // Also, set doesn't automatically apply defaults like add does.
-    await setDoc(this.doc(id), data as UsersData); // Cast needed as AddData is slightly different
-  }
+  // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
 
   /**
    * Creates a new UpdateBuilder instance for the document with the given ID.
    * @param id The ID of the document to update.
-   * @returns A new UpdateBuilder instance.
+   * @returns A new UsersUpdateBuilder instance.
    */
   update(id: string): UsersUpdateBuilder {
+    // Returns the specific generated UpdateBuilder
     return new UsersUpdateBuilder(this.doc(id));
-  }
-
-  /** Deletes a document. */
-  async delete(id: string): Promise<void> {
-    await deleteDoc(this.doc(id));
-  }
-
-  /** Reads a single document. */
-  async get(id: string): Promise<UsersData | undefined> {
-    const snapshot = await getDoc(this.doc(id));
-    return snapshot.exists() ? snapshot.data() : undefined;
   }
 
   /**
    * Creates a new QueryBuilder instance for this collection.
-   * @returns A new QueryBuilder instance.
+   * @returns A new UsersQueryBuilder instance.
    */
   query(): UsersQueryBuilder {
+    // Returns the specific generated QueryBuilder
     return new UsersQueryBuilder(this.firestore, this.ref);
   }
 
   // --- Subcollection Accessors ---
+
 
 
 
@@ -138,15 +165,29 @@ export class UsersCollection {
    * @returns A typed reference to the 'posts' subcollection.
    */
   posts(documentId: string): PostsCollection {
-    // Pass the untyped parent document reference
-    return new PostsCollection(this.firestore, this.ref.doc(documentId));
+    // Use the helper method from BaseCollectionRef
+    const subSchema: CollectionSchema = { fields: {
+  "title": {
+    "fieldName": "title",
+    "type": "string",
+    "required": true
+  },
+  "content": {
+    "fieldName": "content",
+    "type": "string",
+    "required": false
+  },
+  "publishedAt": {
+    "fieldName": "publishedAt",
+    "type": "timestamp",
+    "required": false
+  }
+} };
+    return this.subCollection(documentId, 'posts', PostsCollection, subSchema);
   }
 
 
 
-  // Example: findByEmail(email: string) { ... }
-  // Example: listActiveUsers(limitCount: number) { ... }
-
-  // --- Helper for data conversion? ---
-  // Maybe add private methods for converting data before writes (e.g., handling default values)
+  // --- Custom Methods Placeholder ---
+  // Example: findByEmail(email: string) { ... } - Add custom query methods here if needed
 }

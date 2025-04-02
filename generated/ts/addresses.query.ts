@@ -5,39 +5,36 @@
 import {
   Firestore,
   CollectionReference,
-  Query,
-  QueryConstraint,
-  query,
-  where as firestoreWhere, // Alias to avoid conflict with generated methods
-  orderBy,
-  limit,
-  getDocs,
-  limitToLast,
-  startAt,
-  startAfter,
-  endAt,
-  endBefore,
-  DocumentSnapshot, // Needed for cursor methods
+  // Query, // Handled by base class
+  // QueryConstraint, // Handled by base class
+  // query, // Handled by base class
+  // where as firestoreWhere, // Handled by base class _where
+  // orderBy, // Handled by base class
+  // limit, // Handled by base class
+  // getDocs, // Handled by base class get() / getSnapshot()
+  // limitToLast, // Handled by base class
+  // startAt, // Handled by base class
+  // startAfter, // Handled by base class
+  // endAt, // Handled by base class
+  // endBefore, // Handled by base class
+  DocumentSnapshot, // Needed for cursor method signatures in base class
+  WhereFilterOp, // Needed for where method signatures
+  OrderByDirection, // Needed for orderBy signature in base class
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseQueryBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { AddressesData } from './addresses.types';
 
-// Define order direction
-type OrderByDirection = 'desc' | 'asc';
-
 /**
- * A typed query builder for the 'addresses' collection.
+ * A typed query builder for the 'addresses' collection, extending BaseQueryBuilder.
  */
-export class AddressesQueryBuilder {
-  private firestore: Firestore;
-  private collectionRef: CollectionReference<AddressesData>;
-  private constraints: QueryConstraint[] = [];
+export class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
 
-  constructor(firestore: Firestore, collectionRef: CollectionReference<AddressesData>) {
-    this.firestore = firestore;
-    this.collectionRef = collectionRef;
-  }
+  // Constructor is inherited from BaseQueryBuilder
 
-// --- Field-specific Where Methods ---
+  // --- Field-specific Where Methods ---
   // Overloads for 'street' field type safety based on operator
   whereStreet(op: '==', value: string): this;
   whereStreet(op: '!=', value: string): this;
@@ -49,11 +46,11 @@ export class AddressesQueryBuilder {
   whereStreet(op: 'not-in', value: string[]): this;
   // Implementation signature for 'street'
   whereStreet(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('street', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('street', op, value);
   }
   // Overloads for 'city' field type safety based on operator
   whereCity(op: '==', value: string): this;
@@ -66,11 +63,11 @@ export class AddressesQueryBuilder {
   whereCity(op: 'not-in', value: string[]): this;
   // Implementation signature for 'city'
   whereCity(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('city', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('city', op, value);
   }
   // Overloads for 'zip' field type safety based on operator
   whereZip(op: '==', value: string): this;
@@ -83,153 +80,17 @@ export class AddressesQueryBuilder {
   whereZip(op: 'not-in', value: string[]): this;
   // Implementation signature for 'zip'
   whereZip(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('zip', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('zip', op, value);
   }
   // --- End Field-specific Where Methods ---
 
-  /**
-   * Adds an orderBy clause to the query.
-   *
-   * @param fieldPath The field to order by.
-   * @param directionStr Order direction ('asc' or 'desc'). Defaults to 'asc'.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  orderBy(
-    fieldPath: keyof AddressesData,
-    directionStr: OrderByDirection = 'asc'
-  ): this {
-    this.constraints.push(orderBy(fieldPath as string, directionStr));
-    return this;
-  }
+  // Methods like orderBy(), limit(), limitToLast(), startAt(), startAfter(),
+  // endBefore(), endAt(), get(), getSnapshot() are inherited from BaseQueryBuilder.
 
-  /**
-   * Adds a limit clause to the query.
-   *
-   * @param limitCount The maximum number of documents to return.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  limit(limitCount: number): this {
-    this.constraints.push(limit(limitCount));
-    return this;
-  }
-
-  /**
-   * Adds a limitToLast clause to the query.
-   * Must be used with at least one orderBy clause.
-   *
-   * @param limitCount The maximum number of documents to return from the end.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  limitToLast(limitCount: number): this {
-    this.constraints.push(limitToLast(limitCount));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to start at the provided document
-   * (inclusive). The starting position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to start at.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAt(snapshot: DocumentSnapshot<AddressesData>): this;
-  /**
-   * Creates a query constraint that modifies the query to start at the provided fields
-   * (inclusive). The starting position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to start this query at, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAt(...fieldValues: any[]): this;
-  startAt(...args: any[]): this {
-    this.constraints.push(startAt(...args));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to start after the provided document
-   * (exclusive). The starting position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to start after.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAfter(snapshot: DocumentSnapshot<AddressesData>): this;
-  /**
-   * Creates a query constraint that modifies the query to start after the provided fields
-   * (exclusive). The starting position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to start this query after, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAfter(...fieldValues: any[]): this;
-  startAfter(...args: any[]): this {
-    this.constraints.push(startAfter(...args));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to end before the provided document
-   * (exclusive). The ending position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to end before.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endBefore(snapshot: DocumentSnapshot<AddressesData>): this;
-  /**
-   * Creates a query constraint that modifies the query to end before the provided fields
-   * (exclusive). The ending position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to end this query before, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endBefore(...fieldValues: any[]): this;
-  endBefore(...args: any[]): this {
-    this.constraints.push(endBefore(...args));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to end at the provided document
-   * (inclusive). The ending position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to end at.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endAt(snapshot: DocumentSnapshot<AddressesData>): this;
-  /**
-   * Creates a query constraint that modifies the query to end at the provided fields
-   * (inclusive). The ending position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to end this query at, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endAt(...fieldValues: any[]): this;
-  endAt(...args: any[]): this {
-    this.constraints.push(endAt(...args));
-    return this;
-  }
-
-  /**
-   * Executes the query and returns the matching documents.
-   *
-   * @returns A promise that resolves with an array of document data.
-   */
-  async get(): Promise<AddressesData[]> {
-    const q = query(this.collectionRef, ...this.constraints);
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
-    // TODO: Consider returning document IDs as well, maybe { id: string, data: ModelData }[]
-  }
+  // --- Custom Query Methods Placeholder ---
+  // Example: findByStatus(status: string) { return this._where('status', '==', status); }
 }

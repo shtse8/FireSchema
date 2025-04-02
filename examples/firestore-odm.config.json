@@ -10,7 +10,6 @@
         "description": "Generated TS models for Firestore"
       },
       "options": {
-        "generateCore": true,
         "dateTimeType": "Timestamp"
       }
     }
@@ -24,7 +23,6 @@
         "description": "Generated Dart models for Firestore"
       },
       "options": {
-        "generateCore": true,
         "nullSafety": true
       }
     }

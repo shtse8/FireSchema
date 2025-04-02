@@ -1,0 +1,9 @@
+{
+  "name": "@my-project/firestore-models-ts",
+  "version": "0.1.0",
+  "description": "Generated TS models for Firestore",
+  "peerDependencies": {
+    "firebase": "^9.0.0 || ^10.0.0",
+    "@fireschema/ts-runtime": "^0.1.0"
+  }
+}

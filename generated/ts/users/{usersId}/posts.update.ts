@@ -4,77 +4,66 @@
  */
 import {
   DocumentReference,
-  updateDoc,
-  FieldValue,
-  serverTimestamp,
-  increment,
-  arrayUnion,
-  arrayRemove,
-  deleteField,
+  // updateDoc, // Handled by base class commit()
+  FieldValue, // Keep for potential direct use if needed, though base provides helpers
+  // serverTimestamp, // Handled by base class helper _serverTimestamp()
+  // increment, // Handled by base class helper _increment()
+  // arrayUnion, // Handled by base class helper _arrayUnion()
+  // arrayRemove, // Handled by base class helper _arrayRemove()
+  // deleteField, // Handled by base class helper _deleteField()
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { PostsData } from './posts.types';
 
-// Define the structure for update data, allowing FieldValue types
-// This is complex to type perfectly for nested fields, so internal representation is simpler.
-// type FieldValueUpdate<T> = {
-//   [K in keyof T]?: T[K] | FieldValue;
-// };
-
 /**
- * A typed builder for creating update operations for 'posts' documents.
+ * A typed builder for creating update operations for 'posts' documents, extending BaseUpdateBuilder.
  */
-export class PostsUpdateBuilder {
-  private _docRef: DocumentReference<PostsData>;
-  private _updateData: Record<string, any> = {}; // Use Record<string, any> internally
+export class PostsUpdateBuilder extends BaseUpdateBuilder<PostsData> {
 
-  constructor(docRef: DocumentReference<PostsData>) {
-    this._docRef = docRef;
-  }
+  // Constructor is inherited from BaseUpdateBuilder
+  // _docRef and _updateData are managed by the base class
 
   // --- Field Setters ---
   /** Sets the value for the 'title' field. */
   setTitle(value: string): this {
-    this._updateData['title'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('title', value);
   }
 
 
   /** Sets the value for the 'content' field. */
   setContent(value: string): this {
-    this._updateData['content'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('content', value);
   }
 
   /** Deletes the 'content' field. */
   deleteContent(): this {
-    this._updateData['content'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('content');
+    // Alternatively: return this._set('content', deleteField());
   }
 
   /** Sets the value for the 'publishedAt' field. */
   setPublishedAt(value: Timestamp): this {
-    this._updateData['publishedAt'] = value;
-    return this;
+    // Call the protected _set method from the base class
+    return this._set('publishedAt', value);
   }
 
   /** Deletes the 'publishedAt' field. */
   deletePublishedAt(): this {
-    this._updateData['publishedAt'] = deleteField();
-    return this;
+    // Call the protected _deleteField helper
+    return this._deleteField('publishedAt');
+    // Alternatively: return this._set('publishedAt', deleteField());
   }
 
   // --- End Field Setters ---
 
-  /**
-   * Commits the update operations to Firestore.
-   * @returns A promise that resolves when the update is complete.
-   */
-  async commit(): Promise<void> {
-    if (Object.keys(this._updateData).length === 0) {
-      // No updates specified, maybe warn or just do nothing?
-      console.warn('Update commit called with no changes specified.');
-      return;
-    }
-    await updateDoc(this._docRef, this._updateData);
-  }
+  // commit() method is inherited from BaseUpdateBuilder
+
+  // --- Custom Update Methods Placeholder ---
+  // Example: markAsRead() { return this._set('read', true); }
 }

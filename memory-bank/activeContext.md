@@ -1,39 +1,53 @@
-# Active Context: FireSchema (Initial Implementation Complete)
+# Active Context: FireSchema (Runtime Refactoring In Progress)
 
-**Current Focus:** Initial core implementation for TypeScript and Dart
-generation is complete.
+**Current Focus:** Major refactoring to use separate, installable runtime
+libraries (`@fireschema/ts-runtime`, `fireschema_dart_runtime`) instead of
+generating all logic directly.
 
-**Recent Changes:**
+**Recent Changes (Runtime Refactoring):**
 
-- Implemented core generator structure (CLI, config/schema loading, EJS
-  templating).
-- Added generation for TypeScript:
-  - Model interfaces (`.types.ts`)
-  - Collection references (`.collection.ts`)
-  - Type-safe query builders (`.query.ts`)
-  - Type-safe update builders (`.update.ts`)
-  - Core runtime (`core.ts`)
-- Added generation for Dart:
-  - Model classes (`_data.dart`)
-  - Collection references (`_collection.dart`)
-  - Type-safe query builders (`_query.dart`)
-  - Type-safe update builders (`_update.dart`)
-  - Core runtime (`firestore_odm_core.dart`)
-- Addressed feedback regarding type safety for queries and updates in both
-  languages.
-- Renamed project to "FireSchema".
-- Created initial `README.md` with usage instructions and examples.
-- Created initial Memory Bank files (`projectbrief`, `productContext`,
-  `techContext`, `systemPatterns`).
+- **Phase 1: Setup & Runtime Library Creation**
+  - Established package structure and config files (`package.json`,
+    `tsconfig.json`, `pubspec.yaml`) for both `@fireschema/ts-runtime` and
+    `fireschema_dart_runtime`.
+  - Created initial base classes (`BaseCollectionRef`, `BaseQueryBuilder`,
+    `BaseUpdateBuilder`) in both runtime packages, extracting common logic from
+    old templates.
+  - Created main export files (`index.ts`, `fireschema_dart_runtime.dart`) for
+    runtime packages.
+- **Phase 2: Refactor Generator & Templates**
+  - Modified TypeScript generator (`src/generators/typescript.ts`) to prepare
+    for runtime integration (imports, passing schema, commenting core
+    generation, updating package.json generation).
+  - Modified Dart generator (`src/generators/dart.ts`) similarly (placeholder
+    imports, commenting core generation, updating pubspec.yaml generation).
+  - Updated TypeScript EJS templates (`collectionRef.ejs`, `queryBuilder.ejs`,
+    `updateBuilder.ejs`) to import and extend/use base classes from
+    `@fireschema/ts-runtime`.
+  - Updated Dart EJS templates (`collectionRef.dart.ejs`,
+    `queryBuilder.dart.ejs`, `updateBuilder.dart.ejs`) to import and extend/use
+    base classes from `fireschema_dart_runtime`.
+- **Phase 3: Integration & Documentation (Partial)**
+  - Added `workspaces` configuration to root `package.json`.
+  - Ran `npm install` to link TS runtime workspace.
+  - Ran `dart pub get` in Dart runtime package to fetch dependencies.
+  - Updated `techContext.md` and `systemPatterns.md` in Memory Bank to reflect
+    the new architecture.
 
-**Next Steps / Considerations (Based on README TODOs):**
+**Next Steps / Considerations:**
 
-- Refine `fromJson`/`toJson` in Dart models for complex types.
-- Improve `AddData`/`UpdateData` type generation (automatic omission of
-  read-only fields).
-- Implement more query methods (`limitToLast`, `startAt`, `endAt`, etc.) for
-  both languages.
-- Handle subcollection generation.
-- Generate `package.json`/`pubspec.yaml` for output directories.
-- Add tests.
-- Improve error handling.
+- **Complete Runtime Refactoring (Current Task):**
+  - Update `README.md` with new installation/usage instructions (mentioning
+    runtime packages).
+  - Update example project(s) to use the new structure.
+  - Refine build process (ensure runtimes are built before generator, consider
+    publishing setup).
+  - Add tests for runtime libraries and update integration tests for generated
+    code.
+  - Update `progress.md`.
+- **Post-Refactoring:**
+  - Refine `fromJson`/`toJson` in Dart models for complex nested types.
+  - Improve `AddData`/`UpdateData` type generation further (e.g., Dart defaults,
+    read-only flags).
+  - Improve error handling in generator and runtimes.
+  - Address any remaining TODOs or known issues from `progress.md`.

@@ -5,6 +5,10 @@ import { Timestamp, GeoPoint, DocumentReference, DocumentData, WhereFilterOp } f
 import { FirestoreODMConfig, OutputTarget, TypeScriptOptions } from '../types/config';
 import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition, FieldType } from '../types/schema';
 import { capitalizeFirstLetter, camelToPascalCase } from '../utils/naming';
+// Runtime Imports (adjust path as needed for monorepo structure)
+import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Assuming runtime is linked/built
+import { BaseQueryBuilder } from '@fireschema/ts-runtime';
+import { BaseUpdateBuilder } from '@fireschema/ts-runtime';
 
 interface TemplateStrings {
     model: string;
@@ -62,7 +66,8 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
     await generateFilesForCollection(collection, target.outputDir, options, templates);
   }
 
-  // --- Generate Core Runtime File (Placeholder) ---
+  // --- Generate Core Runtime File (Placeholder - COMMENTED OUT FOR RUNTIME REFACTOR) ---
+  /*
   if (options.generateCore !== false) { // Default to true
     try {
         // Core template might not need specific data for now
@@ -75,6 +80,7 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
         console.error(`  ✗ Error generating core runtime library: ${error.message}`);
     }
   }
+  */
 
   // --- Generate package.json (Optional) ---
   if (target.package) {
@@ -86,10 +92,11 @@ export async function generateTypeScript(target: OutputTarget, schema: ParsedFir
             // Add main/types entry points? Maybe point to core.ts?
             // main: './core.js', // Assuming core.ts is compiled
             // types: './core.d.ts',
-            // Add peer dependencies?
-            // peerDependencies: {
-            //     "firebase": "^9.0.0 || ^10.0.0 || ^11.0.0" // Example range
-            // }
+            // Add peer dependencies
+            peerDependencies: {
+                "firebase": "^9.0.0 || ^10.0.0", // Match runtime's peer dep
+                "@fireschema/ts-runtime": "^0.1.0" // Add the runtime itself
+            }
         };
         const packageJsonPath = path.join(target.outputDir, 'package.json');
         await fs.promises.writeFile(packageJsonPath, JSON.stringify(packageJsonContent, null, 2));
@@ -145,7 +152,7 @@ async function generateFilesForCollection(
 
     const collectionRefData = {
         ...commonData,
-        parentPath: parentPath,
+        parentPath: parentPath, // Pass the full collection definition for schema access
     };
 
     // Generate Model File

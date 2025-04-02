@@ -5,39 +5,36 @@
 import {
   Firestore,
   CollectionReference,
-  Query,
-  QueryConstraint,
-  query,
-  where as firestoreWhere, // Alias to avoid conflict with generated methods
-  orderBy,
-  limit,
-  getDocs,
-  limitToLast,
-  startAt,
-  startAfter,
-  endAt,
-  endBefore,
-  DocumentSnapshot, // Needed for cursor methods
+  // Query, // Handled by base class
+  // QueryConstraint, // Handled by base class
+  // query, // Handled by base class
+  // where as firestoreWhere, // Handled by base class _where
+  // orderBy, // Handled by base class
+  // limit, // Handled by base class
+  // getDocs, // Handled by base class get() / getSnapshot()
+  // limitToLast, // Handled by base class
+  // startAt, // Handled by base class
+  // startAfter, // Handled by base class
+  // endAt, // Handled by base class
+  // endBefore, // Handled by base class
+  DocumentSnapshot, // Needed for cursor method signatures in base class
+  WhereFilterOp, // Needed for where method signatures
+  OrderByDirection, // Needed for orderBy signature in base class
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseQueryBuilder } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { UsersData } from './users.types';
 
-// Define order direction
-type OrderByDirection = 'desc' | 'asc';
-
 /**
- * A typed query builder for the 'users' collection.
+ * A typed query builder for the 'users' collection, extending BaseQueryBuilder.
  */
-export class UsersQueryBuilder {
-  private firestore: Firestore;
-  private collectionRef: CollectionReference<UsersData>;
-  private constraints: QueryConstraint[] = [];
+export class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
 
-  constructor(firestore: Firestore, collectionRef: CollectionReference<UsersData>) {
-    this.firestore = firestore;
-    this.collectionRef = collectionRef;
-  }
+  // Constructor is inherited from BaseQueryBuilder
 
-// --- Field-specific Where Methods ---
+  // --- Field-specific Where Methods ---
   // Overloads for 'displayName' field type safety based on operator
   whereDisplayName(op: '==', value: string): this;
   whereDisplayName(op: '!=', value: string): this;
@@ -49,11 +46,11 @@ export class UsersQueryBuilder {
   whereDisplayName(op: 'not-in', value: string[]): this;
   // Implementation signature for 'displayName'
   whereDisplayName(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('displayName', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('displayName', op, value);
   }
   // Overloads for 'email' field type safety based on operator
   whereEmail(op: '==', value: string): this;
@@ -66,11 +63,11 @@ export class UsersQueryBuilder {
   whereEmail(op: 'not-in', value: string[]): this;
   // Implementation signature for 'email'
   whereEmail(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('email', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('email', op, value);
   }
   // Overloads for 'createdAt' field type safety based on operator
   whereCreatedAt(op: '==', value: Timestamp): this;
@@ -83,11 +80,11 @@ export class UsersQueryBuilder {
   whereCreatedAt(op: 'not-in', value: Timestamp[]): this;
   // Implementation signature for 'createdAt'
   whereCreatedAt(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('createdAt', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('createdAt', op, value);
   }
   // Overloads for 'lastLogin' field type safety based on operator
   whereLastLogin(op: '==', value: Timestamp): this;
@@ -100,11 +97,11 @@ export class UsersQueryBuilder {
   whereLastLogin(op: 'not-in', value: Timestamp[]): this;
   // Implementation signature for 'lastLogin'
   whereLastLogin(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('lastLogin', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('lastLogin', op, value);
   }
   // Overloads for 'age' field type safety based on operator
   whereAge(op: '==', value: number): this;
@@ -117,11 +114,11 @@ export class UsersQueryBuilder {
   whereAge(op: 'not-in', value: number[]): this;
   // Implementation signature for 'age'
   whereAge(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('age', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('age', op, value);
   }
   // Overloads for 'isActive' field type safety based on operator
   whereIsActive(op: '==', value: boolean): this;
@@ -134,11 +131,11 @@ export class UsersQueryBuilder {
   whereIsActive(op: 'not-in', value: boolean[]): this;
   // Implementation signature for 'isActive'
   whereIsActive(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('isActive', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('isActive', op, value);
   }
   // Overloads for 'settings' field type safety based on operator
   whereSettings(op: '==', value: { theme?: string; notificationsEnabled?: boolean }): this;
@@ -147,11 +144,11 @@ export class UsersQueryBuilder {
   whereSettings(op: 'not-in', value: { theme?: string; notificationsEnabled?: boolean }[]): this;
   // Implementation signature for 'settings'
   whereSettings(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('settings', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('settings', op, value);
   }
   // Overloads for 'tags' field type safety based on operator
   whereTags(op: 'array-contains', value: string): this;
@@ -160,11 +157,11 @@ export class UsersQueryBuilder {
   whereTags(op: 'not-in', value: string[][]): this;
   // Implementation signature for 'tags'
   whereTags(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('tags', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('tags', op, value);
   }
   // Overloads for 'primaryAddressRef' field type safety based on operator
   wherePrimaryAddressRef(op: '==', value: DocumentReference<AddressesData>): this;
@@ -177,153 +174,17 @@ export class UsersQueryBuilder {
   wherePrimaryAddressRef(op: 'not-in', value: DocumentReference<AddressesData>[]): this;
   // Implementation signature for 'primaryAddressRef'
   wherePrimaryAddressRef(
-    op: string, // Use string for implementation signature
+    op: WhereFilterOp, // Use WhereFilterOp for implementation signature
     value: any   // Use any for implementation signature
   ): this {
-    this.constraints.push(firestoreWhere('primaryAddressRef', op as WhereFilterOp, value));
-    return this;
+    // Call the protected _where method from the base class
+    return this._where('primaryAddressRef', op, value);
   }
   // --- End Field-specific Where Methods ---
 
-  /**
-   * Adds an orderBy clause to the query.
-   *
-   * @param fieldPath The field to order by.
-   * @param directionStr Order direction ('asc' or 'desc'). Defaults to 'asc'.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  orderBy(
-    fieldPath: keyof UsersData,
-    directionStr: OrderByDirection = 'asc'
-  ): this {
-    this.constraints.push(orderBy(fieldPath as string, directionStr));
-    return this;
-  }
+  // Methods like orderBy(), limit(), limitToLast(), startAt(), startAfter(),
+  // endBefore(), endAt(), get(), getSnapshot() are inherited from BaseQueryBuilder.
 
-  /**
-   * Adds a limit clause to the query.
-   *
-   * @param limitCount The maximum number of documents to return.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  limit(limitCount: number): this {
-    this.constraints.push(limit(limitCount));
-    return this;
-  }
-
-  /**
-   * Adds a limitToLast clause to the query.
-   * Must be used with at least one orderBy clause.
-   *
-   * @param limitCount The maximum number of documents to return from the end.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  limitToLast(limitCount: number): this {
-    this.constraints.push(limitToLast(limitCount));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to start at the provided document
-   * (inclusive). The starting position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to start at.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAt(snapshot: DocumentSnapshot<UsersData>): this;
-  /**
-   * Creates a query constraint that modifies the query to start at the provided fields
-   * (inclusive). The starting position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to start this query at, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAt(...fieldValues: any[]): this;
-  startAt(...args: any[]): this {
-    this.constraints.push(startAt(...args));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to start after the provided document
-   * (exclusive). The starting position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to start after.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAfter(snapshot: DocumentSnapshot<UsersData>): this;
-  /**
-   * Creates a query constraint that modifies the query to start after the provided fields
-   * (exclusive). The starting position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to start this query after, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  startAfter(...fieldValues: any[]): this;
-  startAfter(...args: any[]): this {
-    this.constraints.push(startAfter(...args));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to end before the provided document
-   * (exclusive). The ending position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to end before.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endBefore(snapshot: DocumentSnapshot<UsersData>): this;
-  /**
-   * Creates a query constraint that modifies the query to end before the provided fields
-   * (exclusive). The ending position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to end this query before, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endBefore(...fieldValues: any[]): this;
-  endBefore(...args: any[]): this {
-    this.constraints.push(endBefore(...args));
-    return this;
-  }
-
-  /**
-   * Creates a query constraint that modifies the query to end at the provided document
-   * (inclusive). The ending position is relative to the order of the query.
-   * The document must contain all of the fields provided in the orderBy clauses.
-   *
-   * @param snapshot The snapshot of the document to end at.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endAt(snapshot: DocumentSnapshot<UsersData>): this;
-  /**
-   * Creates a query constraint that modifies the query to end at the provided fields
-   * (inclusive). The ending position is relative to the order of the query.
-   *
-   * @param fieldValues The field values to end this query at, in order
-   * of the query's order by clauses.
-   * @returns The QueryBuilder instance for chaining.
-   */
-  endAt(...fieldValues: any[]): this;
-  endAt(...args: any[]): this {
-    this.constraints.push(endAt(...args));
-    return this;
-  }
-
-  /**
-   * Executes the query and returns the matching documents.
-   *
-   * @returns A promise that resolves with an array of document data.
-   */
-  async get(): Promise<UsersData[]> {
-    const q = query(this.collectionRef, ...this.constraints);
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => doc.data());
-    // TODO: Consider returning document IDs as well, maybe { id: string, data: ModelData }[]
-  }
+  // --- Custom Query Methods Placeholder ---
+  // Example: findByStatus(status: string) { return this._where('status', '==', status); }
 }

@@ -5,6 +5,10 @@ import { WhereFilterOp } from 'firebase/firestore'; // Use TS type for reference
 import { FirestoreODMConfig, OutputTarget, DartOptions } from '../types/config';
 import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition, FieldType } from '../types/schema';
 import { capitalizeFirstLetter, camelToPascalCase, toSnakeCase } from '../utils/naming';
+// Dart Runtime Imports (Placeholders - adjust paths/names as needed)
+// import 'package:fireschema_dart_runtime/src/base_collection_ref.dart';
+// import 'package:fireschema_dart_runtime/src/base_query_builder.dart';
+// import 'package:fireschema_dart_runtime/src/base_update_builder.dart';
 
 /**
  * Interface for pre-loaded Dart template strings.
@@ -65,7 +69,8 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
     await generateFilesForDartCollection(collection, target.outputDir, options, templates);
   }
 
-  // --- Generate Core Runtime File ---
+  // --- Generate Core Runtime File (COMMENTED OUT FOR RUNTIME REFACTOR) ---
+  /*
   if (options.generateCore !== false) { // Default to true
     try {
         const renderedCore = ejs.render(coreTemplate, {});
@@ -77,6 +82,7 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
         console.error(`  ✗ Error generating core runtime library: ${error.message}`);
     }
   }
+  */
 
   // --- Generate pubspec.yaml (Optional) ---
   if (target.package) {
@@ -96,6 +102,7 @@ dependencies:
   flutter: # Optional: if primarily for Flutter
     sdk: flutter
   cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
+  fireschema_dart_runtime: ^0.1.0 # Add the runtime dependency
   # Add other necessary dependencies if the generated code requires them
 
 dev_dependencies:
@@ -159,6 +166,7 @@ async function generateFilesForDartCollection(
     // Prepare data objects for templates
     const commonData = {
         modelName: modelName,
+        fileNameBase: fileNameBase, // Add fileNameBase here
         collection: collection,
         options: options,
         getDartType: getDartType,

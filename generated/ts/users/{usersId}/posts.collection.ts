@@ -4,23 +4,20 @@
  */
 import {
   Firestore,
-  CollectionReference,
+  CollectionReference, // Keep for type annotation if needed, but base handles creation
   DocumentReference,
-  collection,
-  doc,
-  getDoc,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp,
-  increment,
-  arrayUnion,
-  arrayRemove,
-  deleteField,
-  DocumentData, // Added for parentRef typing
-  // TODO: Add query imports: query, where, orderBy, limit, startAt, endAt etc.
+  DocumentData, // Needed for parentRef typing and subCollection helper
+  // serverTimestamp, // Handled by base class applyDefaults
+  // increment, // Not used directly here
+  // arrayUnion, // Not used directly here
+  // arrayRemove, // Not used directly here
+  // deleteField, // Not used directly here
+  // Basic CRUD functions (collection, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc) are handled by base
 } from 'firebase/firestore';
+// Runtime Imports
+import { BaseCollectionRef, CollectionSchema } from '@fireschema/ts-runtime'; // Adjust path/package name as needed
+
+// Local Imports
 import { PostsData } from './posts.types';
 import { PostsQueryBuilder } from './posts.query';
 import { PostsUpdateBuilder } from './posts.update';
@@ -29,96 +26,72 @@ import { PostsUpdateBuilder } from './posts.update';
 
 // Define types for data manipulation.
 // AddData: Makes fields optional if they have a default value or are not required.
+// NOTE: This might need refinement if base class handles defaults differently.
 type PostsAddData = {
   title: PostsData['title'];
   content?: PostsData['content'];
   publishedAt?: PostsData['publishedAt'];
 };
-// UpdateData: Make all fields optional for partial updates.
-// Note: For UpdateData, the type should allow FieldValue types (increment, arrayUnion, etc.)
-//       This is complex to type perfectly, so we use Partial<> for now, and users must
-//       ensure they pass the correct FieldValue types where needed.
-type PostsUpdateData = Partial<PostsAddData>;
+// UpdateData: Type used by UpdateBuilder, defined there or implicitly via Firestore types.
 
 /**
- * Typed reference to the 'posts' collection.
+ * Typed reference to the 'posts' collection, extending BaseCollectionRef.
  */
-export class PostsCollection {
-  public ref: CollectionReference<PostsData>; // Path: users/{usersId}/posts
-
-  private firestore: Firestore; // Store firestore instance
-  private parentRef?: DocumentReference<DocumentData>; // Optional parent ref for subcollections
+export class PostsCollection extends BaseCollectionRef<PostsData, PostsAddData> {
 
   /**
    * @param firestore The Firestore instance.
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
   constructor(firestore: Firestore, parentRef?: DocumentReference<DocumentData>) {
-    this.firestore = firestore; // Store firestore instance
-    this.parentRef = parentRef;
-    if (parentRef) {
-      // Subcollection reference
-      this.ref = collection(parentRef, 'posts') as CollectionReference<PostsData>;
-    } else {
-      // Root collection reference
-      this.ref = collection(firestore, 'posts') as CollectionReference<PostsData>;
-    }
+    // Pass schema details (collection object) to the base class for features like default handling
+    const schema: CollectionSchema = {
+        fields: {
+  "title": {
+    "fieldName": "title",
+    "type": "string",
+    "required": true
+  },
+  "content": {
+    "fieldName": "content",
+    "type": "string",
+    "required": false
+  },
+  "publishedAt": {
+    "fieldName": "publishedAt",
+    "type": "timestamp",
+    "required": false
+  }
+} // Pass field definitions
+        // Add subcollection info if BaseCollectionRef needs it
+    };
+    super(firestore, 'posts', schema, parentRef);
   }
 
-  /** Returns the DocumentReference for a given ID. */
-  doc(id: string): DocumentReference<PostsData> {
-    return doc(this.ref, id);
-  }
-
-  /** Adds a new document with the given data, returning the new DocumentReference. */
-  async add(data: PostsAddData): Promise<DocumentReference<PostsData>> {
-    const dataWithDefaults = { ...data };
-    // Automatically add server timestamps for fields configured in the schema
-    // TODO: Handle other non-serverTimestamp default values if needed
-    return addDoc(this.ref, dataWithDefaults as PostsData); // Cast needed as defaults are added
-  }
-
-  /** Sets the data for a document, overwriting existing data. */
-  async set(id: string, data: PostsAddData): Promise<void> {
-    // Note: set might need its own data type if it should behave differently than add
-    // Also, set doesn't automatically apply defaults like add does.
-    await setDoc(this.doc(id), data as PostsData); // Cast needed as AddData is slightly different
-  }
+  // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
 
   /**
    * Creates a new UpdateBuilder instance for the document with the given ID.
    * @param id The ID of the document to update.
-   * @returns A new UpdateBuilder instance.
+   * @returns A new PostsUpdateBuilder instance.
    */
   update(id: string): PostsUpdateBuilder {
+    // Returns the specific generated UpdateBuilder
     return new PostsUpdateBuilder(this.doc(id));
-  }
-
-  /** Deletes a document. */
-  async delete(id: string): Promise<void> {
-    await deleteDoc(this.doc(id));
-  }
-
-  /** Reads a single document. */
-  async get(id: string): Promise<PostsData | undefined> {
-    const snapshot = await getDoc(this.doc(id));
-    return snapshot.exists() ? snapshot.data() : undefined;
   }
 
   /**
    * Creates a new QueryBuilder instance for this collection.
-   * @returns A new QueryBuilder instance.
+   * @returns A new PostsQueryBuilder instance.
    */
   query(): PostsQueryBuilder {
+    // Returns the specific generated QueryBuilder
     return new PostsQueryBuilder(this.firestore, this.ref);
   }
 
   // --- Subcollection Accessors ---
 
 
-  // Example: findByEmail(email: string) { ... }
-  // Example: listActiveUsers(limitCount: number) { ... }
-
-  // --- Helper for data conversion? ---
-  // Maybe add private methods for converting data before writes (e.g., handling default values)
+  // --- Custom Methods Placeholder ---
+  // Example: findByEmail(email: string) { ... } - Add custom query methods here if needed
 }
