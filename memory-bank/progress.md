@@ -53,6 +53,8 @@
     more default types).
   - Refine Dart `fromJson`/`toJson` for complex nested types (maps, arrays of
     references).
+  - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
+    (DONE)**
   - Improve `AddData`/`UpdateData` type generation (Dart defaults, read-only).
   - Support updating nested map fields via dot notation in TS `UpdateBuilder`.
 - **Generator Enhancements:**
@@ -82,8 +84,9 @@ are published to npm and pub.dev when a version tag (e.g., `v0.1.1`) is pushed.
 
 - (Existing) Type safety for `whereIn`, `notIn`, `arrayContainsAny` value
   parameters in Dart query builder could be improved.
-- (Existing) TypeScript `UpdateBuilder` doesn't easily support updating nested
-  map fields via dot notation yet.
+- **(Resolved 2025-04-02)** TypeScript `UpdateBuilder` now supports updating
+  nested map fields via dot notation through generated methods (e.g.,
+  `setAddressStreet`).
 - **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in
   `src/__tests__/dart-generated` due to path resolution issues from that
   specific directory, even though the generated code structure is correct.

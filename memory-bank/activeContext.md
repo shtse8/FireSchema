@@ -163,7 +163,8 @@ generating all logic directly. **(Completed)**
   - Refine Dart `fromJson`/`toJson` for complex nested types (maps, arrays of
     references).
   - Improve `AddData`/`UpdateData` type generation (Dart defaults, read-only).
-  - Support updating nested map fields via dot notation in TS `UpdateBuilder`.
+  - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
+    (DONE)**
 - **Generator Enhancements:**
   - Support more complex validation rules from JSON Schema.
   - Improve error handling and reporting during generation.
