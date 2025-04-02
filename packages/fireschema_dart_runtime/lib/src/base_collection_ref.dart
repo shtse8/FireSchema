@@ -3,10 +3,10 @@ import 'package:meta/meta.dart';
 
 // Placeholder for schema definition types in Dart
 // These might be simple Maps or dedicated classes depending on complexity.
-typedef FieldSchema =
-    Map<String, dynamic>; // Example: {'defaultValue': 'serverTimestamp'}
-typedef CollectionSchema =
-    Map<String, FieldSchema>; // Example: {'fields': {'createdAt': {...}}}
+typedef FieldSchema
+    = Map<String, dynamic>; // Example: {'defaultValue': 'serverTimestamp'}
+typedef CollectionSchema
+    = Map<String, FieldSchema>; // Example: {'fields': {'createdAt': {...}}}
 
 /// Abstract base class for FireSchema-generated Dart collection references.
 /// Provides common CRUD operations and path handling using `withConverter`.
@@ -33,16 +33,14 @@ abstract class BaseCollectionRef<TData, TAddData> {
     required TData Function(
       DocumentSnapshot<Map<String, dynamic>>,
       SnapshotOptions?,
-    )
-    fromFirestore,
+    ) fromFirestore,
     required Map<String, Object?> Function(TData, SetOptions?) toFirestore,
     this.schema,
     this.parentRef,
   }) {
-    final baseRef =
-        parentRef != null
-            ? parentRef!.collection(collectionId)
-            : firestore.collection(collectionId);
+    final baseRef = parentRef != null
+        ? parentRef!.collection(collectionId)
+        : firestore.collection(collectionId);
 
     ref = baseRef.withConverter<TData>(
       fromFirestore: fromFirestore,
@@ -68,11 +66,19 @@ abstract class BaseCollectionRef<TData, TAddData> {
     if (fields != null) {
       fields.forEach((fieldName, fieldDef) {
         final def = fieldDef as FieldSchema?; // Cast to expected type
-        if (def?['defaultValue'] == 'serverTimestamp' &&
-            dataWithDefaults[fieldName] == null) {
-          dataWithDefaults[fieldName] = FieldValue.serverTimestamp();
+        final defaultValue = def?['defaultValue'];
+        // Check if the field is missing in the input data
+        if (dataWithDefaults[fieldName] == null && defaultValue != null) {
+          if (defaultValue == 'serverTimestamp') {
+            dataWithDefaults[fieldName] = FieldValue.serverTimestamp();
+          } else if (defaultValue is String ||
+              defaultValue is num ||
+              defaultValue is bool) {
+            // Apply basic default types directly
+            dataWithDefaults[fieldName] = defaultValue;
+          }
+          // TODO: Handle other default value types if necessary (e.g., arrays, maps?)
         }
-        // TODO: Handle other default value types if necessary
       });
     }
     return dataWithDefaults;
@@ -84,12 +90,8 @@ abstract class BaseCollectionRef<TData, TAddData> {
     // It's expected that TAddData can be represented as a Map for Firestore.
     // The toFirestore converter handles the final conversion from TData.
     // We apply defaults to a Map representation before adding.
-    final rawData =
-        data
-            as Map<
-              String,
-              dynamic
-            >; // Requires TAddData to be Map or convertible
+    final rawData = data
+        as Map<String, dynamic>; // Requires TAddData to be Map or convertible
     final dataToWrite = applyDefaults(rawData);
     // addDoc uses the converter automatically via ref
     return ref.add(dataToWrite as TData); // Cast needed after applying defaults
@@ -119,10 +121,9 @@ abstract class BaseCollectionRef<TData, TAddData> {
     // return doc(rawDocRef.id);
     // This seems more correct.
 
-    final unconvertedRef =
-        (parentRef != null
-            ? parentRef!.collection(collectionId)
-            : firestore.collection(collectionId));
+    final unconvertedRef = (parentRef != null
+        ? parentRef!.collection(collectionId)
+        : firestore.collection(collectionId));
     final rawDocRef = await unconvertedRef.add(dataToWrite);
     return doc(rawDocRef.id); // Return the converted DocumentReference<TData>
   }
@@ -151,11 +152,8 @@ abstract class BaseCollectionRef<TData, TAddData> {
 
   /// Helper to access a subcollection.
   @protected
-  SubCollectionType subCollection<
-    SubTData,
-    SubTAddData,
-    SubCollectionType extends BaseCollectionRef<SubTData, SubTAddData>
-  >(
+  SubCollectionType subCollection<SubTData, SubTAddData,
+      SubCollectionType extends BaseCollectionRef<SubTData, SubTAddData>>(
     String parentId,
     String subCollectionId,
     // Need a factory function or similar to create the specific subcollection class instance
@@ -164,16 +162,15 @@ abstract class BaseCollectionRef<TData, TAddData> {
       required String collectionId,
       // Note: 'required' is part of the outer function signature, not the inner type signature
       TData Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
-      fromFirestore,
+          fromFirestore,
       Map<String, Object?> Function(TData, SetOptions?) toFirestore,
       CollectionSchema? schema,
       DocumentReference? parentRef,
-    })
-    subCollectionFactory,
+    }) subCollectionFactory,
     // Pass the necessary converters and schema for the subcollection
     // Note: 'required' is part of the outer function signature, not the inner type signature
     TData Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
-    subFromFirestore,
+        subFromFirestore,
     Map<String, Object?> Function(TData, SetOptions?) subToFirestore,
     CollectionSchema? subSchema,
   ) {
