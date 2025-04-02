@@ -72,13 +72,10 @@ abstract class BaseCollectionRef<TData, TAddData extends ToJsonSerializable> {
         if (dataWithDefaults[fieldName] == null && defaultValue != null) {
           if (defaultValue == 'serverTimestamp') {
             dataWithDefaults[fieldName] = FieldValue.serverTimestamp();
-          } else if (defaultValue is String ||
-              defaultValue is num ||
-              defaultValue is bool) {
-            // Apply basic default types directly
+          } else {
+            // Assign any other non-null defaultValue directly (covers primitives, lists, maps)
             dataWithDefaults[fieldName] = defaultValue;
           }
-          // TODO: Handle other default value types if necessary (e.g., arrays, maps?)
         }
       });
     }
