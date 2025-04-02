@@ -25,7 +25,7 @@ class PostsData {
   /// publishedAt (timestamp)
   final Timestamp? publishedAt;
 
-  const PostsData({
+  PostsData({
     required this.title,
     this.content,
     this.publishedAt,
@@ -147,6 +147,50 @@ class PostsAddData implements ToJsonSerializable {
 
 
     // Only include non-null values in the map for optional fields
+    if (publishedAt != null) {
+      map['publishedAt'] = publishedAt;
+    }
+    return map;
+  }
+}
+
+
+/// Represents the data structure for updating an existing 'Posts' document.
+/// All fields are optional, allowing for partial updates.
+class PostsUpdateData implements ToJsonSerializable {
+
+  /// title (string)
+  final String? title;
+
+  /// content (string)
+  final String? content;
+
+  /// publishedAt (timestamp)
+  final Timestamp? publishedAt;
+
+  PostsUpdateData({ // Ensure const is removed
+    this.title,
+    this.content,
+    this.publishedAt,
+  });
+
+  /// Converts this instance to a Map suitable for Firestore update operation.
+  /// Only includes fields that are not null.
+  @override // Indicate override of interface method
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{};
+
+    // Only include non-null values in the map for updates
+    if (title != null) {
+      map['title'] = title;
+    }
+
+    // Only include non-null values in the map for updates
+    if (content != null) {
+      map['content'] = content;
+    }
+
+    // Only include non-null values in the map for updates
     if (publishedAt != null) {
       map['publishedAt'] = publishedAt;
     }

@@ -25,7 +25,7 @@ class AddressesData {
   /// zip (string)
   final String? zip;
 
-  const AddressesData({
+  AddressesData({
     required this.street,
     required this.city,
     this.zip,
@@ -145,6 +145,50 @@ class AddressesAddData implements ToJsonSerializable {
 
 
     // Only include non-null values in the map for optional fields
+    if (zip != null) {
+      map['zip'] = zip;
+    }
+    return map;
+  }
+}
+
+
+/// Represents the data structure for updating an existing 'Addresses' document.
+/// All fields are optional, allowing for partial updates.
+class AddressesUpdateData implements ToJsonSerializable {
+
+  /// street (string)
+  final String? street;
+
+  /// city (string)
+  final String? city;
+
+  /// zip (string)
+  final String? zip;
+
+  AddressesUpdateData({ // Ensure const is removed
+    this.street,
+    this.city,
+    this.zip,
+  });
+
+  /// Converts this instance to a Map suitable for Firestore update operation.
+  /// Only includes fields that are not null.
+  @override // Indicate override of interface method
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{};
+
+    // Only include non-null values in the map for updates
+    if (street != null) {
+      map['street'] = street;
+    }
+
+    // Only include non-null values in the map for updates
+    if (city != null) {
+      map['city'] = city;
+    }
+
+    // Only include non-null values in the map for updates
     if (zip != null) {
       map['zip'] = zip;
     }

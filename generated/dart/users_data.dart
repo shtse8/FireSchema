@@ -22,7 +22,7 @@ class UsersSettingsMap implements ToJsonSerializable {
   /// notificationsEnabled (boolean)
   final bool? notificationsEnabled;
 
-  const UsersSettingsMap({
+  UsersSettingsMap({
     this.theme,
     this.notificationsEnabled,
   }); // End of constructor
@@ -89,7 +89,7 @@ class UsersData {
   /// primaryAddressRef (reference)
   final DocumentReference<Map<String, dynamic>>? primaryAddressRef;
 
-  const UsersData({
+  UsersData({
     required this.displayName,
     required this.email,
     this.createdAt,
@@ -103,8 +103,8 @@ class UsersData {
     : assert(displayName.length >= 3, 'Users.displayName must be at least 3 characters long')
     , assert(displayName.length <= 50, 'Users.displayName must be at most 50 characters long')
     , assert(RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$').hasMatch(email), 'Users.email must match pattern: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-    , assert(age == null || age >= 0, 'Users.age must be >= 0')
-    , assert(age == null || age <= 130, 'Users.age must be <= 130'); // End of constructor
+    , assert((age == null || age >= 0), 'Users.age must be >= 0')
+    , assert((age == null || age <= 130), 'Users.age must be <= 130'); // End of constructor
 
   /// Creates a UsersData instance from a Map.
   factory UsersData.fromJson(Map<String, dynamic> data) {
@@ -316,6 +316,104 @@ class UsersAddData implements ToJsonSerializable {
 
 
     // Only include non-null values in the map for optional fields
+    if (primaryAddressRef != null) {
+      map['primaryAddressRef'] = primaryAddressRef;
+    }
+    return map;
+  }
+}
+
+
+/// Represents the data structure for updating an existing 'Users' document.
+/// All fields are optional, allowing for partial updates.
+class UsersUpdateData implements ToJsonSerializable {
+
+  /// User's public display name (string)
+  final String? displayName;
+
+  /// email (string)
+  final String? email;
+
+  /// Timestamp when the user was created (timestamp)
+  final Timestamp? createdAt;
+
+  /// lastLogin (timestamp)
+  final Timestamp? lastLogin;
+
+  /// age (number)
+  final num? age;
+
+  /// isActive (boolean)
+  final bool? isActive;
+
+  /// settings (map)
+  final UsersSettingsMap? settings;
+
+  /// tags (array)
+  final List<String>? tags;
+
+  /// primaryAddressRef (reference)
+  final DocumentReference<Map<String, dynamic>>? primaryAddressRef;
+
+  UsersUpdateData({ // Ensure const is removed
+    this.displayName,
+    this.email,
+    this.createdAt,
+    this.lastLogin,
+    this.age,
+    this.isActive,
+    this.settings,
+    this.tags,
+    this.primaryAddressRef,
+  });
+
+  /// Converts this instance to a Map suitable for Firestore update operation.
+  /// Only includes fields that are not null.
+  @override // Indicate override of interface method
+  Map<String, Object?> toJson() {
+    final map = <String, Object?>{};
+
+    // Only include non-null values in the map for updates
+    if (displayName != null) {
+      map['displayName'] = displayName;
+    }
+
+    // Only include non-null values in the map for updates
+    if (email != null) {
+      map['email'] = email;
+    }
+
+    // Only include non-null values in the map for updates
+    if (createdAt != null) {
+      map['createdAt'] = createdAt;
+    }
+
+    // Only include non-null values in the map for updates
+    if (lastLogin != null) {
+      map['lastLogin'] = lastLogin;
+    }
+
+    // Only include non-null values in the map for updates
+    if (age != null) {
+      map['age'] = age;
+    }
+
+    // Only include non-null values in the map for updates
+    if (isActive != null) {
+      map['isActive'] = isActive;
+    }
+
+    // Only include non-null values in the map for updates
+    if (settings != null) {
+      map['settings'] = settings?.toJson();
+    }
+
+    // Only include non-null values in the map for updates
+    if (tags != null) {
+      map['tags'] = tags;
+    }
+
+    // Only include non-null values in the map for updates
     if (primaryAddressRef != null) {
       map['primaryAddressRef'] = primaryAddressRef;
     }
