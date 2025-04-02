@@ -9,7 +9,7 @@
   "scripts": {
     "test": "jest",
     "clean": "bunx rimraf dist",
-    "build:workspaces": "bun run --filter '@fireschema/ts-runtime' build",
+    "build:workspaces": "bun run --filter '@shtse8/fireschema-runtime' build",
     "build:generated-ts": "bun run --filter '@my-project/firestore-models-ts' build",
     "build:root": "bun run clean && tsc",
     "build": "bun run build:workspaces && bun run build:generated-ts && bun run build:root",
