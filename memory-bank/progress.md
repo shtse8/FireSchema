@@ -63,8 +63,8 @@ linters and compilers.
 
 **Known Issues:**
 
-- (Existing) Dart `fromJson`/`toJson` needs better handling for nested
-  types/references.
+# (Removed - Verified 2025-04-02: Existing logic handles nested maps/objects and arrays of references correctly)
+
 - (Existing) Type safety for `whereIn`, `notIn`, `arrayContainsAny` value
   parameters in Dart query builder could be improved.
 - (Existing) TypeScript `UpdateBuilder` doesn't easily support updating nested
