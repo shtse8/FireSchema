@@ -28,7 +28,7 @@ class <%- modelName %>QueryBuilder extends BaseQueryBuilder<<%- modelName %>Data
   /// Provide one of the named parameters to specify the query condition.
   <%- modelName %>QueryBuilder where<%- capitalizeFirstLetter(field.fieldName) %>({
 <%   queryInfos.forEach(info => { -%>
-    <%- info.valueType %> <%- info.paramName %>,
+    <%- info.valueType.replace(/\?$/, '') %>? <%- info.paramName %>, // Ensure only one trailing '?' for nullable parameter
 <%   }); -%>
   }) {
     // Call the protected where method from the base class
@@ -37,7 +37,7 @@ class <%- modelName %>QueryBuilder extends BaseQueryBuilder<<%- modelName %>Data
 <%   queryInfos.forEach(info => { -%>
       <%- info.paramName %>: <%- info.paramName %>,
 <%   }); -%>
-    ) as <%- modelName %>QueryBuilder; // Cast back to specific type
+    ) as <%- modelName %>QueryBuilder; // Cast back to specific type is necessary
   }
 <%   } -%>
 <% }); -%>

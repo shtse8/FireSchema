@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "Remove-Item -Recurse -Force dist; npm run build --workspaces --if-present; tsc",
+    "build": "rimraf dist && npm run build --workspaces --if-present && tsc",
     "prepublishOnly": "npm run build"
   },
   "keywords": [],
@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/node": "^22.13.16",
     "firebase": "^11.6.0",
+    "rimraf": "^6.0.1",
     "typescript": "^5.8.2"
   },
   "dependencies": {

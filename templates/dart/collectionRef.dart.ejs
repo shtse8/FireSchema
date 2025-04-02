@@ -16,14 +16,20 @@ import '<%= fileNameBase %>_update.dart';
 <%     const subFileNameBase = toSnakeCase(subId); %>
 <%
     // Construct relative path - assumes subcollections are in a nested directory named after the parent
-    let relativePath = '';
+    let relativeCollectionPath = '';
+    let relativeDataPath = '';
     if (isSubcollection) {
-        relativePath = `../${collection.collectionId}/${subFileNameBase}_collection.dart`; // Go up one level, then into parent dir
+        // Go up one level from the subcollection's dir, then into the parent's dir, then into the target subcollection dir
+        relativeCollectionPath = `../${collection.collectionId}/${subFileNameBase}_collection.dart`;
+        relativeDataPath = `../${collection.collectionId}/${subFileNameBase}_data.dart`;
     } else {
-        relativePath = `./${collection.collectionId}/${subFileNameBase}_collection.dart`; // Go into parent dir from current level
+        // Go into the subcollection's dir from the current level
+        relativeCollectionPath = `./${collection.collectionId}/${subFileNameBase}_collection.dart`;
+        relativeDataPath = `./${collection.collectionId}/${subFileNameBase}_data.dart`;
     }
 %>
-import '<%= relativePath %>';
+import '<%= relativeCollectionPath %>'; // Import subcollection class
+import '<%= relativeDataPath %>'; // Import subcollection data class
 <%   }); %>
 <% } %>
 
@@ -77,16 +83,24 @@ class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName %>Data,
   <%- subModelName %>Collection <%- subId %>(String documentId) {
     // Use the helper method from BaseCollectionRef
     // Need to define the factory function for the subcollection class
+    // Call subCollection helper with positional arguments
     return subCollection(
-      parentId: documentId,
-      subCollectionId: '<%- subId %>',
-      subCollectionFactory: ({ firestore, collectionId, fromFirestore, toFirestore, schema, parentRef }) =>
-          <%- subModelName %>Collection(firestore: firestore, parentRef: parentRef), // Pass parentRef here
-      // Pass the specific converters for the subcollection model
-      subFromFirestore: <%- subModelName %>Data.fromFirestore,
-      subToFirestore: (data, options) => (data as <%- subModelName %>Data).toFirestore(options), // Cast needed
-      // Pass the schema for the subcollection if needed
-      subSchema: const {
+      documentId, // parentId
+      '<%- subId %>', // subCollectionId
+      // subCollectionFactory (factory function)
+      // subCollectionFactory (Simplified signature matching the updated BaseCollectionRef helper)
+      ({
+        required FirebaseFirestore firestore,
+        required String collectionId,
+        CollectionSchema? schema,
+        required DocumentReference? parentRef,
+      }) => <%- subModelName %>Collection(firestore: firestore, parentRef: parentRef),
+      // subFromFirestore (Use the correct sub-model name)
+      <%- subModelName %>Data.fromFirestore,
+      // subToFirestore
+      (data, options) => (data as <%- subModelName %>Data).toFirestore(options),
+      // subSchema (optional)
+      const { // Construct the schema object for the subcollection
         'fields': {
 <% Object.entries(subCollectionDef.fields).forEach(([fieldName, fieldDef]) => { -%>
           '<%- fieldName %>': { 'defaultValue': <%- fieldDef.defaultValue ? JSON.stringify(fieldDef.defaultValue) : 'null' %> },

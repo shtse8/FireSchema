@@ -15,7 +15,8 @@ import 'users_update.dart';
 
 
 
-import './users/posts_collection.dart';
+import './users/posts_collection.dart'; // Import subcollection class
+import './users/posts_data.dart'; // Import subcollection data class
 
 
 
@@ -75,16 +76,24 @@ class UsersCollection extends BaseCollectionRef<UsersData, Map<String, dynamic>>
   PostsCollection posts(String documentId) {
     // Use the helper method from BaseCollectionRef
     // Need to define the factory function for the subcollection class
+    // Call subCollection helper with positional arguments
     return subCollection(
-      parentId: documentId,
-      subCollectionId: 'posts',
-      subCollectionFactory: ({ firestore, collectionId, fromFirestore, toFirestore, schema, parentRef }) =>
-          PostsCollection(firestore: firestore, parentRef: parentRef), // Pass parentRef here
-      // Pass the specific converters for the subcollection model
-      subFromFirestore: PostsData.fromFirestore,
-      subToFirestore: (data, options) => (data as PostsData).toFirestore(options), // Cast needed
-      // Pass the schema for the subcollection if needed
-      subSchema: const {
+      documentId, // parentId
+      'posts', // subCollectionId
+      // subCollectionFactory (factory function)
+      // subCollectionFactory (Simplified signature matching the updated BaseCollectionRef helper)
+      ({
+        required FirebaseFirestore firestore,
+        required String collectionId,
+        CollectionSchema? schema,
+        required DocumentReference? parentRef,
+      }) => PostsCollection(firestore: firestore, parentRef: parentRef),
+      // subFromFirestore (Use the correct sub-model name)
+      PostsData.fromFirestore,
+      // subToFirestore
+      (data, options) => (data as PostsData).toFirestore(options),
+      // subSchema (optional)
+      const { // Construct the schema object for the subcollection
         'fields': {
           'title': { 'defaultValue': null },
           'content': { 'defaultValue': null },

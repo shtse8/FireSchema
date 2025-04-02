@@ -67,6 +67,22 @@ class AddressesData {
     );
   }
 
+  /// Creates a AddressesData instance from a Firestore DocumentSnapshot.
+  /// Required for Firestore `withConverter`.
+  factory AddressesData.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? options,
+  ) {
+    final data = snapshot.data();
+    if (data == null) {
+      throw Exception('Snapshot data was null!');
+    }
+    // We can reuse the existing fromJson logic.
+    // Add the document ID to the data map if you want it in the model.
+    // data['id'] = snapshot.id; // Optional: include document ID
+    return AddressesData.fromJson(data);
+  }
+
   /// Converts this AddressesData instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
@@ -98,6 +114,14 @@ class AddressesData {
 
       'zip': zip,
     };
+  }
+
+  /// Converts this AddressesData instance to a Map suitable for Firestore.
+  /// Required for Firestore `withConverter`.
+  Map<String, Object?> toFirestore(SetOptions? options) {
+    // We can reuse the existing toJson logic.
+    // Firestore expects Map<String, Object?>
+    return toJson();
   }
 
   /// Creates a copy of this instance with potentially modified fields.

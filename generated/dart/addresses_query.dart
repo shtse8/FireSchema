@@ -24,14 +24,14 @@ class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
   /// Adds a query filter for the 'street' field.
   /// Provide one of the named parameters to specify the query condition.
   AddressesQueryBuilder whereStreet({
-    String isEqualTo,
-    String isNotEqualTo,
-    String isLessThan,
-    String isLessThanOrEqualTo,
-    String isGreaterThan,
-    String isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    String? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -44,19 +44,19 @@ class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as AddressesQueryBuilder; // Cast back to specific type
+    ) as AddressesQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'city' field.
   /// Provide one of the named parameters to specify the query condition.
   AddressesQueryBuilder whereCity({
-    String isEqualTo,
-    String isNotEqualTo,
-    String isLessThan,
-    String isLessThanOrEqualTo,
-    String isGreaterThan,
-    String isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    String? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -69,19 +69,19 @@ class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as AddressesQueryBuilder; // Cast back to specific type
+    ) as AddressesQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'zip' field.
   /// Provide one of the named parameters to specify the query condition.
   AddressesQueryBuilder whereZip({
-    String? isEqualTo,
-    String? isNotEqualTo,
-    String? isLessThan,
-    String? isLessThanOrEqualTo,
-    String? isGreaterThan,
-    String? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    String? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -94,7 +94,7 @@ class AddressesQueryBuilder extends BaseQueryBuilder<AddressesData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as AddressesQueryBuilder; // Cast back to specific type
+    ) as AddressesQueryBuilder; // Cast back to specific type is necessary
   }
   // --- End Field-specific Where Methods ---
 

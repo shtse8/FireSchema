@@ -161,17 +161,17 @@ abstract class BaseCollectionRef<TData, TAddData> {
       required FirebaseFirestore firestore,
       required String collectionId,
       // Note: 'required' is part of the outer function signature, not the inner type signature
-      TData Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
-          fromFirestore,
-      Map<String, Object?> Function(TData, SetOptions?) toFirestore,
+      // Corrected: Use SubTData for the factory's converter signatures
+      // Factory signature simplified: only requires parameters needed by the factory body
       CollectionSchema? schema,
-      DocumentReference? parentRef,
+      required DocumentReference? parentRef, // Make required again
     }) subCollectionFactory,
     // Pass the necessary converters and schema for the subcollection
     // Note: 'required' is part of the outer function signature, not the inner type signature
-    TData Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
+    // Corrected: Use SubTData for the converter function parameters
+    SubTData Function(DocumentSnapshot<Map<String, dynamic>>, SnapshotOptions?)
         subFromFirestore,
-    Map<String, Object?> Function(TData, SetOptions?) subToFirestore,
+    Map<String, Object?> Function(SubTData, SetOptions?) subToFirestore,
     CollectionSchema? subSchema,
   ) {
     final parentDocRef = (parentRef != null
@@ -182,8 +182,6 @@ abstract class BaseCollectionRef<TData, TAddData> {
     return subCollectionFactory(
       firestore: firestore,
       collectionId: subCollectionId,
-      fromFirestore: subFromFirestore, // Pass subcollection's converters
-      toFirestore: subToFirestore,
       schema: subSchema,
       parentRef: parentDocRef, // Pass the parent DocumentReference
     );

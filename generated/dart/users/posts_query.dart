@@ -24,14 +24,14 @@ class PostsQueryBuilder extends BaseQueryBuilder<PostsData> {
   /// Adds a query filter for the 'title' field.
   /// Provide one of the named parameters to specify the query condition.
   PostsQueryBuilder whereTitle({
-    String isEqualTo,
-    String isNotEqualTo,
-    String isLessThan,
-    String isLessThanOrEqualTo,
-    String isGreaterThan,
-    String isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    String? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -44,19 +44,19 @@ class PostsQueryBuilder extends BaseQueryBuilder<PostsData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as PostsQueryBuilder; // Cast back to specific type
+    ) as PostsQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'content' field.
   /// Provide one of the named parameters to specify the query condition.
   PostsQueryBuilder whereContent({
-    String? isEqualTo,
-    String? isNotEqualTo,
-    String? isLessThan,
-    String? isLessThanOrEqualTo,
-    String? isGreaterThan,
-    String? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    String? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -69,19 +69,19 @@ class PostsQueryBuilder extends BaseQueryBuilder<PostsData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as PostsQueryBuilder; // Cast back to specific type
+    ) as PostsQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'publishedAt' field.
   /// Provide one of the named parameters to specify the query condition.
   PostsQueryBuilder wherePublishedAt({
-    Timestamp? isEqualTo,
-    Timestamp? isNotEqualTo,
-    Timestamp? isLessThan,
-    Timestamp? isLessThanOrEqualTo,
-    Timestamp? isGreaterThan,
-    Timestamp? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    Timestamp? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -94,7 +94,7 @@ class PostsQueryBuilder extends BaseQueryBuilder<PostsData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as PostsQueryBuilder; // Cast back to specific type
+    ) as PostsQueryBuilder; // Cast back to specific type is necessary
   }
   // --- End Field-specific Where Methods ---
 

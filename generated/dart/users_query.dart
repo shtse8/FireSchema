@@ -24,14 +24,14 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
   /// Adds a query filter for the 'displayName' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereDisplayName({
-    String isEqualTo,
-    String isNotEqualTo,
-    String isLessThan,
-    String isLessThanOrEqualTo,
-    String isGreaterThan,
-    String isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    String? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -44,19 +44,19 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'email' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereEmail({
-    String isEqualTo,
-    String isNotEqualTo,
-    String isLessThan,
-    String isLessThanOrEqualTo,
-    String isGreaterThan,
-    String isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    String? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    String? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    String? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -69,19 +69,19 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'createdAt' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereCreatedAt({
-    Timestamp? isEqualTo,
-    Timestamp? isNotEqualTo,
-    Timestamp? isLessThan,
-    Timestamp? isLessThanOrEqualTo,
-    Timestamp? isGreaterThan,
-    Timestamp? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    Timestamp? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -94,19 +94,19 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'lastLogin' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereLastLogin({
-    Timestamp? isEqualTo,
-    Timestamp? isNotEqualTo,
-    Timestamp? isLessThan,
-    Timestamp? isLessThanOrEqualTo,
-    Timestamp? isGreaterThan,
-    Timestamp? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    Timestamp? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    Timestamp? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -119,19 +119,19 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'age' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereAge({
-    num? isEqualTo,
-    num? isNotEqualTo,
-    num? isLessThan,
-    num? isLessThanOrEqualTo,
-    num? isGreaterThan,
-    num? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    num? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    num? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    num? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    num? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    num? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    num? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -144,19 +144,19 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'isActive' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereIsActive({
-    bool? isEqualTo,
-    bool? isNotEqualTo,
-    bool? isLessThan,
-    bool? isLessThanOrEqualTo,
-    bool? isGreaterThan,
-    bool? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    bool? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    bool? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    bool? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    bool? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    bool? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    bool? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -169,15 +169,15 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'settings' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereSettings({
-    Map<String, dynamic>? isEqualTo,
-    Map<String, dynamic>? isNotEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    Map<String, dynamic>? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    Map<String, dynamic>? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -186,15 +186,15 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isNotEqualTo: isNotEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'tags' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder whereTags({
-    String? arrayContains,
-    List<List<String>> arrayContainsAny,
-    List<List<String>> whereIn,
-    List<List<String>> whereNotIn,
+    String? arrayContains, // Ensure only one trailing '?' for nullable parameter
+    List<List<String>>? arrayContainsAny, // Ensure only one trailing '?' for nullable parameter
+    List<List<String>>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<List<String>>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -203,19 +203,19 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       arrayContainsAny: arrayContainsAny,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   /// Adds a query filter for the 'primaryAddressRef' field.
   /// Provide one of the named parameters to specify the query condition.
   UsersQueryBuilder wherePrimaryAddressRef({
-    DocumentReference<Map<String, dynamic>>? isEqualTo,
-    DocumentReference<Map<String, dynamic>>? isNotEqualTo,
-    DocumentReference<Map<String, dynamic>>? isLessThan,
-    DocumentReference<Map<String, dynamic>>? isLessThanOrEqualTo,
-    DocumentReference<Map<String, dynamic>>? isGreaterThan,
-    DocumentReference<Map<String, dynamic>>? isGreaterThanOrEqualTo,
-    List<dynamic> whereIn,
-    List<dynamic> whereNotIn,
+    DocumentReference<Map<String, dynamic>>? isEqualTo, // Ensure only one trailing '?' for nullable parameter
+    DocumentReference<Map<String, dynamic>>? isNotEqualTo, // Ensure only one trailing '?' for nullable parameter
+    DocumentReference<Map<String, dynamic>>? isLessThan, // Ensure only one trailing '?' for nullable parameter
+    DocumentReference<Map<String, dynamic>>? isLessThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    DocumentReference<Map<String, dynamic>>? isGreaterThan, // Ensure only one trailing '?' for nullable parameter
+    DocumentReference<Map<String, dynamic>>? isGreaterThanOrEqualTo, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereIn, // Ensure only one trailing '?' for nullable parameter
+    List<dynamic>? whereNotIn, // Ensure only one trailing '?' for nullable parameter
   }) {
     // Call the protected where method from the base class
     return where(
@@ -228,7 +228,7 @@ class UsersQueryBuilder extends BaseQueryBuilder<UsersData> {
       isGreaterThanOrEqualTo: isGreaterThanOrEqualTo,
       whereIn: whereIn,
       whereNotIn: whereNotIn,
-    ) as UsersQueryBuilder; // Cast back to specific type
+    ) as UsersQueryBuilder; // Cast back to specific type is necessary
   }
   // --- End Field-specific Where Methods ---
 
