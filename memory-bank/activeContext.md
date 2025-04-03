@@ -1,7 +1,8 @@
 # Active Context: FireSchema (Executor + Adapter Refactor Complete)
 
-**Current Focus:** Runtime unit test expansion for base classes is complete.
-Next: Expand runtime integration test coverage.
+**Current Focus:** Runtime unit test expansion for TS base classes is complete.
+Next: Expand runtime integration test coverage (TS) and unit/integration test
+coverage (Dart).
 
 **Recent Changes (Executor + Adapter Refactor):**
 
@@ -65,7 +66,9 @@ Next: Expand runtime integration test coverage.
      `BaseUpdateBuilder`).~~ **(Done)**
    - Add comprehensive test cases to integration tests for `ts-client-runtime`
      and `ts-admin-runtime` (covering CRUD, queries, updates, subcollections,
-     default values). - **(Next Task)**
+     default values). - **(Next Task - TS Integration)**
+   - Add comprehensive test cases to unit and integration tests for the Dart
+     runtime (`fireschema_dart_runtime`). - **(Next Task - Dart)**
 2. **Populate VitePress Documentation:** Add more detailed content to the
    VitePress site (`docs-src`), explaining features, API, and advanced usage.
 3. **(Optional) Address Minor Test Issues:** Investigate the `jest.mock` errors

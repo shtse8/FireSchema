@@ -66,8 +66,10 @@
        TypeScript syntax parsing errors.
      - **All TS runtime unit and integration tests now pass** when run with
        `npx jest`.
-     - ~~**Next:** Expand unit test coverage for runtime packages.~~ **(Done)**
-     - **Next:** Expand integration test coverage for runtime packages.
+     - ~~**Next:** Expand unit test coverage for TS runtime packages.~~
+       **(Done)**
+     - **Next:** Expand integration test coverage for TS runtime packages.
+     - **Next:** Expand unit/integration test coverage for Dart runtime package.
      - Persistent test environment issues (`jest.mock` errors) remain when using
        `bun test`. (Deferring resolution, using `npx jest` for now).
    - **Phase 4: Update Memory Bank & Documentation:** ✅ **COMPLETED**

@@ -1,5 +1,5 @@
 import { initializeApp, deleteApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator, terminate, Firestore, doc, getDoc, deleteDoc, collection, getDocs, query, writeBatch, serverTimestamp, Timestamp, DocumentReference } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, terminate, Firestore, doc, getDoc, deleteDoc, collection, getDocs, query, writeBatch, serverTimestamp, Timestamp, DocumentReference, DocumentData, FieldValue } from 'firebase/firestore'; // Added DocumentData, FieldValue
 import { ClientBaseCollectionRef, CollectionSchema } from '../../src/baseCollection'; // Import the runtime base class and schema type
 import { ClientBaseQueryBuilder } from '../../src/baseQueryBuilder';   // Import Query Builder
 import { ClientBaseUpdateBuilder } from '../../src/baseUpdateBuilder'; // Import Update Builder
@@ -33,9 +33,15 @@ type SubTestAddData = Omit<SubTestData, 'id'>;
 
 // Subcollection class
 class TestSubCollection extends ClientBaseCollectionRef<SubTestData, SubTestAddData> {
-  constructor(db: Firestore, parentRef: DocumentReference<TestData>) {
-    // Subcollections often don't need their own schema definition separate from the parent
-    super(db, 'sub-items', undefined, parentRef);
+  // Match the signature expected by the base subCollection method
+  constructor(
+    firestore: Firestore,
+    collectionId: string, // Added collectionId
+    schema?: CollectionSchema, // Added schema
+    parentRef?: DocumentReference<DocumentData> // Use DocumentData for base compatibility
+  ) {
+    // Pass all arguments to super
+    super(firestore, collectionId, schema, parentRef);
   }
   // Add specific query/update methods if needed
 }
@@ -61,19 +67,12 @@ class TestCollection extends ClientBaseCollectionRef<TestData, TestAddData> {
     return new ClientBaseUpdateBuilder<TestData>(docRef);
   }
 
-  // Method to access the subcollection
+  // Method to access the subcollection using the public base method
   subItems(parentId: string): TestSubCollection {
-    // Use the protected helper from the base class
-    // Note: ClientBaseCollectionRef needs a similar subCollection helper as AdminBaseCollectionRef
-    // For now, we might need to manually construct the path or adjust the base class
-    // Let's assume _subCollection exists for the test structure, but it needs implementation
-    if (!(this as any)._subCollection) {
-        console.warn("Warning: _subCollection helper not implemented in ClientBaseCollectionRef for testing.");
-        // Basic manual construction for test to proceed (might not be fully accurate)
-        const parentDocRef = this.doc(parentId);
-        return new TestSubCollection(this.firestore, parentDocRef); // This won't use the correct path logic from base class
-    }
-    return (this as any)._subCollection(parentId, 'sub-items', TestSubCollection);
+    // Define the schema for the subcollection if needed by the base method or constructor
+    const subSchema = undefined; // Or provide actual schema if required
+    // Use the now public subCollection method from the base class
+    return this.subCollection(parentId, 'sub-items', TestSubCollection, subSchema);
   }
   // Add specific methods if needed, otherwise inherit base methods
 }
@@ -255,6 +254,131 @@ describe('Client Runtime Integration Tests', () => {
     }
   });
 
+  it('should query documents using "in" operator', async () => {
+    const dataSet = [
+      { id: 'in-1', data: { name: 'A', value: 1 } },
+      { id: 'in-2', data: { name: 'B', value: 2 } },
+      { id: 'in-3', data: { name: 'C', value: 3 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+      const queryBuilder = testCollection.query();
+      // Use protected _where for testing base class logic
+      const results = await (queryBuilder as any)._where('name', 'in', ['A', 'C']).get();
+
+      expect(results).toHaveLength(2);
+      const names = results.map((r: TestData) => r.name);
+      expect(names).toContain('A');
+      expect(names).toContain('C');
+      expect(names).not.toContain('B');
+
+    } finally {
+      await clearTestCollection();
+    }
+  });
+
+  it('should query documents using multiple where clauses', async () => {
+    const dataSet = [
+      { id: 'multi-1', data: { name: 'X', value: 10, tags: ['a'] } },
+      { id: 'multi-2', data: { name: 'Y', value: 20, tags: ['a', 'b'] } },
+      { id: 'multi-3', data: { name: 'Z', value: 10, tags: ['b'] } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+      const queryBuilder = testCollection.query();
+      const results = await (queryBuilder as any)
+        ._where('value', '==', 10)
+        ._where('tags', 'array-contains', 'a') // Firestore requires index for this
+        .get();
+
+      // Note: This specific query (equality on one field, array-contains on another)
+      // might require a composite index in a real Firestore setup.
+      // The test assumes the emulator handles it or the necessary index exists.
+      expect(results).toHaveLength(1);
+      expect(results[0].name).toBe('X');
+
+    } finally {
+      await clearTestCollection();
+    }
+  });
+
+  it('should update nested fields using the update builder', async () => {
+    const docId = 'update-nested-test';
+    // Define a type with a nested object
+    interface NestedTestData extends DocumentData {
+      config?: {
+        isEnabled?: boolean;
+        level?: number | FieldValue; // Allow increment
+      }
+    }
+    // Use 'any' for AddData for simplicity in this test
+    class NestedTestCollection extends ClientBaseCollectionRef<NestedTestData, any> {
+        constructor(db: Firestore) { super(db, 'nested-test'); }
+        update(id: string): ClientBaseUpdateBuilder<NestedTestData> {
+            return new ClientBaseUpdateBuilder<NestedTestData>(this.doc(id));
+        }
+    }
+    const nestedCollection = new NestedTestCollection(firestore);
+    const initialData = { config: { isEnabled: false, level: 1 } };
+
+    try {
+      await nestedCollection.set(docId, initialData);
+
+      // Update nested fields
+      await nestedCollection.update(docId)
+        ._set('config.isEnabled', true) // Update boolean
+        ._increment('config.level', 2)   // Increment nested number
+        .commit();
+
+      const retrievedData = await nestedCollection.get(docId);
+
+      expect(retrievedData).toBeDefined();
+      expect(retrievedData?.config?.isEnabled).toBe(true);
+      expect(retrievedData?.config?.level).toBe(3); // 1 + 2
+
+    } finally {
+      // Cleanup
+      await nestedCollection.delete(docId);
+    }
+  });
+
+  it('should query documents using cursors (startAfter)', async () => {
+    const dataSet = [
+      { id: 'cursor-1', data: { name: 'One', value: 1 } },
+      { id: 'cursor-2', data: { name: 'Two', value: 2 } },
+      { id: 'cursor-3', data: { name: 'Three', value: 3 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+      // Get the document snapshot for 'One' using the SDK's getDoc
+      const docRefToStartAfter = testCollection.doc('cursor-1'); // Get the DocumentReference
+      const startAfterDoc = await getDoc(docRefToStartAfter); // Fetch the snapshot
+      expect(startAfterDoc).toBeDefined();
+
+      const queryBuilder = testCollection.query();
+      const results = await queryBuilder
+        .orderBy('value', 'asc') // Cursors require orderBy
+        .startAfter(startAfterDoc)
+        .get();
+
+      expect(results).toHaveLength(2);
+      expect(results[0].name).toBe('Two');
+      expect(results[1].name).toBe('Three');
+
+    } finally {
+      await clearTestCollection();
+    }
+  });
+
   // --- Update Tests --- // Moved here
 
   it('should update a document using the update builder', async () => {
@@ -359,7 +483,7 @@ describe('Client Runtime Integration Tests', () => {
       // Get the subcollection reference
       const subCollection = testCollection.subItems(parentId); // Assumes subItems works
       expect(subCollection).toBeInstanceOf(TestSubCollection);
-      // expect(subCollection.ref.path).toBe(`${testCollection.ref.path}/${parentId}/sub-items`); // Path check might fail if helper isn't implemented
+      expect(subCollection.ref.path).toBe(`${testCollection.ref.path}/${parentId}/sub-items`); // Verify path construction
 
       // Add a document to the subcollection
       const subDocRef = await subCollection.add(subData);

@@ -225,6 +225,133 @@ describe('Admin Runtime Integration Tests', () => {
     }
   });
 
+  it('should query documents using "in" operator', async () => {
+    const dataSet = [
+      { id: 'admin-in-1', data: { serviceName: 'Svc A', status: 'active' } },
+      { id: 'admin-in-2', data: { serviceName: 'Svc B', status: 'inactive' } },
+      { id: 'admin-in-3', data: { serviceName: 'Svc C', status: 'active' } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testAdminCollection.set(item.id, item.data as TestAdminAddData);
+      }
+
+      const queryBuilder = testAdminCollection.query();
+      const results = await (queryBuilder as any)._where('serviceName', 'in', ['Svc A', 'Svc C']).get();
+
+      expect(results).toHaveLength(2);
+      const names = results.map((r: TestAdminData) => r.serviceName);
+      expect(names).toContain('Svc A');
+      expect(names).toContain('Svc C');
+      expect(names).not.toContain('Svc B');
+
+    } finally {
+      await cleanupCollection();
+    }
+  });
+
+  it('should query documents using multiple where clauses', async () => {
+    const dataSet = [
+      { id: 'admin-multi-1', data: { serviceName: 'X', status: 'active', tags: ['a'], value: 10 } },
+      { id: 'admin-multi-2', data: { serviceName: 'Y', status: 'inactive', tags: ['a', 'b'], value: 20 } },
+      { id: 'admin-multi-3', data: { serviceName: 'Z', status: 'active', tags: ['b'], value: 10 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testAdminCollection.set(item.id, item.data as TestAdminAddData);
+      }
+
+      const queryBuilder = testAdminCollection.query();
+      const results = await (queryBuilder as any)
+        ._where('status', '==', 'active')
+        ._where('value', '==', 10) // Firestore requires index for this
+        .get();
+
+      // Note: This specific query (equality on two different fields)
+      // might require a composite index in a real Firestore setup.
+      expect(results).toHaveLength(1);
+      expect(results[0].serviceName).toBe('X');
+
+    } finally {
+      await cleanupCollection();
+    }
+  });
+
+  it('should update nested fields using the update builder', async () => {
+    const docId = 'admin-update-nested';
+    // Define type with nested object
+    interface NestedAdminData extends DocumentData {
+      config?: {
+        isEnabled?: boolean;
+        level?: number | FieldValue; // Allow increment
+        name?: string | FieldValue; // Allow delete
+      }
+    }
+    // Use 'any' for AddData for simplicity
+    class NestedAdminCollection extends AdminBaseCollectionRef<NestedAdminData, any> {
+        constructor(db: Firestore) { super(db, 'nested-admin-test'); }
+        update(id: string): AdminBaseUpdateBuilder<NestedAdminData> {
+            return new AdminBaseUpdateBuilder<NestedAdminData>(this.doc(id));
+        }
+    }
+    const nestedCollection = new NestedAdminCollection(firestore);
+    const initialData = { config: { isEnabled: false, level: 5, name: 'initial' } };
+
+    try {
+      await nestedCollection.set(docId, initialData);
+
+      // Update nested fields
+      const anyBuilder = nestedCollection.update(docId) as any;
+      await anyBuilder
+        ._set('config.isEnabled', true) // Update boolean
+        ._increment('config.level', -1)  // Increment nested number
+        ._deleteField('config.name')   // Delete nested string
+        .commit();
+
+      const retrievedData = await nestedCollection.get(docId);
+
+      expect(retrievedData).toBeDefined();
+      expect(retrievedData?.config?.isEnabled).toBe(true);
+      expect(retrievedData?.config?.level).toBe(4); // 5 - 1
+      expect(retrievedData?.config?.name).toBeUndefined(); // Field deleted
+
+    } finally {
+      // Cleanup
+      await nestedCollection.delete(docId);
+    }
+  });
+
+  it('should query documents using cursors (startAfter)', async () => {
+    const dataSet = [
+      { id: 'admin-cursor-1', data: { serviceName: 'One', status: 'active', value: 1 } },
+      { id: 'admin-cursor-2', data: { serviceName: 'Two', status: 'active', value: 2 } },
+      { id: 'admin-cursor-3', data: { serviceName: 'Three', status: 'active', value: 3 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testAdminCollection.set(item.id, item.data as TestAdminAddData);
+      }
+
+      // Get the document snapshot for 'One' to start after it
+      const docRefToStartAfter = testAdminCollection.doc('admin-cursor-1');
+      const startAfterDoc = await docRefToStartAfter.get(); // Use Admin SDK get() for snapshot
+      expect(startAfterDoc.exists).toBe(true);
+
+      const queryBuilder = testAdminCollection.query();
+      const results = await queryBuilder
+        .orderBy('value', 'asc') // Cursors require orderBy
+        .startAfter(startAfterDoc)
+        .get();
+
+      expect(results).toHaveLength(2);
+      expect(results[0].serviceName).toBe('Two');
+      expect(results[1].serviceName).toBe('Three');
+
+    } finally {
+      await cleanupCollection();
+    }
+  });
+
   // --- Update Tests ---
 
   it('should update a document using the update builder', async () => {
