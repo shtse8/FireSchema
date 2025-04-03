@@ -24,8 +24,10 @@
     classes (`baseCollection.test.ts`, `baseQueryBuilder.test.ts`,
     `baseUpdateBuilder.test.ts`).
   - Initial integration test files (`client.integration.test.ts`,
-    `admin.integration.test.ts`) created for `ts-client-runtime` and
-    `ts-admin-runtime`, configured for Firestore emulator.
+    `admin.integration.test.ts`) created and expanded for `ts-client-runtime` and
+    `ts-admin-runtime`, configured for Firestore emulator. Covers CRUD, queries, defaults, subcollections.
+  - Dart unit tests (`base_collection_ref_test.dart`) created and populated for `fireschema_dart_runtime`, using `fake_cloud_firestore`. Covers core logic.
+  - Dart integration tests (`runtime_integration_test.dart`) created and populated for `fireschema_dart_runtime`, configured for Firestore emulator. Covers CRUD, queries, defaults, subcollections.
   - Dart analysis and TS compilation pass for generated code and runtimes.
 - **Publishing & CI/CD:**
   - GitHub Actions workflow is functional for building, testing (with known
@@ -67,11 +69,8 @@
        `npx jest`.
      - ~~**Next:** Expand unit test coverage for TS runtime packages.~~
        **(Done)**
-     - ~~**Next:** Expand integration test coverage for TS runtime packages.~~
-       **(Done)**
-     - ~~**Next:** Expand unit/integration test coverage for Dart runtime
-       package.~~ **(Done - Unit tests pass with workarounds, Integration tests
-       fail due to fake library limitations)**
+     - ~~**Next:** Expand integration test coverage for TS runtime packages.~~ **(Done)**
+     - ~~**Next:** Expand unit/integration test coverage for Dart runtime package.~~ **(Done)**
      - Persistent test environment issues (`jest.mock` errors) remain when using
        `bun test`. (Deferring resolution, using `npx jest` for now).
    - **Phase 4: Update Memory Bank & Documentation:** ✅ **COMPLETED**
@@ -94,21 +93,18 @@
 2. **Generator Enhancements (Post-Refactor):**
    - Support more complex validation rules.
    - Improve error handling.
-3. **Documentation (Post-Refactor):** ✅ **COMPLETED (VitePress Content
-   Population)**
-   - Replaced TypeDoc with VitePress.
-   - Created initial site structure, config, homepage, and basic guide pages in
-     `docs-src/`.
-   - Configured GitHub Actions to build and deploy VitePress site to GitHub
-     Pages.
-   - ~~**Next:** Populate documentation with more detailed content.~~ **(Done)**
+3. **Documentation (Post-Refactor):**
+   - Replaced TypeDoc with VitePress. ✅ **COMPLETED**
+   - Created initial site structure, config, homepage, and basic guide pages in `docs-src/`. ✅ **COMPLETED**
+   - Configured GitHub Actions to build and deploy VitePress site to GitHub Pages. ✅ **COMPLETED**
+   - **Next:** Populate documentation (`docs-src/`) with more detailed content (API, usage, features).
 
 **Current Status:**
 
-**Executor + Adapter Refactor Complete:** All phases including runtime refactor,
-test expansion (with caveats), and documentation updates are complete.
+**Executor + Adapter Refactor & Test Expansion Complete:** All phases including runtime refactor,
+test expansion, and memory bank updates are complete.
 
-**Current focus:** The main development phase is complete. Future work involves
+**Current focus:** Populate VitePress documentation (`docs-src/`). Future work involves
 generator enhancements and addressing known issues.
 
 **Known Issues:**
@@ -123,15 +119,5 @@ generator enhancements and addressing known issues.
 - **Test Cleanup Flakiness:** Generator snapshot tests sometimes fail during
   cleanup (`fs.rmSync`) with `EBUSY` error. (Cleanup currently disabled in
   test).
-- **Dart Unit Test Limitations:** `fake_cloud_firestore` appears to have
-  bugs/limitations with comparison operators (`<`, `<=`, `>`, `>=`), requiring
-  workarounds (commenting out test case) in `base_query_builder_test.dart`.
-- **Dart Integration Test Limitations:** Integration tests
-  (`integration_test.dart`) **must** use `fake_cloud_firestore`. Attempts to
-  connect to the emulator via `firebase_core` in the `flutter test` VM
-  environment failed due to platform channel errors, even with mocking
-  `FirebasePlatform`. This confirms the reliance on `fake_cloud_firestore` is
-  necessary for this test setup. Several integration tests fail due to
-  `fake_cloud_firestore` limitations (e.g., `!=`, `arrayContainsAny`,
-  `startAfterDocument`). Full validation requires fixing the emulator connection
-  setup.
+- **Dart Unit Test Status:** Unit tests using `fake_cloud_firestore` are passing for `BaseCollectionRef`. (Query/Update builder tests not yet created).
+- **Dart Integration Test Status:** Integration tests using the Firestore emulator are passing for `BaseCollectionRef` functionalities tested so far.

@@ -121,7 +121,7 @@
   `dart-runtime`):**
   - **Unit Tests:** Located within each runtime package (e.g.,
     `packages/fireschema-ts-client-runtime/src/__tests__/`). Test internal logic
-    of base classes using Jest (TS) or `flutter test` (Dart).
+    of base classes using Jest (TS) or `dart test` (Dart).
     - **TS Testing Setup:** Uses `babel-jest` transformer configured via
       `babel.config.cjs` in each TS runtime package. Tests are run using
       `npx jest` due to issues with `bun test`.

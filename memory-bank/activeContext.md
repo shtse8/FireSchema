@@ -1,8 +1,7 @@
 # Active Context: FireSchema (Executor + Adapter Refactor Complete)
 
-**Current Focus:** Runtime unit test expansion for TS base classes is complete.
-Next: Expand runtime integration test coverage (TS) and unit/integration test
-coverage (Dart).
+**Current Focus:** Runtime test expansion (TS & Dart) is complete.
+Next: Populate VitePress documentation (`docs-src/`).
 
 **Recent Changes (Executor + Adapter Refactor):**
 
@@ -50,6 +49,17 @@ coverage (Dart).
     configured for Firestore emulator.
     - Resolved Jest transformation issues by switching to `babel-jest`. All TS
       runtime tests pass with `npx jest`.
+    - Expanded integration tests for `ts-client-runtime` and `ts-admin-runtime`:
+      - Added tests for `limitToLast`, `set` with merge options, more default value scenarios, and 3-level subcollection nesting.
+      - Updated `set` method in both TS base classes (`ClientBaseCollectionRef`, `AdminBaseCollectionRef`) to use overloads for better handling of merge options.
+    - Created and populated unit tests (`base_collection_ref_test.dart`) for `fireschema_dart_runtime`.
+      - Covered `doc`, `applyDefaults` (including serverTimestamp and other types), core CRUD (`add`, `set`, `get`, `delete`), `updateData`, and `subCollection`.
+      - Used `fake_cloud_firestore` for mocking.
+    - Created and populated integration tests (`runtime_integration_test.dart`) for `fireschema_dart_runtime`.
+      - Configured for Firestore emulator.
+      - Covered core CRUD, `updateData`, various query operators (`where`, `orderBy`, `limit`, `limitToLast`, comparisons, `whereIn`, `whereNotIn`, `arrayContains`, `arrayContainsAny`, cursors), default value application on `add`, and subcollection CRUD/queries.
+      - Added `updateData` method to Dart `BaseCollectionRef` and adjusted `set` method to handle merges correctly.
+      - Added `integration_test` dev dependency (initially incorrect, then removed) and fixed test setup for pure Dart.
 - **Documentation:**
   - Replaced TypeDoc setup with VitePress.
   - Created initial VitePress site structure (`docs-src`), configuration
@@ -64,12 +74,12 @@ coverage (Dart).
    - ~~Add comprehensive test cases to unit tests for `ts-client-runtime` and
      `ts-admin-runtime` (covering `BaseCollectionRef`, `BaseQueryBuilder`,
      `BaseUpdateBuilder`).~~ **(Done)**
-   - Add comprehensive test cases to integration tests for `ts-client-runtime`
+   - ~~Add comprehensive test cases to integration tests for `ts-client-runtime`
      and `ts-admin-runtime` (covering CRUD, queries, updates, subcollections,
-     default values). - **(Next Task - TS Integration)**
-   - Add comprehensive test cases to unit and integration tests for the Dart
-     runtime (`fireschema_dart_runtime`). - **(Next Task - Dart)**
-2. **Populate VitePress Documentation:** Add more detailed content to the
+     default values).~~ **(Done)**
+   - ~~Add comprehensive test cases to unit and integration tests for the Dart
+     runtime (`fireschema_dart_runtime`).~~ **(Done)**
+2. **Populate VitePress Documentation:** Add more detailed content to the - **(Next Task)**
    VitePress site (`docs-src`), explaining features, API, and advanced usage.
 3. **(Optional) Address Minor Test Issues:** Investigate the `jest.mock` errors
    reported by `bun test` (but not `npx jest`).
