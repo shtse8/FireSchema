@@ -1,119 +1,231 @@
 import { AdminBaseCollectionRef } from '../baseCollection';
-import * as admin from 'firebase-admin/firestore';
+import { FieldValue as AdminFieldValue } from 'firebase-admin/firestore';
+import type {
+  Firestore,
+  CollectionReference,
+  DocumentReference,
+  DocumentData,
+  SetOptions,
+  DocumentSnapshot,
+  WriteResult,
+  Timestamp, // Import Timestamp for mockSnapshot
+} from 'firebase-admin/firestore';
 
-// Mock the Firestore admin SDK parts
+// Mock FieldValue sentinel object for comparison
+const MOCK_SERVER_TIMESTAMP = { type: 'serverTimestamp', isEqual: jest.fn() } as any;
+
+// Mock the Firestore Admin SDK module and FieldValue static methods
 jest.mock('firebase-admin/firestore', () => {
-  // Create mocks for classes and functions
-  const mockCollection = jest.fn();
-  const mockDoc = jest.fn();
-  const mockGet = jest.fn();
-  const mockSet = jest.fn();
-  const mockAdd = jest.fn();
-  const mockDelete = jest.fn();
-  const mockWhere = jest.fn();
-  const mockOrderBy = jest.fn();
-  const mockLimit = jest.fn();
-  // ... add other necessary mocks
-
-  // Mock the DocumentReference class behavior
-  mockDoc.mockImplementation((id?: string) => ({
-    id: id || 'mock-doc-id',
-    path: `mock-collection/${id || 'mock-doc-id'}`,
-    get: mockGet,
-    set: mockSet,
-    delete: mockDelete,
-    collection: mockCollection, // For subcollections
-    // Add other DocumentReference methods/properties if needed
-  }));
-
-  // Mock the CollectionReference class behavior
-  mockCollection.mockImplementation((id?: string) => ({
-    id: id || 'mock-collection-id',
-    path: id || 'mock-collection-id',
-    doc: mockDoc,
-    add: mockAdd,
-    where: mockWhere,
-    orderBy: mockOrderBy,
-    limit: mockLimit,
-    get: jest.fn(), // Mock get for collection queries if needed
-    // Add other CollectionReference methods/properties if needed
-  }));
-
-  // Mock the main Firestore class/namespace
-  const mockFirestoreInstance = {
-    collection: mockCollection,
-    // Add other Firestore methods if needed (e.g., batch, runTransaction)
+  const mockFieldValue = {
+    serverTimestamp: jest.fn(() => MOCK_SERVER_TIMESTAMP),
+    increment: jest.fn(), // Add mocks for others if needed later
+    arrayUnion: jest.fn(),
+    arrayRemove: jest.fn(),
+    delete: jest.fn(),
   };
-
-  // Mock the static methods/properties like Timestamp, FieldValue if needed
   return {
-    getFirestore: jest.fn(() => mockFirestoreInstance),
-    Timestamp: {
-      now: jest.fn(() => ({ seconds: Date.now() / 1000, nanoseconds: 0 })),
-      fromDate: jest.fn((date: Date) => ({ seconds: date.getTime() / 1000, nanoseconds: 0 })),
-    },
-    FieldValue: {
-      serverTimestamp: jest.fn(() => 'SERVER_TIMESTAMP_PLACEHOLDER'), // Placeholder
-      delete: jest.fn(() => 'DELETE_FIELD_PLACEHOLDER'),
-      // Add other FieldValue static methods if needed
-    },
-    // Export the mocked classes/functions if they are used directly
-    CollectionReference: mockCollection,
-    DocumentReference: mockDoc,
-    // Export the mock instance if needed for type checking in tests
-    mockFirestoreInstance, // Export the instance for potential use in tests
+    FieldValue: mockFieldValue,
+    Timestamp: { now: jest.fn(() => ({ seconds: 123, nanoseconds: 456 } as Timestamp)) }, // Mock Timestamp
   };
 });
 
+// Mock types for testing
+interface TestData extends DocumentData {
+  name: string;
+  createdAt?: any; // Use 'any' for FieldValue in type
+}
+interface TestAddData extends DocumentData {
+  name: string;
+  createdAt?: 'serverTimestamp'; // Use string literal for schema default
+}
 
-describe('AdminBaseCollectionRef (Admin Runtime)', () => {
-  let mockFirestoreAdmin: admin.Firestore;
-  let collectionRef: AdminBaseCollectionRef<any, any>; // Use specific types if available
-  let mockAdminCollectionRefInternal: any; // To hold the mocked internal ref
+describe('AdminBaseCollectionRef', () => {
+  // Use 'any' or partial mocks, focusing on methods used by the class under test
+  let mockFirestore: any;
+  let mockParentRef: any;
+  let mockCollectionRef: any;
+  let mockDocRef: any;
+  let collectionRefInstance: AdminBaseCollectionRef<TestData, TestAddData>;
+
+  const testCollectionId = 'test-items';
+  const testDocId = 'test-doc-123';
+  const mockWriteResult = { writeTime: { seconds: 1, nanoseconds: 1 } as Timestamp } as WriteResult; // Basic mock
 
   beforeEach(() => {
-    // Reset mocks
     jest.clearAllMocks();
 
-    // Get the mocked Firestore instance
-    // We need to re-import or access the mock correctly after jest.mock
-    const mockedAdmin = require('firebase-admin/firestore');
-    mockFirestoreAdmin = mockedAdmin.getFirestore();
-    mockAdminCollectionRefInternal = mockFirestoreAdmin.collection('test-collection'); // Get the mocked internal ref
+    // --- Simplified Mock Firestore Structure ---
+    mockDocRef = {
+      id: testDocId,
+      path: `${testCollectionId}/${testDocId}`,
+      set: jest.fn().mockResolvedValue(mockWriteResult),
+      delete: jest.fn().mockResolvedValue(mockWriteResult),
+      get: jest.fn(),
+      // No need to mock everything, only what's called by AdminBaseCollectionRef
+    };
 
-    // Instantiate the class under test
-    // Constructor: firestore, collectionId, schema?, parentRef?
-    collectionRef = new AdminBaseCollectionRef(
-      mockFirestoreAdmin,
-      'test-collection'
-      // Add schema mock if needed
+    mockCollectionRef = {
+      id: testCollectionId,
+      path: testCollectionId,
+      doc: jest.fn().mockReturnValue(mockDocRef),
+      add: jest.fn().mockResolvedValue(mockDocRef), // add returns a DocumentReference
+    };
+
+    mockParentRef = {
+      id: 'parent-doc',
+      path: 'parents/parent-doc',
+      collection: jest.fn().mockReturnValue(mockCollectionRef),
+    };
+
+    mockFirestore = {
+      collection: jest.fn().mockReturnValue(mockCollectionRef),
+    };
+
+    // Reset AdminFieldValue mocks
+    (AdminFieldValue.serverTimestamp as jest.Mock).mockClear();
+  });
+
+  it('should initialize using firestore.collection() when no parentRef is provided', () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+      mockFirestore,
+      testCollectionId
     );
+    expect(mockFirestore.collection).toHaveBeenCalledWith(testCollectionId);
+    expect(mockParentRef.collection).not.toHaveBeenCalled();
+    expect(collectionRefInstance.ref).toBe(mockCollectionRef);
+    expect((collectionRefInstance as any).schema).toBeUndefined();
   });
 
-  it('should be defined', () => {
-    expect(collectionRef).toBeDefined();
+  it('should initialize using parentRef.collection() when parentRef is provided', () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+      mockFirestore,
+      testCollectionId,
+      undefined, // No schema
+      mockParentRef
+    );
+    expect(mockParentRef.collection).toHaveBeenCalledWith(testCollectionId);
+    expect(mockFirestore.collection).not.toHaveBeenCalled();
+    expect(collectionRefInstance.ref).toBe(mockCollectionRef);
   });
 
-  it('should call admin firestore.collection().doc() when creating a doc ref', () => {
-    const testId = 'test-admin-doc-id';
-    collectionRef.doc(testId);
-    // Check if the 'doc' method on the *mocked* internal collection reference was called
-    expect(mockAdminCollectionRefInternal.doc).toHaveBeenCalledWith(testId);
+   it('should store schema if provided', () => {
+     const schema = { fields: { name: {} } };
+     collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+       mockFirestore,
+       testCollectionId,
+       schema
+     );
+     expect((collectionRefInstance as any).schema).toBe(schema);
+   });
+
+  it('should call collectionRef.doc() when doc() is called', () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(mockFirestore, testCollectionId);
+    const result = collectionRefInstance.doc(testDocId);
+    expect(mockCollectionRef.doc).toHaveBeenCalledWith(testDocId);
+    expect(result).toBe(mockDocRef);
   });
 
-  it('should call admin firestore.collection().add() when adding a document', async () => {
-    const data = { service: 'admin-test', status: 'active' };
-    const mockReturnedDocRef = { id: 'new-admin-generated-id' };
+  // Test add() and applyDefaults
+  it('should call collectionRef.add() with data when add() is called', async () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(mockFirestore, testCollectionId);
+    const dataToAdd: TestAddData = { name: 'New Item' };
+    const result = await collectionRefInstance.add(dataToAdd);
 
-    // Mock the behavior of add for this test on the internal ref
-    (mockAdminCollectionRefInternal.add as jest.Mock).mockResolvedValue(mockReturnedDocRef);
+    expect(mockCollectionRef.add).toHaveBeenCalledWith(dataToAdd); // Defaults not applied in this case
+    expect(result).toBe(mockDocRef); // add returns the new doc ref
+  });
 
-    const result = await collectionRef.add(data);
+  it('should apply serverTimestamp default before calling collectionRef.add()', async () => {
+    const schema = { fields: { createdAt: { defaultValue: 'serverTimestamp' } } };
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+        mockFirestore, testCollectionId, schema
+    );
+    const dataToAdd: TestAddData = { name: 'Item With Default' };
+    const expectedDataWithDefault: TestData = {
+        name: 'Item With Default',
+        createdAt: MOCK_SERVER_TIMESTAMP
+    };
 
-    // Verify add was called on the internal ref with data
-    expect(mockAdminCollectionRefInternal.add).toHaveBeenCalledWith(data);
-    // Verify the returned value is the DocumentReference from the mock
-    expect(result).toBe(mockReturnedDocRef);
+    await collectionRefInstance.add(dataToAdd);
+
+    expect(AdminFieldValue.serverTimestamp).toHaveBeenCalledTimes(1);
+    expect(mockCollectionRef.add).toHaveBeenCalledWith(expectedDataWithDefault);
+  });
+
+  // Test set()
+  it('should call docRef.set() with data when set() is called', async () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(mockFirestore, testCollectionId);
+    const dataToSet: TestAddData = { name: 'Updated Item' };
+    const result = await collectionRefInstance.set(testDocId, dataToSet);
+
+    expect(mockCollectionRef.doc).toHaveBeenCalledWith(testDocId);
+    expect(mockDocRef.set).toHaveBeenCalledWith(dataToSet, {}); // Default options
+    expect(result).toBe(mockWriteResult);
+  });
+
+  it('should call docRef.set() with data and options when set() is called with options', async () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(mockFirestore, testCollectionId);
+    const dataToSet: TestAddData = { name: 'Merged Item' };
+    const options: SetOptions = { merge: true };
+    const result = await collectionRefInstance.set(testDocId, dataToSet, options);
+
+    expect(mockCollectionRef.doc).toHaveBeenCalledWith(testDocId);
+    expect(mockDocRef.set).toHaveBeenCalledWith(dataToSet, options);
+    expect(result).toBe(mockWriteResult);
+  });
+
+  // Test delete()
+  it('should call docRef.delete() when delete() is called', async () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(mockFirestore, testCollectionId);
+    const result = await collectionRefInstance.delete(testDocId);
+
+    expect(mockCollectionRef.doc).toHaveBeenCalledWith(testDocId);
+    expect(mockDocRef.delete).toHaveBeenCalledTimes(1);
+    expect(result).toBe(mockWriteResult);
+  });
+
+  // Test get()
+  it('should call docRef.get() and return data for existing doc', async () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(mockFirestore, testCollectionId);
+    const expectedData: TestData = { name: 'Fetched Item' };
+    // Add missing properties to snapshot mock
+    const mockSnapshot = {
+      exists: true,
+      data: () => expectedData,
+      id: testDocId,
+      ref: mockDocRef,
+      readTime: { seconds: 2, nanoseconds: 2 } as Timestamp, // Mock readTime
+      get: jest.fn((fieldPath) => (expectedData as any)[fieldPath]), // Mock get
+      isEqual: jest.fn(), // Mock isEqual
+    } as any; // Use 'any' to avoid strict type checking on the mock object itself
+    mockDocRef.get.mockResolvedValue(mockSnapshot);
+
+    const result = await collectionRefInstance.get(testDocId);
+
+    expect(mockCollectionRef.doc).toHaveBeenCalledWith(testDocId);
+    expect(mockDocRef.get).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(expectedData);
+  });
+
+  it('should call docRef.get() and return undefined for non-existing doc', async () => {
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(mockFirestore, testCollectionId);
+    // Add missing properties to snapshot mock
+    const mockSnapshot = {
+      exists: false,
+      data: () => undefined, // Admin SDK behavior
+      id: testDocId,
+      ref: mockDocRef,
+      readTime: { seconds: 3, nanoseconds: 3 } as Timestamp, // Mock readTime
+      get: jest.fn(() => undefined), // Mock get
+      isEqual: jest.fn(), // Mock isEqual
+    } as any; // Use 'any'
+    mockDocRef.get.mockResolvedValue(mockSnapshot);
+
+    const result = await collectionRefInstance.get(testDocId);
+
+    expect(mockCollectionRef.doc).toHaveBeenCalledWith(testDocId);
+    expect(mockDocRef.get).toHaveBeenCalledTimes(1);
+    expect(result).toBeUndefined();
   });
 
 });
