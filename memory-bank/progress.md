@@ -17,10 +17,15 @@
   - Build system using Bun/TSC is functional for the previous architecture.
   - Development tooling standardized on Bun.
 - **Testing (Previous Architecture):**
-  - Runtime unit tests passed when run with `npx jest`.
-  - Generator snapshot tests passed for TS (client) and Dart after EJS fix. TS
-    Admin snapshots were generated.
-  - Dart analysis and TS compilation passed for generated code and runtimes.
+  - Generator snapshot tests (`src/__tests__/generator.test.ts`) pass after
+    fixing import issues (`fs`, `path`). Snapshots updated for new runtime
+    dependencies.
+  - Initial unit test files (`baseCollection.test.ts`) created for
+    `ts-client-runtime` and `ts-admin-runtime`.
+  - Initial integration test files (`client.integration.test.ts`,
+    `admin.integration.test.ts`) created for `ts-client-runtime` and
+    `ts-admin-runtime`, configured for Firestore emulator.
+  - Dart analysis and TS compilation pass for generated code and runtimes.
 - **Publishing & CI/CD:**
   - GitHub Actions workflow is functional for building, testing (with known
     issues), and publishing existing packages (`@shtse8/fireschema`,
@@ -47,12 +52,14 @@
        `typescript-admin.ts`, `dart-client.ts`).
      - Ensured adapters load their own templates and handle target-specific
        logic.
-   - **Phase 3: Update Tests:** ✅ **COMPLETED**
-     - Updated `src/__tests__/generator.test.ts` for new config format.
-     - Verified/Updated snapshots (Dart tests temporarily skipped).
-     - Persistent test environment issues (`fs` syntax error, `jest.mock`
-       errors) remain when using `bun test`, but tests pass with `npx jest`.
-       (Deferring resolution).
+   - **Phase 3: Update/Implement Tests:** ⏳ **IN PROGRESS**
+     - Updated `src/__tests__/generator.test.ts` for new config format and fixed
+       import errors. Snapshots updated.
+     - Created initial unit and integration test files for `ts-client-runtime`
+       and `ts-admin-runtime`.
+     - **Next:** Expand test coverage for runtime packages.
+     - Persistent test environment issues (`jest.mock` errors) remain when using
+       `bun test`, but tests pass with `npx jest`. (Deferring resolution).
    - **Phase 4: Update Memory Bank & Documentation:** ✅ **COMPLETED**
      - Updated `activeContext.md`, `progress.md`, `systemPatterns.md`,
        `techContext.md` to reflect the Executor + Adapter architecture and the
@@ -87,16 +94,15 @@ further analysis revealed significant structural differences between Client v9+
 and Admin SDKs, making shared interfaces impractical. Switched to **fully
 independent** TS Client and TS Admin runtime packages.
 
-**Current focus:** Runtime refactoring complete. Next steps involve
-reviewing/updating tests for the new runtime packages (`ts-client-runtime`,
-`ts-admin-runtime`).
+**Current focus:** Initial test files for the new runtime packages
+(`ts-client-runtime`, `ts-admin-runtime`) have been created (unit and
+integration). Next steps involve expanding these tests to cover more
+functionality.
 
 **Known Issues:**
 
 - **Test Runner Incompatibility:**
-  - `SyntaxError: Unexpected token '*'` related to `fs` import in
-    `src/__tests__/generator.test.ts` when run via `bun test`. (Ignored for
-    now).
+  - (Removed fixed `fs` import issue)
   - `TypeError: jest.mock is not a function` in runtime package tests when run
     via `bun test`. Tests pass when run with `npx jest`. (Deferring resolution).
 - **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in

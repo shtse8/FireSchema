@@ -37,16 +37,23 @@ Review/Update tests.
   - Updated generator tests (`src/__tests__/generator.test.ts`) to use the new
     `target` config format.
   - Updated/added snapshots for TS client, TS admin, and Dart client targets.
-  - **Note:** Previous runtime unit tests seem to be missing after refactoring.
+  - Fixed import errors in generator tests (`src/__tests__/generator.test.ts`).
+  - Created initial unit test files (`baseCollection.test.ts`) for
+    `ts-client-runtime` and `ts-admin-runtime`.
+  - Created initial integration test files (`client.integration.test.ts`,
+    `admin.integration.test.ts`) for `ts-client-runtime` and `ts-admin-runtime`,
+    configured for Firestore emulator.
 
 **Next Steps:**
 
-1. **Implement Runtime Tests:** - **(Current Task)**
-   - Create Unit tests for `ts-client-runtime` and `ts-admin-runtime`.
-   - Create Integration tests for `ts-client-runtime` and `ts-admin-runtime`
-     using Firestore Emulator.
-   - Snapshot tests (`src/__tests__/generator.test.ts`) were updated to reflect
-     new runtime dependencies.
+1. **Expand Runtime Tests:** - **(Current Task)**
+   - Add comprehensive test cases to unit tests for `ts-client-runtime` and
+     `ts-admin-runtime` (covering `BaseCollectionRef`, `BaseQueryBuilder`,
+     `BaseUpdateBuilder`).
+   - Add comprehensive test cases to integration tests for `ts-client-runtime`
+     and `ts-admin-runtime` (covering CRUD, queries, updates, subcollections,
+     default values).
+   - Snapshot tests (`src/__tests__/generator.test.ts`) are up-to-date.
 2. **(Optional) Address Minor Test Issues:** Investigate the `fs` syntax error
    reported by `bun test` (but not `npx jest`).
 3. **(Future) Implement More Adapters:** Add adapters for new targets (e.g.,
