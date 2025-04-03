@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:firebase_core/firebase_core.dart'; // Not needed for fake
-// import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart'; // Not needed for fake
-// import 'package:flutter/services.dart'; // Keep commented unless needed for advanced mocking
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart'; // Use fake for now
+import 'package:firebase_core/firebase_core.dart'; // Needed for real Firebase
+// import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart'; // May be needed for mocking setup
+// import 'package:flutter/services.dart'; // May be needed for mocking setup
+// import 'package:fake_cloud_firestore/fake_cloud_firestore.dart'; // No longer using fake
 import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart';
 import 'package:flutter_test/flutter_test.dart'; // Still needed for test functions
 import 'package:mockito/mockito.dart'; // Needed for mock class generation (or manual mock)
@@ -409,24 +409,25 @@ class IntegrationTestCollectionRef
 }
 
 // --- Test Setup ---
-// Reverted to FakeFirebaseFirestore due to platform mocking issues
+// No longer using FakeFirebaseFirestore
 
 void main() {
-  // TestWidgetsFlutterBinding.ensureInitialized(); // Not needed with mock (or fake)
+  TestWidgetsFlutterBinding.ensureInitialized(); // Needed for platform channels
 
-  late FakeFirebaseFirestore firestore; // Use FakeFirebaseFirestore
+  late FirebaseFirestore firestore; // Use real Firestore
   late IntegrationTestCollectionRef testCollection;
 
   setUpAll(() async {
-    // Reverted to FakeFirebaseFirestore
-    firestore = FakeFirebaseFirestore();
-    print(
-        'Using FakeFirebaseFirestore for integration tests due to platform mocking/setup issues.');
+    // Initialize Firebase and connect to Emulator
+    await Firebase.initializeApp();
+    firestore = FirebaseFirestore.instance;
+    firestore.useFirestoreEmulator('localhost', 8080);
+    print('Using Firestore Emulator at localhost:8080');
   });
 
   setUp(() async {
     testCollection = IntegrationTestCollectionRef(firestore: firestore);
-    // Clear collection before each test using fake instance
+    // Clear collection before each test using the real instance
     final snapshot =
         await testCollection.ref.limit(500).get(); // Increase limit for safety
     final batch = firestore.batch();
@@ -438,7 +439,8 @@ void main() {
     await batch.commit();
   });
 
-  group('Dart Runtime Integration Tests (using FakeFirebaseFirestore)', () {
+  group('Dart Runtime Integration Tests (using Firestore Emulator)', () {
+    // Updated group title
     test('should add and get a document', () async {
       final addData = IntegrationTestAddData(name: 'Integration Add', value: 1);
       final docRef = await testCollection.add(addData);
@@ -518,8 +520,7 @@ void main() {
       expect(results[1].name, equals('Order M'));
     });
 
-    // NOTE: Comparison operator tests rely on fake_cloud_firestore implementation
-    // Some operators might behave unexpectedly. Workarounds applied.
+    // NOTE: These tests should now work against the real emulator
     test('should query documents using comparison operators', () async {
       await testCollection
           .add(IntegrationTestAddData(name: 'Comp A', value: 5));
@@ -532,41 +533,32 @@ void main() {
 
       // <
       var results = await builder.testWhere('value', isLessThan: 10).getData();
-      expect(results.length, greaterThanOrEqualTo(0)); // Adjusted for fake
-      if (results.isNotEmpty) {
-        expect(results[0].name, 'Comp A');
-      }
+      expect(results.length, 1);
+      expect(results[0].name, 'Comp A');
 
       // <=
       results =
           await builder.testWhere('value', isLessThanOrEqualTo: 10).getData();
-      expect(results.length, greaterThanOrEqualTo(0)); // Adjusted for fake
-      // if (results.isNotEmpty) {
-      //   expect(results.any((d) => d.name == 'Comp A'), isTrue);
-      //   expect(results.any((d) => d.name == 'Comp B'), isTrue);
-      // }
+      expect(results.length, 2);
+      expect(results.any((d) => d.name == 'Comp A'), isTrue);
+      expect(results.any((d) => d.name == 'Comp B'), isTrue);
 
       // >
       results = await builder.testWhere('value', isGreaterThan: 10).getData();
-      expect(results.length, greaterThanOrEqualTo(0)); // Adjusted for fake
-      // if (results.isNotEmpty) {
-      //   expect(results[0].name, 'Comp C');
-      // }
+      expect(results.length, 1);
+      expect(results[0].name, 'Comp C');
 
       // >=
       results = await builder
           .testWhere('value', isGreaterThanOrEqualTo: 10)
           .getData();
-      // Adjusted expectation for fake >= (Expected 2, Got 0 in last run)
-      expect(results.length, greaterThanOrEqualTo(0));
-      // if (results.isNotEmpty) {
-      //   expect(results.any((d) => d.name == 'Comp B'), isTrue);
-      //   expect(results.any((d) => d.name == 'Comp C'), isTrue);
-      // }
+      expect(results.length, 2);
+      expect(results.any((d) => d.name == 'Comp B'), isTrue);
+      expect(results.any((d) => d.name == 'Comp C'), isTrue);
 
       // !=
       results = await builder.testWhere('value', isNotEqualTo: 10).getData();
-      expect(results.length, 2); // Fake seems to handle != correctly sometimes
+      expect(results.length, 2);
       expect(results.any((d) => d.name == 'Comp A'), isTrue);
       expect(results.any((d) => d.name == 'Comp C'), isTrue);
     });
@@ -592,11 +584,8 @@ void main() {
       // whereNotIn
       results = await builder
           .testWhere('name', whereNotIn: ['Arr A', 'Arr C']).getData();
-      // Adjusted expectation for potential fake_cloud_firestore limitation (Expected 1, Got 0)
-      expect(results.length, greaterThanOrEqualTo(0));
-      // if (results.isNotEmpty) {
-      //   expect(results[0].name, 'Arr B');
-      // }
+      expect(results.length, 1);
+      expect(results[0].name, 'Arr B');
 
       // arrayContainsAny
       results = await builder
@@ -639,11 +628,8 @@ void main() {
 
       // startAfterDocument
       results = await builder.startAfterDocument(snapshotB).getData();
-      // Adjusted expectation for potential fake_cloud_firestore limitation (Expected 2, Got 0)
-      expect(results.length, greaterThanOrEqualTo(0));
-      // if (results.length == 2) { // Check if fake returned expected count
-      //    expect(results.map((d) => d.name), equals(['Cursor C', 'Cursor D']));
-      // }
+      expect(results.length, 2); // C, D
+      expect(results.map((d) => d.name), equals(['Cursor C', 'Cursor D']));
 
       // endBeforeDocument
       results = await builder.endBeforeDocument(snapshotC).getData();
@@ -675,8 +661,7 @@ void main() {
       final retrievedData = await testCollection.get(docId);
       expect(retrievedData, isNotNull);
       expect(retrievedData!.name, equals('Updated Name'));
-      expect(retrievedData.value,
-          equals(55)); // fake_cloud_firestore handles increments correctly
+      expect(retrievedData.value, equals(55));
       expect(retrievedData.tags, containsAll(['initial', 'added']));
       expect(retrievedData.createdAt, isA<Timestamp>());
     });
@@ -740,7 +725,7 @@ void main() {
 
       // Clean up parent doc after subcollection tests
       tearDown(() async {
-        // Also clear subcollection explicitly for safety with fake_cloud_firestore
+        // Also clear subcollection explicitly for safety
         final subCollection = testCollection.subItems(parentId);
         final snapshot = await subCollection.ref.limit(500).get();
         final batch = firestore.batch();
@@ -830,8 +815,7 @@ void main() {
         final retrievedData = await subCollection.get(docId);
         expect(retrievedData, isNotNull);
         expect(retrievedData!.description, equals('Sub Updated Desc'));
-        expect(retrievedData.count,
-            equals(45)); // fake_cloud_firestore handles increments correctly
+        expect(retrievedData.count, equals(45));
       });
     }); // End Subcollections group
   });
