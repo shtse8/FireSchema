@@ -2,7 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart'; // Import firebase_core
 // import 'package:fake_cloud_firestore/fake_cloud_firestore.dart'; // Comment out fake
 import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart'; // Import for binding initialization
+
+import 'package:test/test.dart'
+    hide setUpAll, setUp, group, test, expect, tearDown;
 
 // --- Test Data Structures ---
 class IntegrationTestData {
@@ -391,6 +394,9 @@ const String projectId =
     'fireschema-test-emulator'; // Match emulator project ID
 
 void main() {
+  TestWidgetsFlutterBinding
+      .ensureInitialized(); // Ensure binding is initialized for tests
+
   late FirebaseFirestore firestore;
   late IntegrationTestCollectionRef testCollection;
 
