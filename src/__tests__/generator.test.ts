@@ -77,7 +77,14 @@ describe('FireSchema Generator', () => {
   });
   afterAll(() => {
     // Keep output for inspection during development
-    // if (fs.existsSync(testOutputDir)) fs.rmSync(testOutputDir, { recursive: true, force: true });
+      // Add a short delay to allow file handles to release (Windows)
+      try {
+        execSync('ping 127.0.0.1 -n 2 > nul', { stdio: 'ignore' }); // ~1 second delay
+      } catch (e) {
+        // Ignore errors from ping command
+      }
+
+    if (fs.existsSync(testOutputDir)) fs.rmSync(testOutputDir, { recursive: true, force: true });
   });
 
   // Simplified test - run generator once with the combined config
