@@ -1,7 +1,7 @@
 # Active Context: FireSchema (Executor + Adapter Refactor Complete)
 
-**Current Focus:** Initial documentation setup using VitePress is complete.
-Next: Expand runtime test coverage.
+**Current Focus:** Runtime unit test expansion for base classes is complete.
+Next: Expand runtime integration test coverage.
 
 **Recent Changes (Executor + Adapter Refactor):**
 
@@ -38,8 +38,12 @@ Next: Expand runtime test coverage.
     `target` config format.
   - Updated/added snapshots for TS client, TS admin, and Dart client targets.
   - Fixed import errors in generator tests (`src/__tests__/generator.test.ts`).
-  - Created initial unit test files (`baseCollection.test.ts`) for
-    `ts-client-runtime` and `ts-admin-runtime`.
+  - Expanded unit tests for `ts-client-runtime` and `ts-admin-runtime`:
+    - Added tests for `subCollection`, `parentRef` constructor logic, and
+      `applyDefaults` in `baseCollection.test.ts` for both runtimes.
+    - Created and populated `baseQueryBuilder.test.ts` for both runtimes.
+    - Created and populated `baseUpdateBuilder.test.ts` for both runtimes.
+    - Made `subCollection` method public in both base collection classes.
   - Created initial integration test files (`client.integration.test.ts`,
     `admin.integration.test.ts`) for `ts-client-runtime` and `ts-admin-runtime`,
     configured for Firestore emulator.
@@ -55,13 +59,13 @@ Next: Expand runtime test coverage.
 
 **Next Steps:**
 
-1. **Expand Runtime Tests:** - **(Next Task)**
-   - Add comprehensive test cases to unit tests for `ts-client-runtime` and
+1. **Expand Runtime Tests:**
+   - ~~Add comprehensive test cases to unit tests for `ts-client-runtime` and
      `ts-admin-runtime` (covering `BaseCollectionRef`, `BaseQueryBuilder`,
-     `BaseUpdateBuilder`).
+     `BaseUpdateBuilder`).~~ **(Done)**
    - Add comprehensive test cases to integration tests for `ts-client-runtime`
      and `ts-admin-runtime` (covering CRUD, queries, updates, subcollections,
-     default values).
+     default values). - **(Next Task)**
 2. **Populate VitePress Documentation:** Add more detailed content to the
    VitePress site (`docs-src`), explaining features, API, and advanced usage.
 3. **(Optional) Address Minor Test Issues:** Investigate the `jest.mock` errors

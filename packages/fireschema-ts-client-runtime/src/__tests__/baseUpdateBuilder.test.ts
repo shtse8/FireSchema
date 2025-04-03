@@ -1,177 +1,196 @@
 import { ClientBaseUpdateBuilder } from '../baseUpdateBuilder';
+import type {
+  Firestore,
+  DocumentReference,
+  DocumentData,
+  Timestamp,
+  FieldValue, // Import FieldValue type
+  UpdateData, // Import UpdateData type
+} from 'firebase/firestore';
+
+// Import client functions that are mocked
 import {
   updateDoc,
   serverTimestamp,
+  deleteField,
   increment,
   arrayUnion,
   arrayRemove,
-  deleteField,
 } from 'firebase/firestore';
-import type {
-  DocumentReference,
-  DocumentData,
-  FieldValue,
-} from 'firebase/firestore';
+
+// --- Mocks ---
 
 // Mock FieldValue sentinel objects for comparison
-const MOCK_INCREMENT = { type: 'increment', isEqual: jest.fn() } as FieldValue;
-const MOCK_SERVER_TIMESTAMP = { type: 'serverTimestamp', isEqual: jest.fn() } as FieldValue;
-const MOCK_ARRAY_UNION = { type: 'arrayUnion', isEqual: jest.fn() } as FieldValue;
-const MOCK_ARRAY_REMOVE = { type: 'arrayRemove', isEqual: jest.fn() } as FieldValue;
-const MOCK_DELETE_FIELD = { type: 'deleteField', isEqual: jest.fn() } as FieldValue;
+const MOCK_SERVER_TIMESTAMP = { type: 'serverTimestamp' } as any;
+const MOCK_DELETE_SENTINEL = { type: 'delete' } as any;
+const MOCK_INCREMENT_SENTINEL = { type: 'increment', value: 1 } as any;
+const MOCK_ARRAY_UNION_SENTINEL = { type: 'arrayUnion', elements: [1] } as any;
+const MOCK_ARRAY_REMOVE_SENTINEL = { type: 'arrayRemove', elements: [2] } as any;
 
-// Mock the Firestore SDK functions
+// Mock the Firestore Client SDK module functions
 jest.mock('firebase/firestore', () => ({
+  // Keep original exports if needed, or mock specific ones
+  ...(jest.requireActual('firebase/firestore')), // Keep actual implementations for types etc.
   updateDoc: jest.fn(),
   serverTimestamp: jest.fn(() => MOCK_SERVER_TIMESTAMP),
-  increment: jest.fn(() => MOCK_INCREMENT),
-  arrayUnion: jest.fn(() => MOCK_ARRAY_UNION),
-  arrayRemove: jest.fn(() => MOCK_ARRAY_REMOVE),
-  deleteField: jest.fn(() => MOCK_DELETE_FIELD),
-  // Mock other functions if needed by imports, even if not directly used
-  collection: jest.fn(),
-  doc: jest.fn(),
-  getDoc: jest.fn(),
-  setDoc: jest.fn(),
-  addDoc: jest.fn(),
-  deleteDoc: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn(),
-  orderBy: jest.fn(),
-  limit: jest.fn(),
-  startAt: jest.fn(),
-  startAfter: jest.fn(),
-  endAt: jest.fn(),
-  endBefore: jest.fn(),
-  getDocs: jest.fn(),
+  deleteField: jest.fn(() => MOCK_DELETE_SENTINEL),
+  increment: jest.fn((val: number) => ({ ...MOCK_INCREMENT_SENTINEL, value: val })),
+  arrayUnion: jest.fn((...elements: any[]) => ({ ...MOCK_ARRAY_UNION_SENTINEL, elements })),
+  arrayRemove: jest.fn((...elements: any[]) => ({ ...MOCK_ARRAY_REMOVE_SENTINEL, elements })),
 }));
+
+// Mock DocumentReference
+const mockDocRef: jest.Mocked<DocumentReference> = {
+  // Add properties/methods if needed by the builder itself
+} as any;
 
 // Mock types for testing
 interface TestData extends DocumentData {
-  name: string;
-  count: number;
-  tags: string[];
-  updatedAt?: FieldValue;
-  status?: string;
+  name?: string;
+  count?: number | FieldValue; // Allow FieldValue for increment
+  tags?: string[] | FieldValue; // Allow FieldValue for array ops
+  nested?: { value?: string | FieldValue }; // Allow FieldValue for delete
+  lastUpdated?: FieldValue; // Allow FieldValue for serverTimestamp
 }
 
+// --- Test Suite ---
+
 describe('ClientBaseUpdateBuilder', () => {
-  let mockDocRef: DocumentReference<TestData>;
   let updateBuilder: ClientBaseUpdateBuilder<TestData>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockDocRef = {
-      id: 'test-doc-id',
-      path: 'test-collection/test-doc-id',
-      // Add other properties/methods if needed
-    } as DocumentReference<TestData>;
-
+    // Instantiate the builder with the mock DocumentReference
     updateBuilder = new ClientBaseUpdateBuilder<TestData>(mockDocRef);
   });
 
-  it('should initialize with empty update data', () => {
+  it('should initialize with the provided DocumentReference', () => {
+    expect((updateBuilder as any)._docRef).toBe(mockDocRef);
     expect((updateBuilder as any)._updateData).toEqual({});
   });
 
-  // Test immutability and basic set
-  it('should add a basic field update immutably via _set', () => {
-    const newValue = 'new name';
-    const newBuilder = (updateBuilder as any)._set('name', newValue);
-
-    expect(newBuilder).not.toBe(updateBuilder); // New instance
-    expect((updateBuilder as any)._updateData).toEqual({}); // Original unchanged
-    expect((newBuilder as any)._updateData).toEqual({ name: newValue });
-  });
-
-  // Test FieldValue helpers
-  it('should add an increment update immutably', () => {
-    const newBuilder = (updateBuilder as any)._increment('count', 5);
-    expect(newBuilder).not.toBe(updateBuilder);
-    expect((updateBuilder as any)._updateData).toEqual({});
-    expect((newBuilder as any)._updateData).toEqual({ count: MOCK_INCREMENT });
-    expect(increment).toHaveBeenCalledWith(5);
-  });
-
-  it('should add an arrayUnion update immutably', () => {
-    const valuesToAdd = ['tag3', 'tag4'];
-    const newBuilder = (updateBuilder as any)._arrayUnion('tags', valuesToAdd);
-    expect(newBuilder).not.toBe(updateBuilder);
-    expect((updateBuilder as any)._updateData).toEqual({});
-    expect((newBuilder as any)._updateData).toEqual({ tags: MOCK_ARRAY_UNION });
-    expect(arrayUnion).toHaveBeenCalledWith(...valuesToAdd);
-  });
-
-  it('should add an arrayRemove update immutably', () => {
-    const valuesToRemove = ['tag1'];
-    const newBuilder = (updateBuilder as any)._arrayRemove('tags', valuesToRemove);
-    expect(newBuilder).not.toBe(updateBuilder);
-    expect((updateBuilder as any)._updateData).toEqual({});
-    expect((newBuilder as any)._updateData).toEqual({ tags: MOCK_ARRAY_REMOVE });
-    expect(arrayRemove).toHaveBeenCalledWith(...valuesToRemove);
-  });
-
-  it('should add a serverTimestamp update immutably', () => {
-    const newBuilder = (updateBuilder as any)._serverTimestamp('updatedAt');
-    expect(newBuilder).not.toBe(updateBuilder);
-    expect((updateBuilder as any)._updateData).toEqual({});
-    expect((newBuilder as any)._updateData).toEqual({ updatedAt: MOCK_SERVER_TIMESTAMP });
-    expect(serverTimestamp).toHaveBeenCalled();
-  });
-
-  it('should add a deleteField update immutably', () => {
-    const newBuilder = (updateBuilder as any)._deleteField('status');
-    expect(newBuilder).not.toBe(updateBuilder);
-    expect((updateBuilder as any)._updateData).toEqual({});
-    expect((newBuilder as any)._updateData).toEqual({ status: MOCK_DELETE_FIELD });
-    expect(deleteField).toHaveBeenCalled();
-  });
-
-  // Test chaining
-  it('should chain multiple updates immutably', () => {
-    const finalBuilder = (updateBuilder as any)
-      ._set('name', 'chained name')
-      ._increment('count', 1)
-      ._serverTimestamp('updatedAt');
-
-    expect(finalBuilder).not.toBe(updateBuilder);
-    expect((updateBuilder as any)._updateData).toEqual({});
-    expect((finalBuilder as any)._updateData).toEqual({
-      name: 'chained name',
-      count: MOCK_INCREMENT,
-      updatedAt: MOCK_SERVER_TIMESTAMP,
+  // --- Test Field Updates (using protected _set) ---
+  describe('_set()', () => {
+    it('should add a direct field update to updateData', () => {
+      const result = (updateBuilder as any)._set('name', 'New Name');
+      expect((result as any)._updateData).toEqual({ name: 'New Name' });
+      expect(result).not.toBe(updateBuilder); // Should return new instance
+      expect(result).toBeInstanceOf(ClientBaseUpdateBuilder);
     });
-    expect(increment).toHaveBeenCalledWith(1);
-    expect(serverTimestamp).toHaveBeenCalled();
+
+    it('should handle nested field updates using dot notation', () => {
+      const result = (updateBuilder as any)._set('nested.value', 'Nested Update');
+      expect((result as any)._updateData).toEqual({ 'nested.value': 'Nested Update' });
+    });
+
+    it('should overwrite previous updates for the same field', () => {
+      const result = (updateBuilder as any)._set('name', 'First Name')._set('name', 'Second Name');
+      expect((result as any)._updateData).toEqual({ name: 'Second Name' });
+    });
   });
 
-  // Test commit
-  it('should call updateDoc with the accumulated data on commit', async () => {
-    const finalBuilder = (updateBuilder as any)
-      ._set('status', 'active')
-      ._increment('count', 2);
-
-    const expectedUpdateData = {
-      status: 'active',
-      count: MOCK_INCREMENT,
-    };
-    (updateDoc as jest.Mock).mockResolvedValue(undefined); // Mock successful update
-
-    await finalBuilder.commit();
-
-    expect(updateDoc).toHaveBeenCalledTimes(1);
-    expect(updateDoc).toHaveBeenCalledWith(mockDocRef, expectedUpdateData);
+  // --- Test FieldValue Updates (using protected helpers) ---
+  describe('_serverTimestamp()', () => {
+    it('should add a serverTimestamp FieldValue update', () => {
+      const result = (updateBuilder as any)._serverTimestamp('lastUpdated');
+      expect(serverTimestamp).toHaveBeenCalledTimes(1);
+      expect((result as any)._updateData).toEqual({ lastUpdated: MOCK_SERVER_TIMESTAMP });
+      expect(result).not.toBe(updateBuilder);
+    });
   });
 
-  it('should not call updateDoc if no updates were specified', async () => {
-    // Use the initial builder with no updates
-    await updateBuilder.commit();
-    expect(updateDoc).not.toHaveBeenCalled();
+  describe('_deleteField()', () => {
+    it('should add a delete FieldValue update', () => {
+      const result = (updateBuilder as any)._deleteField('count');
+      expect(deleteField).toHaveBeenCalledTimes(1);
+      expect((result as any)._updateData).toEqual({ count: MOCK_DELETE_SENTINEL });
+      expect(result).not.toBe(updateBuilder);
+    });
   });
 
-  it('should resolve promise even if updateDoc is not called (no updates)', async () => {
-    await expect(updateBuilder.commit()).resolves.toBeUndefined();
-    expect(updateDoc).not.toHaveBeenCalled();
+  describe('_increment()', () => {
+    it('should add an increment FieldValue update', () => {
+      const result = (updateBuilder as any)._increment('count', 5);
+      expect(increment).toHaveBeenCalledWith(5);
+      expect((result as any)._updateData).toEqual({ count: { ...MOCK_INCREMENT_SENTINEL, value: 5 } });
+      expect(result).not.toBe(updateBuilder);
+    });
   });
+
+  describe('_arrayUnion()', () => {
+    it('should add an arrayUnion FieldValue update', () => {
+      const result = (updateBuilder as any)._arrayUnion('tags', ['urgent', 'new']);
+      expect(arrayUnion).toHaveBeenCalledWith('urgent', 'new');
+      expect((result as any)._updateData).toEqual({ tags: { ...MOCK_ARRAY_UNION_SENTINEL, elements: ['urgent', 'new'] } });
+      expect(result).not.toBe(updateBuilder);
+    });
+  });
+
+  describe('_arrayRemove()', () => {
+    it('should add an arrayRemove FieldValue update', () => {
+      const result = (updateBuilder as any)._arrayRemove('tags', ['old']);
+      expect(arrayRemove).toHaveBeenCalledWith('old');
+      expect((result as any)._updateData).toEqual({ tags: { ...MOCK_ARRAY_REMOVE_SENTINEL, elements: ['old'] } });
+      expect(result).not.toBe(updateBuilder);
+    });
+  });
+
+  // --- Test Execution ---
+  describe('commit()', () => {
+    it('should call updateDoc() with the docRef and accumulated updateData', async () => {
+      const updates: UpdateData<TestData> = {
+        name: 'Final Name',
+        count: MOCK_INCREMENT_SENTINEL, // Use the mock sentinel directly
+        lastUpdated: MOCK_SERVER_TIMESTAMP,
+      };
+      // Build up state using the protected methods
+      const finalBuilder = (updateBuilder as any)
+        ._set('name', 'Final Name')
+        ._increment('count', 1) // Assuming increment(1) returns MOCK_INCREMENT_SENTINEL
+        ._serverTimestamp('lastUpdated');
+
+      await finalBuilder.commit();
+
+      // Check updateDoc call
+      expect(updateDoc).toHaveBeenCalledWith(mockDocRef, (finalBuilder as any)._updateData);
+      // Check the data passed matches the expected structure (adjust based on actual mock return values)
+      expect((finalBuilder as any)._updateData).toEqual({
+          name: 'Final Name',
+          count: { ...MOCK_INCREMENT_SENTINEL, value: 1 }, // Check value if mock returns specific object
+          lastUpdated: MOCK_SERVER_TIMESTAMP
+      });
+    });
+
+    it('should NOT call updateDoc() if no updates were made', async () => {
+      // No updates added to builder
+      await updateBuilder.commit();
+
+      expect(updateDoc).not.toHaveBeenCalled();
+    });
+  });
+
+  // --- Test Chaining ---
+  it('should allow chaining of update methods and return new instances', () => {
+    const builder1 = (updateBuilder as any)._set('name', 'Chained Name');
+    const builder2 = (builder1 as any)._increment('count', 1);
+    const builder3 = (builder2 as any)._serverTimestamp('lastUpdated');
+    const finalBuilder = (builder3 as any)._arrayUnion('tags', ['chain']);
+
+    // Check immutability
+    expect(finalBuilder).not.toBe(updateBuilder);
+    expect(finalBuilder).not.toBe(builder1);
+    expect(finalBuilder).not.toBe(builder2);
+    expect(finalBuilder).not.toBe(builder3);
+
+    // Check final state
+    expect((finalBuilder as any)._updateData).toEqual({
+      name: 'Chained Name',
+      count: { ...MOCK_INCREMENT_SENTINEL, value: 1 },
+      lastUpdated: MOCK_SERVER_TIMESTAMP,
+      tags: { ...MOCK_ARRAY_UNION_SENTINEL, elements: ['chain'] },
+    });
+    // Check original builder is unchanged
+    expect((updateBuilder as any)._updateData).toEqual({});
+  });
+
 });

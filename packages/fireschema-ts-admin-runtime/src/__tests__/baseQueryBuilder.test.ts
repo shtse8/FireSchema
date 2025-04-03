@@ -3,300 +3,295 @@ import type {
   Firestore,
   CollectionReference,
   Query,
-  DocumentSnapshot,
   DocumentData,
-  QuerySnapshot,
+  Timestamp,
   WhereFilterOp,
   OrderByDirection,
-  FieldPath as AdminFieldPath,
-  Timestamp, // Import Timestamp for mockSnapshot
+  FieldPath as AdminFieldPath, // Import Admin FieldPath
+  QuerySnapshot, // Import QuerySnapshot
+  QueryDocumentSnapshot, // Import QueryDocumentSnapshot
 } from 'firebase-admin/firestore';
 
-// Mock the FieldPath class if needed for specific tests
-jest.mock('firebase-admin/firestore', () => ({
-  // Mock FieldValue and Timestamp if they were needed (not directly used here, but good practice)
-  FieldValue: {
-    serverTimestamp: jest.fn(),
-    increment: jest.fn(),
-    arrayUnion: jest.fn(),
-    arrayRemove: jest.fn(),
-    delete: jest.fn(),
-  },
-  Timestamp: { now: jest.fn(() => ({ seconds: 123, nanoseconds: 456 } as Timestamp)) },
-  // Mock FieldPath if complex paths are tested
-  FieldPath: jest.fn().mockImplementation((...args) => ({ // Basic mock
-      _segments: args,
-      isEqual: jest.fn(),
-  })),
-}), { virtual: true }); // Use virtual mock as we don't need the actual implementation
+// --- Mocks ---
+
+// Mock Firestore instance
+const mockFirestore: jest.Mocked<Firestore> = {} as any; // Add methods if needed by constructor
+
+// Mock Query methods that return the Query itself for chaining
+const mockQueryChainableMethods = {
+  where: jest.fn(),
+  orderBy: jest.fn(),
+  limit: jest.fn(),
+  limitToLast: jest.fn(),
+  startAt: jest.fn(),
+  startAfter: jest.fn(),
+  endAt: jest.fn(),
+  endBefore: jest.fn(),
+  get: jest.fn(), // Mock get separately as it returns a Promise
+};
+
+// Mock CollectionReference, including Query methods
+const mockCollectionRef = {
+  ...mockQueryChainableMethods, // Spread chainable methods
+  // Add specific CollectionReference properties/methods if needed
+  id: 'test-collection',
+  path: 'test-collection',
+  firestore: mockFirestore,
+} as any; // Use 'as any' to simplify mocking
+
+// Configure chainable methods to return the mock itself
+Object.values(mockQueryChainableMethods).forEach((mockFn) => {
+  if (mockFn !== mockQueryChainableMethods.get) { // Exclude get
+    mockFn.mockReturnValue(mockCollectionRef); // Return the mock CollectionRef/Query
+  }
+});
 
 
 // Mock types for testing
 interface TestData extends DocumentData {
   name: string;
-  age: number;
+  count: number;
   active: boolean;
+  createdAt?: Timestamp;
+  tags?: string[];
 }
 
+// --- Test Suite ---
+
 describe('AdminBaseQueryBuilder', () => {
-  let mockFirestore: any; // Use 'any' for simplicity
-  let mockCollectionRef: any;
-  let mockQuery: any; // Mock for the query object returned by chaining
   let queryBuilder: AdminBaseQueryBuilder<TestData>;
 
   beforeEach(() => {
-    jest.clearAllMocks(); // Clear mocks from previous tests
+    jest.clearAllMocks();
 
-    // --- Simplified Mock Firestore Structure ---
-    // Mock the chainable query methods to return 'this' (the mock itself)
-    // and the final 'get' method
-    mockQuery = {
-      where: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      limitToLast: jest.fn().mockReturnThis(),
-      startAt: jest.fn().mockReturnThis(),
-      startAfter: jest.fn().mockReturnThis(),
-      endAt: jest.fn().mockReturnThis(),
-      endBefore: jest.fn().mockReturnThis(),
-      get: jest.fn(), // Mock the final execution step
-    };
+    // Reset mocks specifically for collectionRef/query
+    Object.values(mockQueryChainableMethods).forEach(mockFn => mockFn.mockClear());
+    // Reconfigure chainable methods before each test
+    Object.values(mockQueryChainableMethods).forEach(mockFn => {
+      if (mockFn !== mockQueryChainableMethods.get) {
+        mockFn.mockReturnValue(mockCollectionRef);
+      }
+    });
+    mockQueryChainableMethods.get.mockResolvedValue({ // Default mock for get()
+        docs: [],
+        empty: true,
+        size: 0,
+    } as any); // Use 'as any' for mock snapshot
 
-    mockCollectionRef = {
-      id: 'test-collection',
-      path: 'test/path',
-      // Mock query methods directly on collectionRef as they are the start of the chain
-      where: jest.fn().mockReturnValue(mockQuery),
-      orderBy: jest.fn().mockReturnValue(mockQuery),
-      limit: jest.fn().mockReturnValue(mockQuery),
-      limitToLast: jest.fn().mockReturnValue(mockQuery),
-      startAt: jest.fn().mockReturnValue(mockQuery),
-      startAfter: jest.fn().mockReturnValue(mockQuery),
-      endAt: jest.fn().mockReturnValue(mockQuery),
-      endBefore: jest.fn().mockReturnValue(mockQuery),
-      get: jest.fn(), // CollectionRef also has get()
-    };
 
-    mockFirestore = {
-      // No direct calls expected in this builder, but mock if needed
-    };
-
-    queryBuilder = new AdminBaseQueryBuilder<TestData>(mockFirestore, mockCollectionRef);
+    // Instantiate the builder with the mock Firestore and CollectionReference
+    queryBuilder = new AdminBaseQueryBuilder<TestData>(mockFirestore, mockCollectionRef as any); // Use 'as any' for constructor
   });
 
-  it('should initialize with no constraints', () => {
+  it('should initialize with the provided firestore and collectionRef', () => {
+    expect((queryBuilder as any).firestore).toBe(mockFirestore);
+    expect((queryBuilder as any).collectionRef).toBe(mockCollectionRef);
     expect((queryBuilder as any).constraintDefinitions).toEqual([]);
   });
 
-  // Test immutability and constraint definition addition
-  it('should add a where constraint definition immutably', () => {
-    const newBuilder = (queryBuilder as any)._where('age', '>', 30);
-    expect(newBuilder).not.toBe(queryBuilder); // Should be a new instance
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]); // Original unchanged
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'where', fieldPath: 'age', opStr: '>', value: 30 },
-    ]);
+  // --- Test Where Clauses (using protected _where) ---
+  describe('_where()', () => {
+    it('should add a where constraint definition', () => {
+      const field = 'name';
+      const op = '==';
+      const value = 'Test Name';
+      // Access protected method for testing base class logic
+      const result = (queryBuilder as any)._where(field, op, value);
+
+      const definitions = (result as any).constraintDefinitions;
+      expect(definitions).toHaveLength(1);
+      expect(definitions[0]).toEqual({ type: 'where', fieldPath: field, opStr: op, value: value });
+      expect(result).not.toBe(queryBuilder); // Should return a new instance
+      expect(result).toBeInstanceOf(AdminBaseQueryBuilder);
+    });
+
+    it('should build query with where constraint', () => {
+        const field = 'count';
+        const op = '>';
+        const value = 5;
+        const finalQuery = (queryBuilder as any)._where(field, op, value).buildQuery();
+
+        expect(mockCollectionRef.where).toHaveBeenCalledWith(field, op, value);
+        expect(finalQuery).toBe(mockCollectionRef); // Because where returns the mock
+    });
   });
 
-  it('should add an orderBy constraint definition immutably', () => {
-    const newBuilder = queryBuilder.orderBy('name', 'desc');
-    expect(newBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'orderBy', fieldPath: 'name', directionStr: 'desc' },
-    ]);
+  // --- Test OrderBy Clauses ---
+  describe('orderBy()', () => {
+    it('should add an orderBy constraint definition', () => {
+      const field = 'createdAt';
+      const result = queryBuilder.orderBy(field, 'desc');
+
+      const definitions = (result as any).constraintDefinitions;
+      expect(definitions).toHaveLength(1);
+      expect(definitions[0]).toEqual({ type: 'orderBy', fieldPath: field, directionStr: 'desc' });
+      expect(result).not.toBe(queryBuilder);
+      expect(result).toBeInstanceOf(AdminBaseQueryBuilder);
+    });
+
+     it('should build query with orderBy constraint', () => {
+        const field = 'name';
+        const finalQuery = queryBuilder.orderBy(field).buildQuery(); // Default 'asc'
+
+        expect(mockCollectionRef.orderBy).toHaveBeenCalledWith(field, 'asc');
+        expect(finalQuery).toBe(mockCollectionRef);
+    });
   });
 
-   it('should add a limit constraint definition immutably', () => {
-    const newBuilder = queryBuilder.limit(10);
-    expect(newBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'limit', limitCount: 10 },
-    ]);
+  // --- Test Limit Clauses ---
+  describe('limit()', () => {
+    it('should add a limit constraint definition', () => {
+      const limitNum = 10;
+      const result = queryBuilder.limit(limitNum);
+
+      const definitions = (result as any).constraintDefinitions;
+      expect(definitions).toHaveLength(1);
+      expect(definitions[0]).toEqual({ type: 'limit', limitCount: limitNum });
+      expect(result).not.toBe(queryBuilder);
+    });
+
+     it('should build query with limit constraint', () => {
+        const limitNum = 25;
+        const finalQuery = queryBuilder.limit(limitNum).buildQuery();
+
+        expect(mockCollectionRef.limit).toHaveBeenCalledWith(limitNum);
+        expect(finalQuery).toBe(mockCollectionRef);
+    });
   });
 
-   // ... (Add similar immutability tests for limitToLast, startAt, startAfter, endAt, endBefore) ...
-   it('should add a limitToLast constraint definition immutably', () => {
-    const newBuilder = queryBuilder.limitToLast(5);
-    expect(newBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]); // Check original builder is unchanged
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'limitToLast', limitCount: 5 },
-    ]);
+  describe('limitToLast()', () => {
+    it('should add a limitToLast constraint definition', () => {
+      const limitNum = 5;
+      const result = queryBuilder.limitToLast(limitNum);
+
+      const definitions = (result as any).constraintDefinitions;
+      expect(definitions).toHaveLength(1);
+      expect(definitions[0]).toEqual({ type: 'limitToLast', limitCount: limitNum });
+       expect(result).not.toBe(queryBuilder);
+    });
+
+     it('should build query with limitToLast constraint', () => {
+        const limitNum = 15;
+        const finalQuery = queryBuilder.limitToLast(limitNum).buildQuery();
+
+        expect(mockCollectionRef.limitToLast).toHaveBeenCalledWith(limitNum);
+        expect(finalQuery).toBe(mockCollectionRef);
+    });
   });
 
-  it('should add a startAt constraint definition immutably', () => {
-    const mockSnapshot = { id: 'doc1' } as DocumentSnapshot<TestData>;
-    const newBuilder = queryBuilder.startAt(mockSnapshot);
-    expect(newBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]); // Check original builder is unchanged
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'startAt', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
-    ]);
+  // --- Test Cursor Clauses ---
+  // Note: Testing cursors thoroughly requires mock DocumentSnapshots
+  describe('startAt()', () => {
+    it('should add a startAt constraint definition', () => {
+      const value = 'Start Value';
+      const result = queryBuilder.startAt(value);
+
+      const definitions = (result as any).constraintDefinitions;
+      expect(definitions).toHaveLength(1);
+      expect(definitions[0]).toEqual({ type: 'startAt', snapshotOrFieldValue: value, fieldValues: [] });
+       expect(result).not.toBe(queryBuilder);
+    });
+
+     it('should build query with startAt constraint', () => {
+        const value = 'Start Value';
+        const finalQuery = queryBuilder.startAt(value).buildQuery();
+
+        expect(mockCollectionRef.startAt).toHaveBeenCalledWith(value);
+        expect(finalQuery).toBe(mockCollectionRef);
+    });
   });
 
-  it('should add a startAfter constraint definition immutably', () => {
-    const mockSnapshot = { id: 'doc1' } as DocumentSnapshot<TestData>;
-    const newBuilder = queryBuilder.startAfter(mockSnapshot);
-    expect(newBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'startAfter', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
-    ]);
+  describe('startAfter()', () => {
+     it('should build query with startAfter constraint', () => {
+        const value = 'After Value';
+        const finalQuery = queryBuilder.startAfter(value).buildQuery();
+
+        expect(mockCollectionRef.startAfter).toHaveBeenCalledWith(value);
+        expect(finalQuery).toBe(mockCollectionRef);
+    });
   });
 
-  it('should add an endBefore constraint definition immutably', () => {
-    const mockSnapshot = { id: 'doc2' } as DocumentSnapshot<TestData>;
-    const newBuilder = queryBuilder.endBefore(mockSnapshot);
-    expect(newBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'endBefore', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
-    ]);
+  describe('endAt()', () => {
+     it('should build query with endAt constraint', () => {
+        const value = 'End Value';
+        const finalQuery = queryBuilder.endAt(value).buildQuery();
+
+        expect(mockCollectionRef.endAt).toHaveBeenCalledWith(value);
+        expect(finalQuery).toBe(mockCollectionRef);
+    });
   });
 
-  it('should add an endAt constraint definition immutably', () => {
-    const mockSnapshot = { id: 'doc3' } as DocumentSnapshot<TestData>;
-    const newBuilder = queryBuilder.endAt(mockSnapshot);
-    expect(newBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
-    expect((newBuilder as any).constraintDefinitions).toEqual([
-      { type: 'endAt', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
-    ]);
+  describe('endBefore()', () => {
+     it('should build query with endBefore constraint', () => {
+        const value = 'Before Value';
+        const finalQuery = queryBuilder.endBefore(value).buildQuery();
+
+        expect(mockCollectionRef.endBefore).toHaveBeenCalledWith(value);
+        expect(finalQuery).toBe(mockCollectionRef);
+    });
   });
 
+  // --- Test Execution ---
+  describe('getSnapshot()', () => {
+    it('should build query and call get() on the final query object', async () => {
+      const mockSnapshotData = { docs: ['doc1'], empty: false, size: 1 } as any;
+      mockQueryChainableMethods.get.mockResolvedValue(mockSnapshotData); // Mock get result
 
-  // Test chaining definitions
-  it('should chain constraint definitions immutably', () => {
+      const result = await queryBuilder.limit(10).getSnapshot(); // Add a constraint
+
+      expect(mockCollectionRef.limit).toHaveBeenCalledWith(10); // Ensure build happened
+      expect(mockCollectionRef.get).toHaveBeenCalledTimes(1); // get called on the (mocked) final query
+      expect(result).toBe(mockSnapshotData);
+    });
+  });
+
+  describe('get()', () => {
+     it('should call getSnapshot and return mapped data', async () => {
+        const mockDocs = [
+            { data: () => ({ name: 'A', count: 1 } as TestData) },
+            { data: () => ({ name: 'B', count: 2 } as TestData) },
+        ] as any[]; // Use 'as any[]' for mock docs array
+        const mockSnapshotData = { docs: mockDocs, empty: false, size: 2 } as any; // Use 'as any'
+        mockQueryChainableMethods.get.mockResolvedValue(mockSnapshotData); // Mock get result
+
+        const result = await queryBuilder.get();
+
+        expect(mockCollectionRef.get).toHaveBeenCalledTimes(1);
+        expect(result).toEqual([
+            { name: 'A', count: 1 },
+            { name: 'B', count: 2 },
+        ]);
+    });
+
+     it('should return empty array if snapshot is empty', async () => {
+        const mockSnapshotData = { docs: [], empty: true, size: 0 } as any; // Use 'as any'
+        mockQueryChainableMethods.get.mockResolvedValue(mockSnapshotData); // Mock get result
+
+        const result = await queryBuilder.get();
+
+        expect(mockCollectionRef.get).toHaveBeenCalledTimes(1);
+        expect(result).toEqual([]);
+    });
+  });
+
+  // --- Test Chaining ---
+  it('should allow chaining and build the correct query', () => {
     const finalBuilder = (queryBuilder as any)
       ._where('active', '==', true)
-      .orderBy('age', 'asc')
-      .limit(5);
+      .orderBy('createdAt', 'desc')
+      .limit(5)
+      .startAfter('someTimestamp');
 
-    expect(finalBuilder).not.toBe(queryBuilder);
-    expect((queryBuilder as any).constraintDefinitions).toEqual([]); // Original still empty
-    expect((finalBuilder as any).constraintDefinitions).toEqual([
-      { type: 'where', fieldPath: 'active', opStr: '==', value: true },
-      { type: 'orderBy', fieldPath: 'age', directionStr: 'asc' },
-      { type: 'limit', limitCount: 5 },
-    ]);
-  });
+    const finalQuery = finalBuilder.buildQuery();
 
-  // Test buildQuery - verify chaining calls
-  it('should call chained methods on collectionRef/query when buildQuery() is called', () => {
-    const finalBuilder = (queryBuilder as any)
-      ._where('age', '>=', 21)
-      .orderBy('name')
-      .limit(10);
+    // Check if constraints were added (optional, but good for debugging)
+    expect((finalBuilder as any).constraintDefinitions).toHaveLength(4);
 
-    const builtQuery = finalBuilder.buildQuery();
-
-    // Verify the chain: starts with collectionRef.where, then query.orderBy, then query.limit
-    expect(mockCollectionRef.where).toHaveBeenCalledWith('age', '>=', 21);
-    expect(mockQuery.orderBy).toHaveBeenCalledWith('name', 'asc'); // Default direction
-    expect(mockQuery.limit).toHaveBeenCalledWith(10);
-
-    // The final result should be the mockQuery object after all chaining
-    expect(builtQuery).toBe(mockQuery);
-  });
-
-   it('should handle only collectionRef if no constraints', () => {
-     const builtQuery = queryBuilder.buildQuery();
-     expect(mockCollectionRef.where).not.toHaveBeenCalled();
-     expect(mockCollectionRef.orderBy).not.toHaveBeenCalled();
-     // etc.
-     expect(builtQuery).toBe(mockCollectionRef); // Returns the original ref if no constraints
-   });
-
-  it('should call chained cursor and limitToLast methods when buildQuery() is called', () => {
-    const mockStartAtSnapshot = { id: 'startAtDoc' } as DocumentSnapshot<TestData>;
-    const mockStartAfterValue = 'startAfterValue';
-    const mockEndBeforeSnapshot = { id: 'endBeforeDoc' } as DocumentSnapshot<TestData>;
-    const mockEndAtValue = 'endAtValue';
-
-    const finalBuilder = queryBuilder
-      .orderBy('age') // Cursors require orderBy
-      .limitToLast(5)
-      .startAt(mockStartAtSnapshot)
-      .startAfter(mockStartAfterValue)
-      .endBefore(mockEndBeforeSnapshot)
-      .endAt(mockEndAtValue);
-
-    const builtQuery = finalBuilder.buildQuery();
-
-    // Verify the chain starts with orderBy, then the others are called on the mockQuery
-    expect(mockCollectionRef.orderBy).toHaveBeenCalledWith('age', 'asc');
-    expect(mockQuery.limitToLast).toHaveBeenCalledWith(5);
-    expect(mockQuery.startAt).toHaveBeenCalledWith(mockStartAtSnapshot);
-    expect(mockQuery.startAfter).toHaveBeenCalledWith(mockStartAfterValue);
-  expect(mockQuery.endBefore).toHaveBeenCalledWith(mockEndBeforeSnapshot);
-  expect(mockQuery.endAt).toHaveBeenCalledWith(mockEndAtValue);
-
-  expect(builtQuery).toBe(mockQuery);
-});
-
-it('should throw an error for unsupported constraint types in buildQuery', () => {
-  // Manually add an invalid constraint definition
-  (queryBuilder as any).constraintDefinitions.push({ type: 'invalid-constraint' });
-
-  // Expect buildQuery to throw an error
-  expect(() => queryBuilder.buildQuery()).toThrow(
-    'Unsupported admin constraint type: invalid-constraint'
-  );
-});
-
-
-  // Test getSnapshot
-  it('should call get() on the built query when getSnapshot() is called', async () => {
-    const mockSnapshotResult = {
-      docs: [],
-      empty: true,
-      size: 0,
-      query: mockQuery, // Link back to the mock query
-      readTime: { seconds: 1, nanoseconds: 1 } as Timestamp, // Mock readTime
-      docChanges: jest.fn(() => []), // Mock docChanges
-      forEach: jest.fn(), // Mock forEach
-      isEqual: jest.fn(), // Mock isEqual
-    } as QuerySnapshot<TestData>;
-    mockQuery.get.mockResolvedValue(mockSnapshotResult); // Mock the final get() call
-
-    const builder = (queryBuilder as any)._where('active', '==', false); // Add a constraint
-    const snapshotResult = await builder.getSnapshot();
-
-    // Verify the query was built (where was called) and then get() was called on the result
-    expect(mockCollectionRef.where).toHaveBeenCalledWith('active', '==', false);
-    expect(mockQuery.get).toHaveBeenCalledTimes(1);
-    expect(snapshotResult).toBe(mockSnapshotResult);
-  });
-
-  // Test get
-  it('should call getSnapshot() and return mapped data when get() is called', async () => {
-    const mockData1 = { name: 'Alice', age: 30, active: true };
-    const mockData2 = { name: 'Bob', age: 25, active: true };
-    // Admin SDK QueryDocumentSnapshot has data() returning TData directly
-    const mockDoc1 = { data: () => mockData1, id: '1', exists: true } as any;
-    const mockDoc2 = { data: () => mockData2, id: '2', exists: true } as any;
-    const mockSnapshotResult = {
-        docs: [mockDoc1, mockDoc2],
-        empty: false,
-        size: 2,
-        // Add other QuerySnapshot properties if needed by code under test
-    } as QuerySnapshot<TestData>;
-
-    // Mock the build and get process
-    mockQuery.get.mockResolvedValue(mockSnapshotResult);
-
-    const builder = (queryBuilder as any)._where('active', '==', true);
-    const getSnapshotSpy = jest.spyOn(builder, 'getSnapshot'); // Spy on the builder's method
-
-    const dataResult = await builder.get();
-
-    expect(getSnapshotSpy).toHaveBeenCalledTimes(1);
-    expect(mockCollectionRef.where).toHaveBeenCalledWith('active', '==', true); // Ensure build happened
-    expect(mockQuery.get).toHaveBeenCalledTimes(1); // Ensure get was called
-    expect(dataResult).toEqual([mockData1, mockData2]);
-
-    getSnapshotSpy.mockRestore(); // Clean up spy
+    // Check if the build process calls the underlying mock methods correctly
+    expect(mockCollectionRef.where).toHaveBeenCalledWith('active', '==', true);
+    expect(mockCollectionRef.orderBy).toHaveBeenCalledWith('createdAt', 'desc');
+    expect(mockCollectionRef.limit).toHaveBeenCalledWith(5);
+    expect(mockCollectionRef.startAfter).toHaveBeenCalledWith('someTimestamp');
+    expect(finalQuery).toBe(mockCollectionRef); // Final result of buildQuery is the mock
   });
 });

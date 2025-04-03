@@ -50,19 +50,18 @@ class MockSubCollection extends AdminBaseCollectionRef<any, any> {
     super(firestore, collectionId, schema, parentRef);
   }
 }
+// Top-level variables for mocks and test data
+let mockFirestore: any;
+let mockParentRef: any;
+let mockCollectionRef: any;
+let mockDocRef: any;
+let collectionRefInstance: AdminBaseCollectionRef<TestData, TestAddData>;
+const testCollectionId = 'test-items';
+const testDocId = 'test-doc-123';
+const mockWriteResult = { writeTime: { seconds: 1, nanoseconds: 1 } as Timestamp } as WriteResult; // Basic mock
 
 describe('AdminBaseCollectionRef', () => {
-  // Use 'any' or partial mocks, focusing on methods used by the class under test
-  let mockFirestore: any;
-  let mockParentRef: any;
-  let mockCollectionRef: any;
-  let mockDocRef: any;
-  let collectionRefInstance: AdminBaseCollectionRef<TestData, TestAddData>;
-
-  const testCollectionId = 'test-items';
-  const testDocId = 'test-doc-123';
-  const mockWriteResult = { writeTime: { seconds: 1, nanoseconds: 1 } as Timestamp } as WriteResult; // Basic mock
-
+  // Declarations moved to top level
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -264,6 +263,134 @@ describe('AdminBaseCollectionRef', () => {
     expect(mockCollectionRef.doc).toHaveBeenCalledWith(testDocId);
     expect(mockDocRef.get).toHaveBeenCalledTimes(1);
     expect(result).toBeUndefined();
-  });
 
-});
+  describe('subCollection()', () => {
+    const parentDocId = 'parent-123';
+    const subCollectionId = 'sub-items';
+    const subSchema = { fields: { value: {} } };
+    const fullSchema = {
+      fields: { name: {} },
+      subCollections: {
+        [subCollectionId]: {
+          schema: subSchema,
+          collectionClass: MockSubCollection, // Use the mock class
+        },
+      },
+    };
+
+    beforeEach(() => {
+      // --- START COPY ---
+      jest.clearAllMocks();
+
+      // --- Simplified Mock Firestore Structure ---
+      mockDocRef = {
+        id: testDocId,
+        path: `${testCollectionId}/${testDocId}`,
+        set: jest.fn().mockResolvedValue(mockWriteResult),
+        delete: jest.fn().mockResolvedValue(mockWriteResult),
+        get: jest.fn(),
+        // No need to mock everything, only what's called by AdminBaseCollectionRef
+      };
+
+      mockCollectionRef = {
+        id: testCollectionId,
+        path: testCollectionId,
+        doc: jest.fn().mockReturnValue(mockDocRef),
+        add: jest.fn().mockResolvedValue(mockDocRef), // add returns a DocumentReference
+      };
+
+      mockParentRef = {
+        id: 'parent-doc',
+        path: 'parents/parent-doc',
+        collection: jest.fn().mockReturnValue(mockCollectionRef),
+        parent: { // Add mock parent
+          path: 'parents'
+        }
+      };
+
+      mockFirestore = {
+        collection: jest.fn().mockReturnValue(mockCollectionRef),
+      };
+
+      // Reset AdminFieldValue mocks
+      (AdminFieldValue.serverTimestamp as jest.Mock).mockClear();
+      // --- END COPY ---
+
+      // Ensure the main collection instance is created with the schema
+      collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+        mockFirestore,
+        testCollectionId,
+        fullSchema // Provide the schema with sub-collection info
+      );
+      // Mock the doc() call on the main collection ref to return the parent doc ref
+      mockCollectionRef.doc.mockReturnValue(mockParentRef);
+    });
+
+    it('should throw an error if the sub-collection key is not found in the schema', () => {
+      expect(() => {
+        collectionRefInstance.subCollection(parentDocId, 'non-existent-sub', MockSubCollection, undefined); // Pass class/schema to satisfy TS, error should throw first
+      }).toThrow(`Sub-collection 'non-existent-sub' not found in schema for collection '${testCollectionId}'`);
+      expect(mockCollectionRef.doc).not.toHaveBeenCalled(); // Should throw before getting parent doc ref
+    });
+
+     it('should throw an error if the sub-collection definition is missing the collectionClass', () => {
+       const schemaWithoutClass = {
+         fields: { name: {} },
+         subCollections: {
+           [subCollectionId]: {
+             schema: subSchema,
+             // Missing collectionClass
+           },
+         },
+       };
+       collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+         mockFirestore, testCollectionId, schemaWithoutClass
+       );
+       expect(() => {
+         collectionRefInstance.subCollection(parentDocId, subCollectionId, MockSubCollection, subSchema); // Pass class/schema
+       }).toThrow(`Collection class definition missing for sub-collection '${subCollectionId}' in schema for collection '${testCollectionId}'`);
+       expect(mockCollectionRef.doc).not.toHaveBeenCalled();
+     });
+
+    it('should instantiate the correct sub-collection class with correct parameters', () => {
+      const subCollectionInstance = collectionRefInstance.subCollection(parentDocId, subCollectionId, MockSubCollection, subSchema); // Pass class/schema
+
+      // 1. Verify parent document reference was obtained
+      expect(mockCollectionRef.doc).toHaveBeenCalledWith(parentDocId);
+
+      // 2. Verify the sub-collection class was instantiated
+      // We can't directly check the constructor call count on MockSubCollection easily without more complex mocking,
+      // but we can check the type and properties of the returned instance.
+      expect(subCollectionInstance).toBeInstanceOf(MockSubCollection);
+
+      // 3. Check parameters passed to the sub-collection constructor (via its properties/methods if needed)
+      // Accessing private members for testing is generally discouraged, but we can infer from the mock setup.
+      // The MockSubCollection constructor calls super(), which sets up the internal ref.
+      expect((subCollectionInstance as any).firestore).toBe(mockFirestore); // Check firestore instance
+      expect(subCollectionInstance.ref.id).toBe(subCollectionId); // Check collectionId
+      expect((subCollectionInstance as any).schema).toBe(subSchema); // Check schema passed
+      expect((subCollectionInstance as any).parentRef).toBe(mockParentRef); // Check parentRef passed
+      expect(mockParentRef.collection).toHaveBeenCalledWith(subCollectionId); // Check underlying SDK call
+    });
+
+     it('should instantiate the sub-collection even if the main schema has no fields defined', () => {
+        const schemaNoFields = {
+            fields: {}, // Add empty fields object
+            subCollections: {
+                [subCollectionId]: {
+                    schema: subSchema,
+                    collectionClass: MockSubCollection,
+                },
+            },
+        };
+        collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+            mockFirestore, testCollectionId, schemaNoFields
+        );
+
+        const subCollectionInstance = collectionRefInstance.subCollection(parentDocId, subCollectionId, MockSubCollection, subSchema); // Pass class/schema
+        expect(mockCollectionRef.doc).toHaveBeenCalledWith(parentDocId);
+        expect(subCollectionInstance).toBeInstanceOf(MockSubCollection);
+        expect((subCollectionInstance as any).parentRef).toBe(mockParentRef);
+     });
+  });
+}); // This now closes the main describe block

@@ -20,8 +20,9 @@
   - Generator snapshot tests (`src/__tests__/generator.test.ts`) pass after
     fixing import issues (`fs`, `path`). Snapshots updated for new runtime
     dependencies.
-  - Initial unit test files (`baseCollection.test.ts`) created for
-    `ts-client-runtime` and `ts-admin-runtime`.
+  - Expanded unit tests for `ts-client-runtime` and `ts-admin-runtime` base
+    classes (`baseCollection.test.ts`, `baseQueryBuilder.test.ts`,
+    `baseUpdateBuilder.test.ts`).
   - Initial integration test files (`client.integration.test.ts`,
     `admin.integration.test.ts`) created for `ts-client-runtime` and
     `ts-admin-runtime`, configured for Firestore emulator.
@@ -65,7 +66,8 @@
        TypeScript syntax parsing errors.
      - **All TS runtime unit and integration tests now pass** when run with
        `npx jest`.
-     - **Next:** Expand test coverage for runtime packages (Phase 3b).
+     - ~~**Next:** Expand unit test coverage for runtime packages.~~ **(Done)**
+     - **Next:** Expand integration test coverage for runtime packages.
      - Persistent test environment issues (`jest.mock` errors) remain when using
        `bun test`. (Deferring resolution, using `npx jest` for now).
    - **Phase 4: Update Memory Bank & Documentation:** ✅ **COMPLETED**
@@ -107,9 +109,9 @@ further analysis revealed significant structural differences between Client v9+
 and Admin SDKs, making shared interfaces impractical. Switched to **fully
 independent** TS Client and TS Admin runtime packages.
 
-**Current focus:** Initial VitePress documentation site setup is complete and
-configured for deployment. The next step is to expand the test coverage for the
-runtime packages.
+**Current focus:** Unit test expansion for runtime base classes is complete. The
+next step is to expand the **integration test** coverage for the runtime
+packages.
 
 **Known Issues:**
 

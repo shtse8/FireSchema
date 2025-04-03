@@ -117,7 +117,7 @@ export class ClientBaseCollectionRef<
    * Helper to access a subcollection factory.
    * Needs the specific SubCollectionClass constructor.
    */
-  protected subCollection<
+  public subCollection<
     SubTData extends DocumentData,
     SubTAddData extends DocumentData,
     SubCollectionType extends ClientBaseCollectionRef<SubTData, SubTAddData> // Expect ClientBaseCollectionRef subclass
