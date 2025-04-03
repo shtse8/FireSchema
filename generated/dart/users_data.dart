@@ -9,10 +9,11 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 // Import other necessary packages if needed
 
 
+ 
 
 
 
-/// Represents the data structure for a nested 'UsersSettingsMap' map.
+/// Represents the data structure for a nested \'UsersSettingsMap\' map.
 
 class UsersSettingsMap implements ToJsonSerializable {
 
@@ -25,12 +26,11 @@ class UsersSettingsMap implements ToJsonSerializable {
   UsersSettingsMap({
     this.theme,
     this.notificationsEnabled,
-  }); // End of constructor
+  }); // End of constructor // Corrected join string
 
   /// Creates a UsersSettingsMap instance from a Map.
   factory UsersSettingsMap.fromJson(Map<String, dynamic> data) {
     return UsersSettingsMap(
-
       theme: data['theme'] as String?,
       notificationsEnabled: data['notificationsEnabled'] as bool?,
     );
@@ -50,7 +50,6 @@ class UsersSettingsMap implements ToJsonSerializable {
     bool? notificationsEnabled,
   }) {
     return UsersSettingsMap(
-
       theme: theme ?? this.theme,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
     );
@@ -102,14 +101,13 @@ class UsersData {
   })
     : assert(displayName.length >= 3, 'Users.displayName must be at least 3 characters long')
     , assert(displayName.length <= 50, 'Users.displayName must be at most 50 characters long')
-    , assert(RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$').hasMatch(email), 'Users.email must match pattern: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    , assert(RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email), 'Users.email must match the required pattern')
     , assert((age == null || age >= 0), 'Users.age must be >= 0')
-    , assert((age == null || age <= 130), 'Users.age must be <= 130'); // End of constructor
+    , assert((age == null || age <= 130), 'Users.age must be <= 130'); // End of constructor // Corrected join string
 
   /// Creates a UsersData instance from a Map.
   factory UsersData.fromJson(Map<String, dynamic> data) {
     return UsersData(
-
       displayName: data['displayName'] as String? ?? (throw Exception("Missing required field: displayName in input data")),
       email: data['email'] as String? ?? (throw Exception("Missing required field: email in input data")),
       createdAt: data['createdAt'] as Timestamp?,
@@ -182,7 +180,6 @@ class UsersData {
     DocumentReference<Map<String, dynamic>>? primaryAddressRef,
   }) {
     return UsersData(
-
       displayName: displayName ?? this.displayName,
       email: email ?? this.email,
       createdAt: createdAt ?? this.createdAt,
@@ -198,11 +195,6 @@ class UsersData {
 } // End of UsersData class
 
 
-
-
-  // TODO: Add toString, equals, hashCode implementations?
-
-
 /// Represents the data structure for adding a new 'Users' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
 class UsersAddData implements ToJsonSerializable {
@@ -211,56 +203,39 @@ class UsersAddData implements ToJsonSerializable {
   /// User's public display name (string, required)
   final String displayName;
 
-
   /// email (string, required)
   final String email;
-
 
   /// Timestamp when the user was created (timestamp)
   final Timestamp? createdAt;
 
-
   /// lastLogin (timestamp)
   final Timestamp? lastLogin;
-
 
   /// age (number)
   final num? age;
 
-
   /// isActive (boolean)
   final bool? isActive;
-
 
   /// settings (map)
   final UsersSettingsMap? settings;
 
-
   /// tags (array)
   final List<String>? tags;
-
 
   /// primaryAddressRef (reference)
   final DocumentReference<Map<String, dynamic>>? primaryAddressRef;
 
   const UsersAddData({
-
     required this.displayName,
-
     required this.email,
-
     this.createdAt,
-
     this.lastLogin,
-
     this.age,
-
     this.isActive,
-
     this.settings,
-
     this.tags,
-
     this.primaryAddressRef,
   });
 
@@ -274,46 +249,38 @@ class UsersAddData implements ToJsonSerializable {
     // Required fields are always included
     map['displayName'] = displayName;
 
-
     // Required fields are always included
     map['email'] = email;
-
 
     // Only include non-null values in the map for optional fields
     if (createdAt != null) {
       map['createdAt'] = createdAt;
     }
 
-
     // Only include non-null values in the map for optional fields
     if (lastLogin != null) {
       map['lastLogin'] = lastLogin;
     }
-
 
     // Only include non-null values in the map for optional fields
     if (age != null) {
       map['age'] = age;
     }
 
-
     // Only include non-null values in the map for optional fields
     if (isActive != null) {
       map['isActive'] = isActive;
     }
-
 
     // Only include non-null values in the map for optional fields
     if (settings != null) {
       map['settings'] = settings?.toJson();
     }
 
-
     // Only include non-null values in the map for optional fields
     if (tags != null) {
       map['tags'] = tags;
     }
-
 
     // Only include non-null values in the map for optional fields
     if (primaryAddressRef != null) {
@@ -355,7 +322,7 @@ class UsersUpdateData implements ToJsonSerializable {
   /// primaryAddressRef (reference)
   final DocumentReference<Map<String, dynamic>>? primaryAddressRef;
 
-  UsersUpdateData({ // Ensure const is removed
+  UsersUpdateData({ // Not const
     this.displayName,
     this.email,
     this.createdAt,

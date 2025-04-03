@@ -9,6 +9,9 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 // Import other necessary packages if needed
 
 
+ 
+
+
 
 
 
@@ -29,12 +32,11 @@ class AddressesData {
     required this.street,
     required this.city,
     this.zip,
-  }); // End of constructor
+  }); // End of constructor // Corrected join string
 
   /// Creates a AddressesData instance from a Map.
   factory AddressesData.fromJson(Map<String, dynamic> data) {
     return AddressesData(
-
       street: data['street'] as String? ?? (throw Exception("Missing required field: street in input data")),
       city: data['city'] as String? ?? (throw Exception("Missing required field: city in input data")),
       zip: data['zip'] as String?,
@@ -89,7 +91,6 @@ class AddressesData {
     String? zip,
   }) {
     return AddressesData(
-
       street: street ?? this.street,
       city: city ?? this.city,
       zip: zip ?? this.zip,
@@ -97,11 +98,6 @@ class AddressesData {
   }
 
 } // End of AddressesData class
-
-
-
-
-  // TODO: Add toString, equals, hashCode implementations?
 
 
 /// Represents the data structure for adding a new 'Addresses' document.
@@ -112,20 +108,15 @@ class AddressesAddData implements ToJsonSerializable {
   /// street (string, required)
   final String street;
 
-
   /// city (string, required)
   final String city;
-
 
   /// zip (string)
   final String? zip;
 
   const AddressesAddData({
-
     required this.street,
-
     required this.city,
-
     this.zip,
   });
 
@@ -139,10 +130,8 @@ class AddressesAddData implements ToJsonSerializable {
     // Required fields are always included
     map['street'] = street;
 
-
     // Required fields are always included
     map['city'] = city;
-
 
     // Only include non-null values in the map for optional fields
     if (zip != null) {
@@ -166,7 +155,7 @@ class AddressesUpdateData implements ToJsonSerializable {
   /// zip (string)
   final String? zip;
 
-  AddressesUpdateData({ // Ensure const is removed
+  AddressesUpdateData({ // Not const
     this.street,
     this.city,
     this.zip,

@@ -4,6 +4,7 @@
     {
       "language": "typescript",
       "outputDir": "../generated/ts",
+      "target": "typescript-client",
       "package": {
         "name": "@my-project/firestore-models-ts",
         "version": "0.1.0",
@@ -17,6 +18,7 @@
     {
       "language": "dart",
       "outputDir": "../generated/dart",
+      "target": "dart-client",
       "package": {
         "name": "my_project_firestore_models_dart",
         "version": "0.1.0",

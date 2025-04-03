@@ -9,6 +9,9 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 // Import other necessary packages if needed
 
 
+ 
+
+
 
 
 
@@ -29,12 +32,11 @@ class PostsData {
     required this.title,
     this.content,
     this.publishedAt,
-  }); // End of constructor
+  }); // End of constructor // Corrected join string
 
   /// Creates a PostsData instance from a Map.
   factory PostsData.fromJson(Map<String, dynamic> data) {
     return PostsData(
-
       title: data['title'] as String? ?? (throw Exception("Missing required field: title in input data")),
       content: data['content'] as String?,
       publishedAt: data['publishedAt'] as Timestamp?,
@@ -89,7 +91,6 @@ class PostsData {
     Timestamp? publishedAt,
   }) {
     return PostsData(
-
       title: title ?? this.title,
       content: content ?? this.content,
       publishedAt: publishedAt ?? this.publishedAt,
@@ -97,11 +98,6 @@ class PostsData {
   }
 
 } // End of PostsData class
-
-
-
-
-  // TODO: Add toString, equals, hashCode implementations?
 
 
 /// Represents the data structure for adding a new 'Posts' document.
@@ -112,20 +108,15 @@ class PostsAddData implements ToJsonSerializable {
   /// title (string, required)
   final String title;
 
-
   /// content (string)
   final String? content;
-
 
   /// publishedAt (timestamp)
   final Timestamp? publishedAt;
 
   const PostsAddData({
-
     required this.title,
-
     this.content,
-
     this.publishedAt,
   });
 
@@ -139,12 +130,10 @@ class PostsAddData implements ToJsonSerializable {
     // Required fields are always included
     map['title'] = title;
 
-
     // Only include non-null values in the map for optional fields
     if (content != null) {
       map['content'] = content;
     }
-
 
     // Only include non-null values in the map for optional fields
     if (publishedAt != null) {
@@ -168,7 +157,7 @@ class PostsUpdateData implements ToJsonSerializable {
   /// publishedAt (timestamp)
   final Timestamp? publishedAt;
 
-  PostsUpdateData({ // Ensure const is removed
+  PostsUpdateData({ // Not const
     this.title,
     this.content,
     this.publishedAt,
