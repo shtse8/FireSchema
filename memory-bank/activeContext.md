@@ -37,19 +37,16 @@ Review/Update tests.
   - Updated generator tests (`src/__tests__/generator.test.ts`) to use the new
     `target` config format.
   - Updated/added snapshots for TS client, TS admin, and Dart client targets.
-  - Refactored runtime unit tests
-    (`packages/fireschema-ts-runtime/src/__tests__/`) to align with base class
-    changes and use `npx jest` (resolving previous `jest.mock` errors).
-  - All tests now pass when run with `npx jest`.
+  - **Note:** Previous runtime unit tests seem to be missing after refactoring.
 
 **Next Steps:**
 
-1. **Review/Update Tests:** - **(Current Task)**
-   - Update Snapshot tests (`src/__tests__/generator.test.ts`) to reflect new
-     runtime dependencies in generated `package.json`.
-   - Review/Update Unit tests within `ts-client-runtime` and `ts-admin-runtime`.
-   - Implement/Update Integration tests within `ts-client-runtime` and
-     `ts-admin-runtime` using Firestore Emulator.
+1. **Implement Runtime Tests:** - **(Current Task)**
+   - Create Unit tests for `ts-client-runtime` and `ts-admin-runtime`.
+   - Create Integration tests for `ts-client-runtime` and `ts-admin-runtime`
+     using Firestore Emulator.
+   - Snapshot tests (`src/__tests__/generator.test.ts`) were updated to reflect
+     new runtime dependencies.
 2. **(Optional) Address Minor Test Issues:** Investigate the `fs` syntax error
    reported by `bun test` (but not `npx jest`).
 3. **(Future) Implement More Adapters:** Add adapters for new targets (e.g.,

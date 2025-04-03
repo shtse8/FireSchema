@@ -1,7 +1,7 @@
 // src/__tests__/generator.test.ts
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import fs from 'fs'; // Reverted to default import
-import path from 'path';
+import * as fs from 'fs'; // Use namespace import
+import * as path from 'path'; // Use namespace import
 import { execSync } from 'child_process';
 
 // Define paths relative to the project root
