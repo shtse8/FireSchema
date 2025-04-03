@@ -12,54 +12,59 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/introduction' },
-      { text: 'API', link: '/api/' } // Placeholder for API docs if needed later
     ],
 
     sidebar: {
       '/guide/': [
         {
-          text: 'Guide',
+          text: 'Getting Started',
           items: [
             { text: 'Introduction', link: '/guide/introduction' },
-            { text: 'Getting Started', link: '/guide/getting-started' },
+            { text: 'Installation', link: '/guide/installation' },
             { text: 'Schema Definition', link: '/guide/schema-definition' },
             { text: 'Configuration', link: '/guide/configuration' },
-            { text: 'Usage Examples', link: '/guide/usage-examples' },
-            { text: 'Advanced Schema', link: '/guide/advanced-schema' },
-            { text: 'Advanced Usage', link: '/guide/advanced-usage' },
-            { text: 'Runtime Libraries', link: '/guide/runtime-libraries' },
-            // Add more guide pages here
           ]
+        },
+        {
+          text: 'Runtime Guides',
+          items: [
+            { text: 'TypeScript Client Guide', link: '/guide/typescript-client' },
+            { text: 'TypeScript Admin Guide', link: '/guide/typescript-admin' },
+            { text: 'Dart Client Guide', link: '/guide/dart-client' },
+          ]
+        },
+        {
+          text: 'Advanced Topics',
+          items: [
+             { text: 'Advanced Schema', link: '/guide/advanced-schema' },
+             // { text: 'Advanced Usage Patterns', link: '/guide/advanced-usage' }, // Merged into runtime guides
+             { text: 'Runtime Libraries Deep Dive', link: '/guide/runtime-libraries' }, // Overview of purpose
+             // { text: 'Testing Strategy', link: '/guide/testing-strategy' }, // Merged into runtime guides
+          ]
+        },
+        {
+            text: 'Roadmap',
+            items: [
+                { text: 'Future Targets', link: '/guide/roadmap' }
+            ]
         }
       ],
-       '/api/': [ // Placeholder
-        {
-          text: 'API Reference',
-          items: [
-            // API links will go here
-          ]
-        }
-      ]
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/shtse8/firestore-odm' } // Replace with actual repo link if different
+      { icon: 'github', link: 'https://github.com/shtse8/firestore-odm' }
     ],
 
     footer: {
       message: 'Released under the ISC License.',
-      copyright: 'Copyright © 2024-present shtse8' // Update year/name if needed
+      copyright: 'Copyright © 2024-present shtse8'
     },
 
-    // Optional: Add search functionality
     search: {
       provider: 'local'
     }
   },
 
-  // Base URL for GitHub Pages deployment
-  base: '/firestore-odm/', // IMPORTANT: Set this to your repository name
-
-  // Output directory relative to docs-src
-  outDir: '../docs' // Output to the root /docs directory
+  base: '/FireSchema/', // Use project name for deployment base path
+  outDir: '../docs'
 })

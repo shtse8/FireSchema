@@ -28,9 +28,20 @@ These are the official runtime packages maintained alongside FireSchema:
     -   **Key Exports:** `BaseCollectionRef`, `BaseQueryBuilder`, `BaseUpdateBuilder` (often used as mixins or extended by generated classes).
     -   **Description:** Provides implementations for Dart/Flutter applications using the `cloud_firestore` plugin.
 
+### Planned Runtimes
+
+-   **Dart Admin Runtime (via REST)**
+    -   **Target:** `dart-admin-rest` (tentative name)
+    -   **SDK Dependency:** Dart `http` package (or similar).
+    -   **Description:** A planned runtime leveraging the Firestore REST API. This aims to address the long-standing lack of an official Firebase Admin SDK for Dart, enabling powerful server-side Dart applications to interact securely with Firestore using generated type-safe code.
+-   **C# Client Runtime**
+    -   **Target:** `csharp-client` (tentative name)
+    -   **SDK Dependency:** Firebase SDK for .NET (specifics TBD).
+    -   **Description:** Planned support for generating C# code for client applications (e.g., Unity, MAUI, Blazor).
+
 ## Installation
 
-As mentioned in the [Getting Started](./getting-started.md) guide, you **must** install the appropriate runtime library **in the project where you intend to use the generated code**, alongside the corresponding Firebase SDK. The generated code directly imports from and extends classes/mixins provided by these runtime packages.
+As mentioned in the [Getting Started](./getting-started.md) guide, you **must** install the appropriate *available* runtime library **in the project where you intend to use the generated code**, alongside the corresponding Firebase SDK. The generated code directly imports from and extends classes/mixins provided by these runtime packages.
 
 ## Key Components Explained
 

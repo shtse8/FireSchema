@@ -79,5 +79,7 @@ Currently, FireSchema supports generating code for:
 - **TypeScript (Admin SDK - `firebase-admin`)**
 - **Dart (Client SDK - `cloud_firestore`)**
 
+Future planned targets include support for a Dart Admin SDK (likely leveraging the Firestore REST API) and a C# Client SDK.
+
 Ready to simplify your Firestore workflow? Head over to the
 [Getting Started](./getting-started.md) guide!
