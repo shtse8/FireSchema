@@ -43,6 +43,18 @@ class TestSubCollection extends ClientBaseCollectionRef<SubTestData, SubTestAddD
     // Pass all arguments to super
     super(firestore, collectionId, schema, parentRef);
   }
+
+  // Method to create a query builder instance for the subcollection
+  query(): ClientBaseQueryBuilder<SubTestData> {
+    return new ClientBaseQueryBuilder<SubTestData>(this.firestore, this.ref);
+  }
+
+  // Method to create an update builder instance for the subcollection
+  update(id: string): ClientBaseUpdateBuilder<SubTestData> {
+    const docRef = this.doc(id); // Use base class doc() method
+    return new ClientBaseUpdateBuilder<SubTestData>(docRef);
+  }
+
   // Add specific query/update methods if needed
 }
 
@@ -375,6 +387,246 @@ describe('Client Runtime Integration Tests', () => {
       expect(results[1].name).toBe('Three');
 
     } finally {
+      await clearTestCollection();
+    }
+  });
+
+
+  it('should query documents using comparison operators (<, <=, >, >=, !=)', async () => {
+    const dataSet = [
+      { id: 'comp-1', data: { name: 'Val10', value: 10 } },
+      { id: 'comp-2', data: { name: 'Val20', value: 20 } },
+      { id: 'comp-3', data: { name: 'Val30', value: 30 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+      const queryBuilder = testCollection.query();
+
+      // Test >
+      let results = await (queryBuilder as any)._where('value', '>', 15).get();
+      expect(results).toHaveLength(2);
+      expect(results.map((r: TestData) => r.name)).toEqual(expect.arrayContaining(['Val20', 'Val30']));
+
+      // Test >=
+      results = await (queryBuilder as any)._where('value', '>=', 20).get();
+      expect(results).toHaveLength(2);
+      expect(results.map((r: TestData) => r.name)).toEqual(expect.arrayContaining(['Val20', 'Val30']));
+
+      // Test <
+      results = await (queryBuilder as any)._where('value', '<', 25).get();
+      expect(results).toHaveLength(2);
+      expect(results.map((r: TestData) => r.name)).toEqual(expect.arrayContaining(['Val10', 'Val20']));
+
+      // Test <=
+      results = await (queryBuilder as any)._where('value', '<=', 20).get();
+      expect(results).toHaveLength(2);
+      expect(results.map((r: TestData) => r.name)).toEqual(expect.arrayContaining(['Val10', 'Val20']));
+
+      // Test !=
+      results = await (queryBuilder as any)._where('value', '!=', 20).get();
+      expect(results).toHaveLength(2);
+      expect(results.map((r: TestData) => r.name)).toEqual(expect.arrayContaining(['Val10', 'Val30']));
+
+    } finally {
+      await clearTestCollection();
+    }
+  });
+
+  it('should query documents using "not-in" operator', async () => {
+    const dataSet = [
+      { id: 'notin-1', data: { name: 'A', value: 1 } },
+      { id: 'notin-2', data: { name: 'B', value: 2 } },
+      { id: 'notin-3', data: { name: 'C', value: 3 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+      const queryBuilder = testCollection.query();
+      const results = await (queryBuilder as any)._where('name', 'not-in', ['A', 'C']).get();
+
+      expect(results).toHaveLength(1);
+      expect(results[0].name).toBe('B');
+
+    } finally {
+      await clearTestCollection();
+    }
+  });
+
+  it('should query documents using "array-contains-any" operator', async () => {
+    const dataSet = [
+      { id: 'arrany-1', data: { name: 'Item 1', value: 1, tags: ['a', 'b'] } }, // Added value
+      { id: 'arrany-2', data: { name: 'Item 2', value: 2, tags: ['c', 'd'] } }, // Added value
+      { id: 'arrany-3', data: { name: 'Item 3', value: 3, tags: ['a', 'e'] } }, // Added value
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+
+  it('should apply serverTimestamp default value from schema on add', async () => {
+    const schemaWithDefault: CollectionSchema = {
+      fields: {
+        lastUpdated: { defaultValue: 'serverTimestamp' },
+        value: { defaultValue: 999 } // Add another default for testing
+      },
+    };
+    const collectionWithSchema = new TestCollection(firestore, schemaWithDefault);
+    const dataToAdd = { name: 'Default Timestamp Add' }; // Omit value and lastUpdated // Omit value and lastUpdated
+    let docRefId: string | undefined;
+
+    try {
+      // Use add to test if ClientBaseCollectionRef applies defaults on add
+      const docRef = await collectionWithSchema.add(dataToAdd as TestAddData); // Use type assertion
+      expect(docRef).toBeDefined();
+      docRefId = docRef.id;
+
+      const retrievedData = await collectionWithSchema.get(docRefId);
+
+      expect(retrievedData).toBeDefined();
+      expect(retrievedData?.name).toBe('Default Timestamp Add');
+      // Check that the default values were applied
+      expect(retrievedData?.value).toBe(999); // Check numeric default
+      expect(retrievedData?.lastUpdated).toBeInstanceOf(Timestamp);
+
+    } finally {
+      // Cleanup using the same collection reference
+      if (docRefId) {
+        await collectionWithSchema.delete(docRefId);
+      }
+    }
+  });
+
+      const queryBuilder = testCollection.query();
+      // Find documents where tags contain either 'a' or 'd'
+      const results = await (queryBuilder as any)._where('tags', 'array-contains-any', ['a', 'd']).get();
+
+      expect(results).toHaveLength(3); // Item 1 ('a'), Item 2 ('d'), Item 3 ('a')
+      const names = results.map((r: TestData) => r.name);
+      expect(names).toContain('Item 1');
+      expect(names).toContain('Item 2');
+      expect(names).toContain('Item 3');
+
+    } finally {
+      await clearTestCollection();
+    }
+  });
+
+  it('should query documents using cursors (startAt, endBefore, endAt)', async () => {
+    const dataSet = [
+      { id: 'cursor-a', data: { name: 'A', value: 10 } },
+      { id: 'cursor-b', data: { name: 'B', value: 20 } },
+      { id: 'cursor-c', data: { name: 'C', value: 30 } },
+      { id: 'cursor-d', data: { name: 'D', value: 40 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+      // Get snapshots for cursors
+      const docBRef = testCollection.doc('cursor-b');
+      const docCRef = testCollection.doc('cursor-c');
+      const snapshotB = await getDoc(docBRef);
+      const snapshotC = await getDoc(docCRef);
+      expect(snapshotB.exists()).toBe(true);
+      expect(snapshotC.exists()).toBe(true);
+
+      const queryBuilder = testCollection.query().orderBy('value', 'asc');
+
+      // Test startAt (inclusive)
+      let results = await queryBuilder.startAt(snapshotB).get();
+      expect(results).toHaveLength(3);
+      expect(results.map((r: TestData) => r.name)).toEqual(['B', 'C', 'D']);
+
+      // Test endBefore (exclusive)
+      results = await queryBuilder.endBefore(snapshotC).get();
+      expect(results).toHaveLength(2);
+      expect(results.map((r: TestData) => r.name)).toEqual(['A', 'B']);
+
+      // Test endAt (inclusive)
+      results = await queryBuilder.endAt(snapshotC).get();
+      expect(results).toHaveLength(3);
+      expect(results.map((r: TestData) => r.name)).toEqual(['A', 'B', 'C']);
+
+      // Test combination: startAt B, endBefore D
+      results = await queryBuilder.startAt(snapshotB).endBefore(testCollection.doc('cursor-d')).get(); // Use doc ref directly for endBefore
+      expect(results).toHaveLength(2);
+      expect(results.map((r: TestData) => r.name)).toEqual(['B', 'C']);
+
+    } finally {
+
+  it('should query documents in a subcollection', async () => {
+    const parentId = 'parent-for-subquery';
+    const subDataSet = [
+      { id: 'subq-1', data: { description: 'Sub Query A', count: 10 } },
+      { id: 'subq-2', data: { description: 'Sub Query B', count: 20 } },
+      { id: 'subq-3', data: { description: 'Sub Query C', count: 10 } },
+    ];
+    try {
+      await testCollection.set(parentId, { name: 'Parent SubQuery', value: 1 });
+      const subCollection = testCollection.subItems(parentId);
+
+      for (const item of subDataSet) {
+        await subCollection.set(item.id, item.data);
+      }
+
+      // Need a way to get a query builder for the subcollection
+      // Assuming TestSubCollection inherits or has a query() method similar to TestCollection
+      // If not, we might need to instantiate ClientBaseQueryBuilder directly
+      const subQueryBuilder = subCollection.query(); // Use the method from TestSubCollection
+
+      // Query by count == 10
+      const results = await (subQueryBuilder as any)._where('count', '==', 10).get();
+      expect(results).toHaveLength(2);
+      const descriptions = results.map((r: SubTestData) => r.description);
+      expect(descriptions).toContain('Sub Query A');
+      expect(descriptions).toContain('Sub Query C');
+
+      // Query order by count desc, limit 1
+      const resultsOrdered = await subQueryBuilder.orderBy('count', 'desc').limit(1).get();
+      expect(resultsOrdered).toHaveLength(1);
+      expect(resultsOrdered[0].description).toBe('Sub Query B');
+
+    } finally {
+      await testCollection.delete(parentId); // Cleans up subcollection too
+    }
+  });
+
+  it('should update documents in a subcollection', async () => {
+    const parentId = 'parent-for-subupdate';
+    const subDocId = 'subu-1';
+    const initialSubData: SubTestAddData = { description: 'Initial Sub Desc', count: 5 };
+    try {
+      await testCollection.set(parentId, { name: 'Parent SubUpdate', value: 1 });
+      const subCollection = testCollection.subItems(parentId);
+      await subCollection.set(subDocId, initialSubData);
+
+      // Need a way to get an update builder for the subcollection document
+      // Assuming TestSubCollection inherits or has an update() method
+      // If not, instantiate ClientBaseUpdateBuilder directly
+      const subUpdateBuilder = subCollection.update(subDocId); // Use the method from TestSubCollection
+
+      await (subUpdateBuilder as any)
+        ._set('description', 'Updated Sub Desc')
+        ._increment('count', 5)
+        .commit();
+
+      const retrievedSubData = await subCollection.get(subDocId);
+      expect(retrievedSubData).toBeDefined();
+      expect(retrievedSubData?.description).toBe('Updated Sub Desc');
+      expect(retrievedSubData?.count).toBe(10);
+
+    } finally {
+      await testCollection.delete(parentId);
+    }
+  });
+
       await clearTestCollection();
     }
   });

@@ -204,6 +204,85 @@ void main() {
       expect(results.any((d) => d.name == 'Banana'), isTrue);
     });
 
+    test('where() should filter with various comparison operators', () async {
+      final builder = TestQueryBuilder(
+          firestore: fakeFirestore, collectionRef: itemsCollRef);
+
+      // isNotEqualTo
+      var results = await builder
+          .testWhere(fieldPath: 'value', isNotEqualTo: 10)
+          .getData();
+      expect(results.length, 3);
+      expect(results.any((d) => d.value == 10), isFalse);
+
+      // isLessThan
+      results =
+          await builder.testWhere(fieldPath: 'value', isLessThan: 15).getData();
+      expect(results.length, 2); // Carrot(5), Apple(10)
+      expect(results.any((d) => d.value == 5), isTrue);
+      expect(results.any((d) => d.value == 10), isTrue);
+
+      // isLessThanOrEqualTo
+      results = await builder
+          .testWhere(fieldPath: 'value', isLessThanOrEqualTo: 15)
+          .getData();
+      expect(results.length, 3); // Carrot(5), Apple(10), Apple(15)
+      expect(results.any((d) => d.value == 5), isTrue);
+      expect(results.any((d) => d.value == 10), isTrue);
+      expect(results.any((d) => d.value == 15), isTrue);
+
+      // isGreaterThanOrEqualTo
+      results = await builder
+          .testWhere(fieldPath: 'value', isGreaterThanOrEqualTo: 15)
+          .getData();
+      expect(results.length, 2); // Apple(15), Banana(20)
+      expect(results.any((d) => d.value == 15), isTrue);
+      expect(results.any((d) => d.value == 20), isTrue);
+    });
+
+    test('where() should filter with arrayContainsAny', () async {
+      final builder = TestQueryBuilder(
+          firestore: fakeFirestore, collectionRef: itemsCollRef);
+      final results = await builder.testWhere(
+          fieldPath: 'tags', arrayContainsAny: ['red', 'vegetable']).getData();
+      expect(results.length, 2); // Apple(10) has 'red', Carrot has 'vegetable'
+      expect(results.any((d) => d.name == 'Apple' && d.value == 10), isTrue);
+      expect(results.any((d) => d.name == 'Carrot'), isTrue);
+    });
+
+    test('where() should filter with whereIn', () async {
+      final builder = TestQueryBuilder(
+          firestore: fakeFirestore, collectionRef: itemsCollRef);
+      final results = await builder
+          .testWhere(fieldPath: 'name', whereIn: ['Apple', 'Carrot']).getData();
+      expect(results.length, 3); // Apple(10), Carrot(5), Apple(15)
+      expect(results.every((d) => d.name == 'Apple' || d.name == 'Carrot'),
+          isTrue);
+    });
+
+    test('where() should filter with whereNotIn', () async {
+      final builder = TestQueryBuilder(
+          firestore: fakeFirestore, collectionRef: itemsCollRef);
+      final results = await builder.testWhere(
+          fieldPath: 'name', whereNotIn: ['Apple', 'Carrot']).getData();
+      expect(results.length, 1); // Banana(20)
+      expect(results[0].name, 'Banana');
+    });
+
+    test('where() should filter with isNull', () async {
+      // Add an item with a null tag for testing
+      await itemsCollRef
+          .doc('item5')
+          .set(TestData(name: 'Orange', value: 25, active: true, tags: null));
+
+      final builder = TestQueryBuilder(
+          firestore: fakeFirestore, collectionRef: itemsCollRef);
+      final results =
+          await builder.testWhere(fieldPath: 'tags', isNull: true).getData();
+      expect(results.length, 1);
+      expect(results[0].name, 'Orange');
+    });
+
     // --- OrderBy Tests ---
     test('orderBy() should sort results', () async {
       final builder = TestQueryBuilder(
@@ -279,6 +358,41 @@ void main() {
       expect(results.length, 2); // Carrot(5), Apple(10)
       expect(results[0].name, equals('Carrot'));
       expect(results[1].name, equals('Apple'));
+
+      test('startAfter() should apply cursor', () async {
+        final builder = TestQueryBuilder(
+            firestore: fakeFirestore, collectionRef: itemsCollRef);
+        // Get a snapshot to start after (e.g., the first Apple)
+        final startDoc = await itemsCollRef.doc('item1').get();
+
+        final results = await builder
+            .orderBy('value')
+            .startAfterDocument(startDoc)
+            .getData();
+        // Expect results after the cursor.
+        expect(results.length, 2); // Apple(15), Banana(20)
+        expect(results[0].name, equals('Apple'));
+        expect(results[0].value, equals(15));
+        expect(results[1].name, equals('Banana'));
+      });
+
+      test('endAt() should apply cursor', () async {
+        final builder = TestQueryBuilder(
+            firestore: fakeFirestore, collectionRef: itemsCollRef);
+        // Get a snapshot to end at (e.g., the second Apple)
+        final endDoc = await itemsCollRef.doc('item4').get();
+
+        final results =
+            await builder.orderBy('value').endAtDocument(endDoc).getData();
+        // Expect results including the cursor.
+        expect(results.length, 3); // Carrot(5), Apple(10), Apple(15)
+        expect(results[0].name, equals('Carrot'));
+        expect(results[1].name, equals('Apple'));
+        expect(results[1].value, equals(10));
+        expect(results[2].name, equals('Apple'));
+        expect(results[2].value, equals(15));
+      });
+
       expect(results[1].value, equals(10));
     });
 
