@@ -1,91 +1,32 @@
-# Active Context: FireSchema (Executor + Adapter Refactor Complete)
+# Active Context: FireSchema (Documentation Restructure)
 
-**Current Focus:** Runtime test expansion (TS & Dart) is complete.
-Next: Populate VitePress documentation (`docs-src/`).
+**Current Focus:** Documentation structure and content refinement is complete based on user feedback. Ready for next task or further documentation expansion.
 
-**Recent Changes (Executor + Adapter Refactor):**
+**Recent Changes:**
 
-- **Configuration:** Updated config format (`src/types/config.ts`,
-  `src/configLoader.ts`) to use a single `target` string (e.g.,
-  `'typescript-client'`, `'typescript-admin'`, `'dart-client'`) instead of
-  separate `language` and `sdk` fields.
-- **Core Generator (Executor):** Rewrote `src/generator.ts` to act as an
-  orchestrator. It reads the `target` from the config, dynamically loads the
-  corresponding internal adapter module (from `src/adapters/`), and calls its
-  `generate` function.
-- **Adapters (Internal):**
-  - Created `src/adapters/` directory.
-  - Moved and refactored logic from old `src/generators/` into new adapter files
-    (`src/adapters/typescript.ts`, `src/adapters/dart.ts`).
-  - Adapters now load their own specific templates from subdirectories (e.g.,
-    `src/adapters/typescript-client/templates/`).
-- **Templates:** Split TypeScript templates into separate versions for Client
-  and Admin, located within their respective adapter directories. Removed
-  conditional `sdk` logic from templates. Fixed persistent Dart EJS template
-  errors.
-- **Runtime Refactor (Independent Runtimes):**
-  - Abandoned "Interface Package" approach due to SDK structural differences.
-  - Deleted `@shtse8/fireschema-core-types`.
-  - Rewrote `@shtse8/fireschema-ts-client-runtime` (using `firebase` v9+
-    functions).
-  - Rewrote `@shtse8/fireschema-ts-admin-runtime` (using `firebase-admin`
-    methods).
-  - Updated Adapters and Templates to use new runtimes.
-  - Updated `package.json` (direct SDK dependencies) and `tsconfig.json` files.
-  - Project successfully builds (`tsc -b`).
-- **Testing:**
-  - Updated generator tests (`src/__tests__/generator.test.ts`) to use the new
-    `target` config format.
-  - Updated/added snapshots for TS client, TS admin, and Dart client targets.
-  - Fixed import errors in generator tests (`src/__tests__/generator.test.ts`).
-  - Expanded unit tests for `ts-client-runtime` and `ts-admin-runtime`:
-    - Added tests for `subCollection`, `parentRef` constructor logic, and
-      `applyDefaults` in `baseCollection.test.ts` for both runtimes.
-    - Created and populated `baseQueryBuilder.test.ts` for both runtimes.
-    - Created and populated `baseUpdateBuilder.test.ts` for both runtimes.
-    - Made `subCollection` method public in both base collection classes.
-  - Created initial integration test files (`client.integration.test.ts`,
-    `admin.integration.test.ts`) for `ts-client-runtime` and `ts-admin-runtime`,
-    configured for Firestore emulator.
-    - Resolved Jest transformation issues by switching to `babel-jest`. All TS
-      runtime tests pass with `npx jest`.
-    - Expanded integration tests for `ts-client-runtime` and `ts-admin-runtime`:
-      - Added tests for `limitToLast`, `set` with merge options, more default value scenarios, and 3-level subcollection nesting.
-      - Updated `set` method in both TS base classes (`ClientBaseCollectionRef`, `AdminBaseCollectionRef`) to use overloads for better handling of merge options.
-    - Created and populated unit tests (`base_collection_ref_test.dart`) for `fireschema_dart_runtime`.
-      - Covered `doc`, `applyDefaults` (including serverTimestamp and other types), core CRUD (`add`, `set`, `get`, `delete`), `updateData`, and `subCollection`.
-      - Used `fake_cloud_firestore` for mocking.
-    - Created and populated integration tests (`runtime_integration_test.dart`) for `fireschema_dart_runtime`.
-      - Configured for Firestore emulator.
-      - Covered core CRUD, `updateData`, various query operators (`where`, `orderBy`, `limit`, `limitToLast`, comparisons, `whereIn`, `whereNotIn`, `arrayContains`, `arrayContainsAny`, cursors), default value application on `add`, and subcollection CRUD/queries.
-      - Added `updateData` method to Dart `BaseCollectionRef` and adjusted `set` method to handle merges correctly.
-      - Added `integration_test` dev dependency (initially incorrect, then removed) and fixed test setup for pure Dart.
-- **Documentation:**
-  - Replaced TypeDoc setup with VitePress.
-  - Created initial VitePress site structure (`docs-src`), configuration
-    (`config.mts`), homepage (`index.md`), and basic guide pages.
-  - Added npm scripts for VitePress (`docs:dev`, `docs:build`, `docs:preview`).
-  - Updated GitHub Actions workflow (`publish.yml`) to build and deploy
-    VitePress site to GitHub Pages.
+-   **(Previous) Executor + Adapter Refactor:**
+    -   Updated config format (`target` string).
+    -   Rewrote `src/generator.ts` as orchestrator.
+    -   Created internal adapters in `src/adapters/`.
+    -   Split templates per target (TS Client/Admin).
+    -   Refactored runtimes into independent packages (`ts-client-runtime`, `ts-admin-runtime`), removing core types package.
+    -   Updated tests (snapshots, unit, integration) for new structure and expanded coverage.
+    -   Switched TS runtime tests to `babel-jest`.
+    -   Added/fixed Dart runtime tests (unit with `fake_cloud_firestore`, integration with emulator).
+    -   Replaced TypeDoc with VitePress for documentation.
+-   **Documentation Restructure & Content:**
+    -   Restructured VitePress site (`docs-src`) to be runtime-centric (TS Client, TS Admin, Dart Client guides).
+    -   Consolidated detailed API usage examples (CRUD, Querying, Streaming, Subcollections, Updates, Transactions) into the main guide page for each runtime.
+    -   Added specific SDK/Runtime info and Testing Strategy details to each runtime guide page.
+    -   Refined Feature/Roadmap table on `index.md` and `README.md`.
+    -   Simplified `README.md` to provide overview and link to full docs.
+    -   Removed separate `/api` documentation structure and redundant/obsolete guide files.
+    -   Corrected project name references (`FireSchema` vs `firestore-odm`) in VitePress config and README links.
 
 **Next Steps:**
 
-1. **Expand Runtime Tests:**
-   - ~~Add comprehensive test cases to unit tests for `ts-client-runtime` and
-     `ts-admin-runtime` (covering `BaseCollectionRef`, `BaseQueryBuilder`,
-     `BaseUpdateBuilder`).~~ **(Done)**
-   - ~~Add comprehensive test cases to integration tests for `ts-client-runtime`
-     and `ts-admin-runtime` (covering CRUD, queries, updates, subcollections,
-     default values).~~ **(Done)**
-   - ~~Add comprehensive test cases to unit and integration tests for the Dart
-     runtime (`fireschema_dart_runtime`).~~ **(Done)**
-2. **Populate VitePress Documentation:** Add more detailed content to the - **(Next Task)**
-   VitePress site (`docs-src`), explaining features, API, and advanced usage.
-3. **(Optional) Address Minor Test Issues:** Investigate the `jest.mock` errors
-   reported by `bun test` (but not `npx jest`).
-4. **(Future) Implement More Adapters:** Add adapters for new targets (e.g.,
-   `dart-server-rest`, `csharp-client`).
-5. **(Future) Generator Enhancements:** Add support for more complex schema
-   validation rules, improve error reporting.
-6. **(Future) Documentation:** Continue refining and expanding the VitePress
-   documentation.
+1.  **(Optional) Address Minor Test Issues:** Investigate the `jest.mock` errors reported by `bun test` (but not `npx jest`).
+2.  **(Future) Implement More Adapters:** Add adapters for new targets (e.g., `dart-admin-rest`, `csharp-client`).
+3.  **(Future) Generator Enhancements:** Add support for more complex schema validation rules, improve error reporting.
+4.  **(Future) Documentation:** Continue refining and expanding the VitePress documentation content (e.g., filling out advanced topics, adding more complex examples).
+5.  **Publish Packages:** Prepare for publishing CLI and runtime packages to npm/pub.dev.

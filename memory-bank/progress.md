@@ -1,123 +1,51 @@
-# Progress: FireSchema (Pivoting to Executor + Adapter Architecture)
+# Progress: FireSchema (Documentation Restructure Complete)
 
 **What Works:**
 
-- **Core Functionality:**
-  - CLI tool (`fireschema generate`) executes via Node.js/Bun.
-  - Parses and validates configuration (`fireschema.config.json`) and schema
-    (`firestore.schema.json`).
-  - _Previous architecture_ generated TS/Dart code (models, wrappers) using
-    separate runtime libraries.
-  - Subcollection generation worked correctly.
-- **Runtime Architecture (Previous):**
-  - Separate, installable runtime libraries (`@shtse8/fireschema-runtime`,
-    `fireschema_dart_runtime`) contained base logic.
-  - Monorepo structure with npm workspaces is functional.
-- **Build & Development:**
-  - Build system using Bun/TSC is functional for the previous architecture.
-  - Development tooling standardized on Bun.
-- **Testing (Previous Architecture):**
-  - Generator snapshot tests (`src/__tests__/generator.test.ts`) pass after
-    fixing import issues (`fs`, `path`). Snapshots updated for new runtime
-    dependencies.
-  - Expanded unit tests for `ts-client-runtime` and `ts-admin-runtime` base
-    classes (`baseCollection.test.ts`, `baseQueryBuilder.test.ts`,
-    `baseUpdateBuilder.test.ts`).
-  - Initial integration test files (`client.integration.test.ts`,
-    `admin.integration.test.ts`) created and expanded for `ts-client-runtime` and
-    `ts-admin-runtime`, configured for Firestore emulator. Covers CRUD, queries, defaults, subcollections.
-  - Dart unit tests (`base_collection_ref_test.dart`) created and populated for `fireschema_dart_runtime`, using `fake_cloud_firestore`. Covers core logic.
-  - Dart integration tests (`runtime_integration_test.dart`) created and populated for `fireschema_dart_runtime`, configured for Firestore emulator. Covers CRUD, queries, defaults, subcollections.
-  - Dart analysis and TS compilation pass for generated code and runtimes.
-- **Publishing & CI/CD:**
-  - GitHub Actions workflow is functional for building, testing (with known
-    issues), and publishing existing packages (`@shtse8/fireschema`,
-    `@shtse8/fireschema-runtime`, `fireschema_dart_runtime`) on version tags.
-- **Partial TS Admin Support (Committed but Superseded):**
-  - TS Runtime (`@shtse8/fireschema-runtime`) was refactored for dual SDK
-    support.
-  - Config/Generator/Templates were updated for `sdk` option.
-- **Dart EJS Fix:**
-  - Resolved persistent EJS parsing error in Dart model template.
+-   **Core Functionality:**
+    -   CLI tool (`fireschema generate`) executes via Node.js/Bun.
+    -   Parses and validates configuration (`fireschema.config.json`) and schema (`firestore.schema.json`).
+    -   Executor + Adapter architecture correctly generates code for `typescript-client`, `typescript-admin`, and `dart-client` targets.
+    -   Subcollection generation works correctly.
+-   **Runtime Architecture:**
+    -   Separate, independent, installable runtime libraries (`@shtse8/fireschema-ts-client-runtime`, `@shtse8/fireschema-ts-admin-runtime`, `fireschema_dart_runtime`) contain base logic for each target.
+    -   Monorepo structure with npm workspaces is functional.
+-   **Build & Development:**
+    -   Build system using Bun/TSC (`tsc -b`) successfully builds all packages.
+    -   Development tooling standardized on Bun.
+-   **Testing:**
+    -   Generator snapshot tests (`src/__tests__/generator.test.ts`) pass, verifying generated file structure for all targets.
+    -   TS Client Runtime: Comprehensive unit (Jest) and integration (Jest + Emulator) tests cover core features.
+    -   TS Admin Runtime: Comprehensive unit (Jest) and integration (Jest + Emulator) tests cover core features.
+    -   Dart Client Runtime: Comprehensive unit (`fake_cloud_firestore`) and integration (Emulator) tests cover core features.
+    -   All runtime tests pass when run via `npx jest` (TS) or `dart test` (Dart).
+-   **Publishing & CI/CD:**
+    -   GitHub Actions workflow is functional for building, testing (using `npx jest`), and publishing existing packages on version tags.
+-   **Documentation:**
+    -   VitePress site is set up (`docs-src/`).
+    -   Configuration (`config.mts`) is updated for runtime-centric navigation.
+    -   Core guide pages (Introduction, Installation, Schema, Config) are present.
+    -   **NEW:** Detailed, consolidated guide pages for each runtime (TS Client, TS Admin, Dart Client) covering setup, CRUD, querying, streaming, subcollections, updates, transactions, and testing strategy are populated.
+    -   **NEW:** Dedicated Roadmap page created.
+    -   **NEW:** Homepage (`index.md`) and root `README.md` updated with refined feature/roadmap table and links.
+    -   **NEW:** Redundant/obsolete documentation files removed.
 
-**What's Left (New Refactoring Plan):**
+**What's Left:**
 
-1. **Architectural Refactor (Executor + Adapter Pattern):** - **HIGHEST
-   PRIORITY**
-   - **Phase 1: Update Config & Core Generator:** ✅ **COMPLETED**
-     - Modified config (`src/types/config.ts`, `src/configLoader.ts`) to use
-       `target` string (e.g., `'typescript-client'`).
-     - Rewrote core generator (`src/generator.ts`) as an orchestrator
-       loading/calling adapters based on `target`.
-   - **Phase 2: Create/Refactor Adapters:** ✅ **COMPLETED**
-     - Created `src/adapters/` directory.
-     - Moved/Refactored logic into new adapter files (`typescript-client.ts`,
-       `typescript-admin.ts`, `dart-client.ts`).
-     - Ensured adapters load their own templates and handle target-specific
-       logic.
-   - **Phase 3: Update/Implement Tests:** ✅ **COMPLETED (With Caveats)**
-     - Updated `src/__tests__/generator.test.ts` for new config format and fixed
-       import errors. Snapshots updated.
-     - Created initial unit and integration test files for `ts-client-runtime`
-       and `ts-admin-runtime`.
-     - **Resolved Jest Transformation Issues:** Switched Jest configuration from
-       `ts-jest` to `babel-jest` for both `ts-client-runtime` and
-       `ts-admin-runtime` projects, adding necessary Babel dependencies and
-       `babel.config.cjs` files to each package. This resolved persistent
-       TypeScript syntax parsing errors.
-     - **All TS runtime unit and integration tests now pass** when run with
-       `npx jest`.
-     - ~~**Next:** Expand unit test coverage for TS runtime packages.~~
-       **(Done)**
-     - ~~**Next:** Expand integration test coverage for TS runtime packages.~~ **(Done)**
-     - ~~**Next:** Expand unit/integration test coverage for Dart runtime package.~~ **(Done)**
-     - Persistent test environment issues (`jest.mock` errors) remain when using
-       `bun test`. (Deferring resolution, using `npx jest` for now).
-   - **Phase 4: Update Memory Bank & Documentation:** ✅ **COMPLETED**
-     - Updated `activeContext.md`, `progress.md`, `systemPatterns.md`,
-       `techContext.md` to reflect the Executor + Adapter architecture and the
-       split-template approach.
-   - **Phase 5: Refactor TS Runtime (Independent Runtimes):** ✅ **COMPLETED**
-     - Abandoned "Interface Package" approach due to SDK structural differences.
-     - Deleted `@shtse8/fireschema-core-types`.
-     - Rewrote `@shtse8/fireschema-ts-client-runtime` to be fully self-contained
-       and use `firebase` v9+ functions.
-     - Rewrote `@shtse8/fireschema-ts-admin-runtime` to be fully self-contained
-       and use `firebase-admin` methods.
-     - Updated `typescript-client` and `typescript-admin` adapters and templates
-       to use their respective independent runtimes.
-     - Updated `package.json` files for dependencies (using direct SDK
-       dependencies, removed peerDependencies for SDKs).
-     - Updated `tsconfig.json` files for project references.
-     - Successfully built the project (`tsc -b`).
-2. **Generator Enhancements (Post-Refactor):**
-   - Support more complex validation rules.
-   - Improve error handling.
-3. **Documentation (Post-Refactor):**
-   - Replaced TypeDoc with VitePress. ✅ **COMPLETED**
-   - Created initial site structure, config, homepage, and basic guide pages in `docs-src/`. ✅ **COMPLETED**
-   - Configured GitHub Actions to build and deploy VitePress site to GitHub Pages. ✅ **COMPLETED**
-   - **Next:** Populate documentation (`docs-src/`) with more detailed content (API, usage, features).
+1.  **(Optional) Address Minor Test Issues:** Investigate `jest.mock` errors with `bun test`. (Deferring).
+2.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
+3.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
+4.  **(Future) Documentation Content:** Refine existing content, add more examples, potentially fill out "Advanced Topics" further.
+5.  **Publish Packages:** Prepare for publishing CLI and runtime packages.
 
 **Current Status:**
 
-**Executor + Adapter Refactor & Test Expansion Complete:** All phases including runtime refactor,
-test expansion, and memory bank updates are complete.
+**Documentation Restructure & Initial Content Population Complete:** The documentation site now has a runtime-centric structure with detailed guides for each supported target, covering core functionality and testing. The project is well-documented for its current feature set.
 
-**Current focus:** Populate VitePress documentation (`docs-src/`). Future work involves
-generator enhancements and addressing known issues.
+**Next focus:** Likely preparing for package publishing or addressing known minor issues/enhancements.
 
 **Known Issues:**
 
-- **Test Runner Incompatibility:**
-  - (Removed fixed `fs` import issue)
-  - `TypeError: jest.mock is not a function` in runtime package tests when run
-    via `bun test`. Tests pass when run with `npx jest`. (Deferring resolution,
-    using `npx jest`).
-- **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in
-  `src/__tests__/dart-generated` due to path resolution issues.
-- **Test Cleanup Flakiness:** Generator snapshot tests sometimes fail during
-  cleanup (`fs.rmSync`) with `EBUSY` error. (Cleanup currently disabled in
-  test).
-- **Dart Unit Test Status:** Unit tests using `fake_cloud_firestore` are passing for `BaseCollectionRef`. (Query/Update builder tests not yet created).
-- **Dart Integration Test Status:** Integration tests using the Firestore emulator are passing for `BaseCollectionRef` functionalities tested so far.
+-   **Test Runner Incompatibility:** `jest.mock` errors when using `bun test` (passes with `npx jest`). (Deferring resolution).
+-   **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in `src/__tests__/dart-generated`.
+-   **Test Cleanup Flakiness:** Generator snapshot tests sometimes fail during cleanup (`fs.rmSync`). (Cleanup currently disabled).
