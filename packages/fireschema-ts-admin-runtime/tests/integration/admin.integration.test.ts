@@ -31,7 +31,35 @@ interface SubTestAdminData {
 }
 type SubTestAdminAddData = Omit<SubTestAdminData, 'id'>;
 
-// Subcollection class
+// --- Sub-Subcollection Types (Level 3) ---
+interface SubSubTestAdminData {
+  id?: string;
+  detail: string;
+  timestamp: Timestamp; // Use admin Timestamp
+}
+type SubSubTestAdminAddData = Omit<SubSubTestAdminData, 'id'>;
+
+// Sub-Subcollection class (Level 3)
+class TestAdminSubSubCollection extends AdminBaseCollectionRef<SubSubTestAdminData, SubSubTestAdminAddData> {
+  constructor(
+    firestore: Firestore,
+    collectionId: string,
+    schema?: CollectionSchema,
+    parentRef?: DocumentReference<DocumentData>
+  ) {
+    super(firestore, collectionId, schema, parentRef);
+  }
+  // Basic query/update builders for testing
+  query(): AdminBaseQueryBuilder<SubSubTestAdminData> {
+    return new AdminBaseQueryBuilder<SubSubTestAdminData>(this.firestore, this.ref);
+  }
+  update(id: string): AdminBaseUpdateBuilder<SubSubTestAdminData> {
+    return new AdminBaseUpdateBuilder<SubSubTestAdminData>(this.doc(id));
+  }
+}
+
+
+// Subcollection class (Level 2)
 class TestAdminSubCollection extends AdminBaseCollectionRef<SubTestAdminData, SubTestAdminAddData> {
   // Match the constructor signature expected by the subCollection helper
   constructor(
@@ -54,9 +82,21 @@ class TestAdminSubCollection extends AdminBaseCollectionRef<SubTestAdminData, Su
     return new AdminBaseUpdateBuilder<SubTestAdminData>(docRef);
   }
 
+  // Method to access the sub-subcollection (Level 3)
+  subSubItems(parentId: string): TestAdminSubSubCollection {
+    const subSubSchema = undefined; // Define schema if needed
+    // Use the public subCollection method from the base class
+    return this.subCollection(parentId, 'sub-sub-admin-items', TestAdminSubSubCollection, subSubSchema);
+  }
 }
 
-type TestAdminAddData = Omit<TestAdminData, 'id' | 'lastChecked'>; // Exclude generated/server fields
+// Make fields that might have defaults optional in the Add type
+type TestAdminAddData = Omit<TestAdminData, 'id' | 'lastChecked' | 'serviceName' | 'status' | 'value' | 'tags'> & {
+  serviceName?: string;
+  status?: 'active' | 'inactive';
+  value?: number;
+  tags?: string[];
+};
 
 // A concrete class extending the base for testing
 class TestAdminCollection extends AdminBaseCollectionRef<TestAdminData, TestAdminAddData> {
@@ -592,6 +632,32 @@ describe('Admin Runtime Integration Tests', () => {
     }
   });
 
+  it('should query documents using limitToLast', async () => {
+    const dataSet = [
+      { id: 'admin-limitlast-1', data: { serviceName: 'First', status: 'active', value: 1 } },
+      { id: 'admin-limitlast-2', data: { serviceName: 'Second', status: 'active', value: 2 } },
+      { id: 'admin-limitlast-3', data: { serviceName: 'Third', status: 'inactive', value: 3 } },
+      { id: 'admin-limitlast-4', data: { serviceName: 'Fourth', status: 'active', value: 4 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testAdminCollection.set(item.id, item.data as TestAdminAddData);
+      }
+
+      const queryBuilder = testAdminCollection.query();
+      // Get the last 2 documents when ordered by value ascending
+      const results = await queryBuilder.orderBy('value', 'asc').limitToLast(2).get();
+
+      expect(results).toHaveLength(2);
+      expect(results[0].serviceName).toBe('Third'); // Third item has value 3
+      expect(results[1].serviceName).toBe('Fourth'); // Fourth item has value 4
+
+    } finally {
+      await cleanupCollection();
+    }
+  });
+
+
 
 
 
@@ -634,6 +700,100 @@ describe('Admin Runtime Integration Tests', () => {
     }
   });
 
+  it('should set document with merge options', async () => {
+    const docId = 'admin-set-merge-test';
+    const initialData: TestAdminAddData = { serviceName: 'Initial Admin Merge', status: 'active', value: 100, tags: ['one'] };
+    const partialUpdateData = { value: 200, tags: ['two'] }; // Update value, replace tags
+    const mergeFieldsUpdateData = { serviceName: 'Merged Fields Admin Name' }; // Only update name
+
+    try {
+      // 1. Initial set
+      await testAdminCollection.set(docId, initialData);
+      let retrieved = await testAdminCollection.get(docId);
+      expect(retrieved).toEqual(expect.objectContaining(initialData));
+
+      // 2. Set with merge: true (should update value, replace tags, keep name and status)
+      await testAdminCollection.set(docId, partialUpdateData, { merge: true });
+      retrieved = await testAdminCollection.get(docId);
+      expect(retrieved?.serviceName).toBe('Initial Admin Merge'); // Name should persist
+      expect(retrieved?.status).toBe('active'); // Status should persist
+      expect(retrieved?.value).toBe(200); // Value updated
+      expect(retrieved?.tags).toEqual(['two']); // Tags replaced
+
+      // 3. Set with mergeFields (should only update name, keep value, status, and tags from step 2)
+      await testAdminCollection.set(docId, mergeFieldsUpdateData, { mergeFields: ['serviceName'] });
+      retrieved = await testAdminCollection.get(docId);
+      expect(retrieved?.serviceName).toBe('Merged Fields Admin Name'); // Name updated
+      expect(retrieved?.status).toBe('active'); // Status from step 1 persists
+
+  it('should apply various default values from schema on add', async () => {
+    const docId = 'admin-default-values-various-add';
+    const schemaWithDefaults: CollectionSchema = {
+      fields: {
+        serviceName: { defaultValue: 'Default Service' },
+        value: { defaultValue: 0 },
+        tags: { defaultValue: ['default-admin'] },
+        status: { defaultValue: 'inactive' }, // Default for existing field
+        lastChecked: { defaultValue: 'serverTimestamp' },
+        // Assuming a boolean field 'isCritical' could exist
+        isCritical: { defaultValue: false },
+      },
+    };
+    // Extend TestAdminData for the boolean field
+    interface TestAdminDataExtended extends TestAdminData { isCritical?: boolean; }
+    // Define a specific Add type for the extended interface, making fields with defaults optional
+    type TestAdminAddDataExtended = Omit<TestAdminDataExtended, 'id' | 'lastChecked' | 'serviceName' | 'status' | 'value' | 'tags' | 'isCritical'> & {
+        serviceName?: string;
+        status?: 'active' | 'inactive';
+        value?: number;
+        tags?: string[];
+        isCritical?: boolean;
+    };
+    // Use the specific Add type in the class definition
+    class TestAdminCollectionExtended extends AdminBaseCollectionRef<TestAdminDataExtended, TestAdminAddDataExtended> {
+        constructor(db: Firestore, schema?: CollectionSchema) { super(db, 'test-admin-items-extended', schema); }
+    }
+    const collectionWithSchema = new TestAdminCollectionExtended(firestore, schemaWithDefaults);
+    // Provide only a field *not* having a default to trigger others
+    // Note: TAddData for TestAdminCollectionExtended excludes id and lastChecked
+    // Provide required fields as undefined to trigger defaults, plus a non-default field
+    const dataToAdd = { serviceName: undefined, status: undefined, someOtherField: 'trigger' };
+    let addedDocId: string | undefined;
+
+    try {
+      // Add the document, expecting defaults to be applied
+      // No need for assertion now, dataToAdd matches the refined TestAdminAddDataExtended type
+      const docRef = await collectionWithSchema.add(dataToAdd);
+      addedDocId = docRef.id;
+      const retrievedData = await collectionWithSchema.get(addedDocId);
+
+      expect(retrievedData).toBeDefined();
+      // Check defaults
+      expect(retrievedData?.serviceName).toBe('Default Service');
+      expect(retrievedData?.value).toBe(0);
+      expect(retrievedData?.tags).toEqual(['default-admin']);
+      expect(retrievedData?.status).toBe('inactive');
+      expect(retrievedData?.isCritical).toBe(false);
+      expect(retrievedData?.lastChecked).toBeInstanceOf(Timestamp);
+      // Check that the non-schema field wasn't added (Firestore behavior)
+      expect(retrievedData?.hasOwnProperty('someOtherField')).toBe(false);
+
+    } finally {
+      if (addedDocId) {
+        await collectionWithSchema.delete(addedDocId);
+      }
+    }
+  });
+
+      expect(retrieved?.value).toBe(200); // Value from step 2 persists
+      expect(retrieved?.tags).toEqual(['two']); // Tags from step 2 persist
+
+    } finally {
+      await testAdminCollection.delete(docId);
+    }
+  });
+
+
   it('should remove array elements and delete fields', async () => {
     const docId = 'admin-update-2';
     const initialData: TestAdminAddData = { serviceName: 'Admin Array Remove', status: 'active', tags: ['x', 'y', 'z'], value: 99 };
@@ -659,6 +819,54 @@ describe('Admin Runtime Integration Tests', () => {
       await testAdminCollection.delete(docId);
     }
   });
+
+
+  it('should handle 3-level nested subcollections (add, get, delete)', async () => {
+    const parentId = 'admin-level1-doc';
+    const subId = 'admin-level2-doc';
+    const subSubId = 'admin-level3-doc';
+
+    const parentData: TestAdminAddData = { serviceName: 'Admin Level 1', status: 'active' };
+    const subData: SubTestAdminAddData = { description: 'Admin Level 2', count: 20 };
+    const subSubData: SubSubTestAdminAddData = { detail: 'Admin Level 3', timestamp: Timestamp.now() };
+
+    try {
+      // Create parent (Level 1)
+      await testAdminCollection.set(parentId, parentData);
+
+      // Get subcollection (Level 2)
+      const subCollection = testAdminCollection.subItems(parentId);
+      await subCollection.set(subId, subData);
+
+      // Get sub-subcollection (Level 3)
+      const subSubCollection = subCollection.subSubItems(subId);
+      await subSubCollection.set(subSubId, subSubData);
+
+      // Verify Level 3 data
+      const retrievedSubSub = await subSubCollection.get(subSubId);
+      expect(retrievedSubSub).toBeDefined();
+      expect(retrievedSubSub?.detail).toBe('Admin Level 3');
+      expect(retrievedSubSub?.timestamp).toEqual(subSubData.timestamp); // Compare admin timestamps
+
+      // Delete Level 3
+      await subSubCollection.delete(subSubId);
+      const deletedSubSub = await subSubCollection.get(subSubId);
+      expect(deletedSubSub).toBeUndefined();
+
+      // Verify Level 2 still exists
+      const retrievedSub = await subCollection.get(subId);
+      expect(retrievedSub).toBeDefined();
+
+      // Verify Level 1 still exists
+      const retrievedParent = await testAdminCollection.get(parentId);
+      expect(retrievedParent).toBeDefined();
+
+    } finally {
+      // Cleanup: Deleting parent should cascade in emulator
+      await testAdminCollection.delete(parentId);
+    }
+  });
+
 
   // --- Default Value Test ---
 

@@ -83,13 +83,26 @@ export class AdminBaseCollectionRef<
     return this.ref.add(dataToWrite);
   }
 
-  /** Sets the data for a document. */
-  async set(id: string, data: TAddData, options?: SetOptions): Promise<FirebaseFirestore.WriteResult> {
+  /** Sets the data for a document, overwriting existing data unless merge options are provided. */
+  // Overload for setting the entire document (no merge options or explicit merge: false)
+  async set(id: string, data: TAddData, options?: SetOptions & { merge?: false | undefined }): Promise<FirebaseFirestore.WriteResult>;
+  // Overload for setting with merge options (accepts partial data, requires merge:true or mergeFields)
+  async set(id: string, data: Partial<TAddData>, options: SetOptions & ({ merge: true } | { mergeFields: ReadonlyArray<string | FirebaseFirestore.FieldPath> })): Promise<FirebaseFirestore.WriteResult>;
+  // Implementation signature
+  async set(id: string, data: TAddData | Partial<TAddData>, options?: SetOptions): Promise<FirebaseFirestore.WriteResult> {
     const docRef = this.doc(id);
+
+    // Determine if it's a merge operation
+    const isMerge = options && ('merge' in options && options.merge === true || 'mergeFields' in options);
+
+    // Apply defaults ONLY if it's NOT a merge operation (setting the whole document)
+    // We cast data to TAddData here because the overload guarantees it's the full type when !isMerge.
+    const dataToWrite = !isMerge ? this.applyDefaults(data as TAddData) : data;
+
     // Use documentRef's set method
-    const dataToWrite = this.applyDefaults(data); // Apply defaults for set as well
-    // Use documentRef's set method
-    return docRef.set(dataToWrite, options || {});
+    // Cast dataToWrite to Partial<TData> which is compatible with set's expectation for merge operations.
+    // Note: Admin SDK's set method handles the Partial<T> typing internally more flexibly than client v9.
+    return docRef.set(dataToWrite as Partial<TData>, options || {});
   }
 
   /** Deletes a document. */

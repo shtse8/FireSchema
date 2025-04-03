@@ -90,12 +90,25 @@ export class ClientBaseCollectionRef<
     return addDoc(this.ref, dataToWrite);
   }
 
-  /** Sets the data for a document. */
-  async set(id: string, data: TAddData, options?: SetOptions): Promise<void> {
+  /** Sets the data for a document, overwriting existing data unless merge options are provided. */
+  // Overload for setting the entire document (no merge options or explicit merge: false)
+  async set(id: string, data: TAddData, options?: SetOptions & { merge?: false | undefined }): Promise<void>;
+  // Overload for setting with merge options (accepts partial data, requires merge:true or mergeFields)
+  async set(id: string, data: Partial<TAddData>, options: SetOptions & ({ merge: true } | { mergeFields: ReadonlyArray<string> })): Promise<void>;
+  // Implementation signature
+  async set(id: string, data: TAddData | Partial<TAddData>, options?: SetOptions): Promise<void> {
     const docRef = this.doc(id);
+
+    // Determine if it's a merge operation
+    const isMerge = options && ('merge' in options && options.merge === true || 'mergeFields' in options);
+
+    // Apply defaults ONLY if it's NOT a merge operation (setting the whole document)
+    // We cast data to TAddData here because the overload guarantees it's the full type when !isMerge.
+    const dataToWrite = !isMerge ? this.applyDefaults(data as TAddData) : data;
+
     // Use top-level setDoc function
-    const dataToWrite = this.applyDefaults(data); // Apply defaults for set as well
-    await setDoc(docRef, dataToWrite, options || {});
+    // Cast dataToWrite to Partial<TData> which is compatible with setDoc's expectation for merge operations.
+    await setDoc(docRef, dataToWrite as Partial<TData>, options || {});
   }
 
   /** Deletes a document. */

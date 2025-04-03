@@ -31,7 +31,35 @@ interface SubTestData {
 }
 type SubTestAddData = Omit<SubTestData, 'id'>;
 
-// Subcollection class
+// --- Sub-Subcollection Types ---
+interface SubSubTestData {
+  id?: string;
+  detail: string;
+  timestamp: Timestamp;
+}
+type SubSubTestAddData = Omit<SubSubTestData, 'id'>;
+
+// Sub-Subcollection class
+class TestSubSubCollection extends ClientBaseCollectionRef<SubSubTestData, SubSubTestAddData> {
+  constructor(
+    firestore: Firestore,
+    collectionId: string,
+    schema?: CollectionSchema,
+    parentRef?: DocumentReference<DocumentData>
+  ) {
+    super(firestore, collectionId, schema, parentRef);
+  }
+  // Basic query/update builders for testing
+  query(): ClientBaseQueryBuilder<SubSubTestData> {
+    return new ClientBaseQueryBuilder<SubSubTestData>(this.firestore, this.ref);
+  }
+  update(id: string): ClientBaseUpdateBuilder<SubSubTestData> {
+    return new ClientBaseUpdateBuilder<SubSubTestData>(this.doc(id));
+  }
+}
+
+
+// Subcollection class (Level 2)
 class TestSubCollection extends ClientBaseCollectionRef<SubTestData, SubTestAddData> {
   // Match the signature expected by the base subCollection method
   constructor(
@@ -55,7 +83,11 @@ class TestSubCollection extends ClientBaseCollectionRef<SubTestData, SubTestAddD
     return new ClientBaseUpdateBuilder<SubTestData>(docRef);
   }
 
-  // Add specific query/update methods if needed
+  // Method to access the sub-subcollection (Level 3)
+  subSubItems(parentId: string): TestSubSubCollection {
+    const subSubSchema = undefined; // Define schema if needed
+    return this.subCollection(parentId, 'sub-sub-items', TestSubSubCollection, subSubSchema);
+  }
 }
 
 type TestAddData = Omit<TestData, 'id'>;
@@ -459,48 +491,14 @@ describe('Client Runtime Integration Tests', () => {
 
   it('should query documents using "array-contains-any" operator', async () => {
     const dataSet = [
-      { id: 'arrany-1', data: { name: 'Item 1', value: 1, tags: ['a', 'b'] } }, // Added value
-      { id: 'arrany-2', data: { name: 'Item 2', value: 2, tags: ['c', 'd'] } }, // Added value
-      { id: 'arrany-3', data: { name: 'Item 3', value: 3, tags: ['a', 'e'] } }, // Added value
+      { id: 'arrany-1', data: { name: 'Item 1', value: 1, tags: ['a', 'b'] } },
+      { id: 'arrany-2', data: { name: 'Item 2', value: 2, tags: ['c', 'd'] } },
+      { id: 'arrany-3', data: { name: 'Item 3', value: 3, tags: ['a', 'e'] } },
     ];
     try {
       for (const item of dataSet) {
         await testCollection.set(item.id, item.data);
       }
-
-
-  it('should apply serverTimestamp default value from schema on add', async () => {
-    const schemaWithDefault: CollectionSchema = {
-      fields: {
-        lastUpdated: { defaultValue: 'serverTimestamp' },
-        value: { defaultValue: 999 } // Add another default for testing
-      },
-    };
-    const collectionWithSchema = new TestCollection(firestore, schemaWithDefault);
-    const dataToAdd = { name: 'Default Timestamp Add' }; // Omit value and lastUpdated // Omit value and lastUpdated
-    let docRefId: string | undefined;
-
-    try {
-      // Use add to test if ClientBaseCollectionRef applies defaults on add
-      const docRef = await collectionWithSchema.add(dataToAdd as TestAddData); // Use type assertion
-      expect(docRef).toBeDefined();
-      docRefId = docRef.id;
-
-      const retrievedData = await collectionWithSchema.get(docRefId);
-
-      expect(retrievedData).toBeDefined();
-      expect(retrievedData?.name).toBe('Default Timestamp Add');
-      // Check that the default values were applied
-      expect(retrievedData?.value).toBe(999); // Check numeric default
-      expect(retrievedData?.lastUpdated).toBeInstanceOf(Timestamp);
-
-    } finally {
-      // Cleanup using the same collection reference
-      if (docRefId) {
-        await collectionWithSchema.delete(docRefId);
-      }
-    }
-  });
 
       const queryBuilder = testCollection.query();
       // Find documents where tags contain either 'a' or 'd'
@@ -516,6 +514,113 @@ describe('Client Runtime Integration Tests', () => {
       await clearTestCollection();
     }
   });
+
+  // --- Default Value Tests --- // Moved here
+
+  it('should apply serverTimestamp and numeric default values from schema on add', async () => {
+    const schemaWithDefault: CollectionSchema = {
+      fields: {
+        lastUpdated: { defaultValue: 'serverTimestamp' },
+        value: { defaultValue: 999 } // Add another default for testing
+      },
+    };
+    const collectionWithSchema = new TestCollection(firestore, schemaWithDefault);
+    // Omit value and lastUpdated to test defaults
+    const dataToAdd = { name: 'Default Add Test' };
+    let docRefId: string | undefined;
+
+    try {
+      // Use add to test if ClientBaseCollectionRef applies defaults on add
+      const docRef = await collectionWithSchema.add(dataToAdd as TestAddData); // Use type assertion
+      expect(docRef).toBeDefined();
+      docRefId = docRef.id;
+
+      const retrievedData = await collectionWithSchema.get(docRefId);
+
+      expect(retrievedData).toBeDefined();
+      expect(retrievedData?.name).toBe('Default Add Test');
+      // Check that the default values were applied
+      expect(retrievedData?.value).toBe(999); // Check numeric default
+      expect(retrievedData?.lastUpdated).toBeInstanceOf(Timestamp);
+
+    } finally {
+      // Cleanup using the same collection reference
+      if (docRefId) {
+        await collectionWithSchema.delete(docRefId);
+      }
+    }
+  });
+
+  it('should apply serverTimestamp default value from schema on set', async () => {
+    const docId = 'default-value-test-set';
+    const schemaWithDefault: CollectionSchema = {
+      fields: {
+        lastUpdated: { defaultValue: 'serverTimestamp' },
+      },
+    };
+    // Instantiate a new collection reference WITH the schema
+    const collectionWithSchema = new TestCollection(firestore, schemaWithDefault);
+    const dataToSet: TestAddData = { name: 'Default Timestamp Set', value: 1 }; // lastUpdated is omitted
+
+    try {
+      // Use set to test if ClientBaseCollectionRef applies defaults on set
+      await collectionWithSchema.set(docId, dataToSet);
+
+      const retrievedData = await collectionWithSchema.get(docId);
+
+      expect(retrievedData).toBeDefined();
+      expect(retrievedData?.name).toBe('Default Timestamp Set');
+      expect(retrievedData?.value).toBe(1);
+      // Check that the default value was applied
+      expect(retrievedData?.lastUpdated).toBeInstanceOf(Timestamp);
+
+    } finally {
+      // Cleanup using the same collection reference
+      await collectionWithSchema.delete(docId);
+    }
+  });
+
+  it('should apply various default values from schema on add', async () => {
+    const docId = 'default-values-various-add';
+    const schemaWithDefaults: CollectionSchema = {
+      fields: {
+        name: { defaultValue: 'Default Name' },
+        value: { defaultValue: 0 },
+        tags: { defaultValue: ['default'] },
+        // Assuming a boolean field 'isActive' could exist
+        isActive: { defaultValue: true },
+      },
+    };
+    // Extend TestData for the boolean field
+    interface TestDataWithActive extends TestData { isActive?: boolean; }
+    class TestCollectionWithActive extends ClientBaseCollectionRef<TestDataWithActive, Omit<TestDataWithActive, 'id'>> {
+        constructor(db: Firestore, schema?: CollectionSchema) { super(db, 'test-items-active', schema); }
+    }
+    const collectionWithSchema = new TestCollectionWithActive(firestore, schemaWithDefaults);
+    // Provide only a field *not* having a default to trigger others
+    const dataToAdd = { lastUpdated: serverTimestamp() };
+
+    try {
+      await collectionWithSchema.add(dataToAdd as Omit<TestDataWithActive, 'id'>);
+      const retrievedData = await collectionWithSchema.get((await collectionWithSchema.add(dataToAdd as Omit<TestDataWithActive, 'id'>)).id); // Add and get ID
+
+      expect(retrievedData).toBeDefined();
+      expect(retrievedData?.name).toBe('Default Name');
+      expect(retrievedData?.value).toBe(0);
+      expect(retrievedData?.tags).toEqual(['default']);
+      expect(retrievedData?.isActive).toBe(true);
+      expect(retrievedData?.lastUpdated).toBeInstanceOf(Timestamp); // Ensure the provided value is still set
+
+    } finally {
+      // Need to clean up potentially two documents if the get failed after the first add
+      const q = query(collectionWithSchema.ref);
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(firestore);
+      snapshot.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+  });
+
 
   it('should query documents using cursors (startAt, endBefore, endAt)', async () => {
     const dataSet = [
@@ -560,6 +665,34 @@ describe('Client Runtime Integration Tests', () => {
       expect(results.map((r: TestData) => r.name)).toEqual(['B', 'C']);
 
     } finally {
+        await clearTestCollection();
+    }
+
+  it('should query documents using limitToLast', async () => {
+    const dataSet = [
+      { id: 'limitlast-1', data: { name: 'First', value: 1 } },
+      { id: 'limitlast-2', data: { name: 'Second', value: 2 } },
+      { id: 'limitlast-3', data: { name: 'Third', value: 3 } },
+      { id: 'limitlast-4', data: { name: 'Fourth', value: 4 } },
+    ];
+    try {
+      for (const item of dataSet) {
+        await testCollection.set(item.id, item.data);
+      }
+
+      const queryBuilder = testCollection.query();
+      // Get the last 2 documents when ordered by value ascending
+      const results = await queryBuilder.orderBy('value', 'asc').limitToLast(2).get();
+
+      expect(results).toHaveLength(2);
+      expect(results[0].name).toBe('Third'); // Third item has value 3
+      expect(results[1].name).toBe('Fourth'); // Fourth item has value 4
+
+    } finally {
+      await clearTestCollection();
+    }
+  });
+
 
   it('should query documents in a subcollection', async () => {
     const parentId = 'parent-for-subquery';
@@ -627,8 +760,6 @@ describe('Client Runtime Integration Tests', () => {
     }
   });
 
-      await clearTestCollection();
-    }
   });
 
   // --- Update Tests --- // Moved here
@@ -665,6 +796,87 @@ describe('Client Runtime Integration Tests', () => {
   it('should remove array elements and delete fields', async () => {
     const docId = 'update-test-2';
     const initialData: TestAddData = { name: 'Array Remove Test', value: 1, tags: ['a', 'b', 'c'] };
+
+  it('should set document with merge options', async () => {
+    const docId = 'set-merge-test';
+    const initialData: TestAddData = { name: 'Initial Merge', value: 100, tags: ['one'] };
+
+  it('should handle 3-level nested subcollections (add, get, delete)', async () => {
+    const parentId = 'level1-doc';
+    const subId = 'level2-doc';
+    const subSubId = 'level3-doc';
+
+    const parentData: TestAddData = { name: 'Level 1', value: 1 };
+    const subData: SubTestAddData = { description: 'Level 2', count: 2 };
+    const subSubData: SubSubTestAddData = { detail: 'Level 3', timestamp: Timestamp.now() };
+
+    try {
+      // Create parent (Level 1)
+      await testCollection.set(parentId, parentData);
+
+      // Get subcollection (Level 2)
+      const subCollection = testCollection.subItems(parentId);
+      await subCollection.set(subId, subData);
+
+      // Get sub-subcollection (Level 3)
+      const subSubCollection = subCollection.subSubItems(subId);
+      await subSubCollection.set(subSubId, subSubData);
+
+      // Verify Level 3 data
+      const retrievedSubSub = await subSubCollection.get(subSubId);
+      expect(retrievedSubSub).toBeDefined();
+      expect(retrievedSubSub?.detail).toBe('Level 3');
+      expect(retrievedSubSub?.timestamp).toEqual(subSubData.timestamp); // Compare timestamps
+
+      // Delete Level 3
+      await subSubCollection.delete(subSubId);
+      const deletedSubSub = await subSubCollection.get(subSubId);
+      expect(deletedSubSub).toBeUndefined();
+
+      // Verify Level 2 still exists
+      const retrievedSub = await subCollection.get(subId);
+      expect(retrievedSub).toBeDefined();
+
+      // Verify Level 1 still exists
+      const retrievedParent = await testCollection.get(parentId);
+      expect(retrievedParent).toBeDefined();
+
+    } finally {
+      // Cleanup: Deleting parent should cascade in emulator (usually)
+      // but explicit cleanup is safer if needed.
+      await testCollection.delete(parentId);
+      // Optionally add explicit deletes for sub/sub-sub if needed
+    }
+  });
+
+    const partialUpdateData = { value: 200, tags: ['two'] }; // Update value, replace tags
+    const mergeFieldsUpdateData = { name: 'Merged Fields Name' }; // Only update name
+
+    try {
+      // 1. Initial set
+      await testCollection.set(docId, initialData);
+      let retrieved = await testCollection.get(docId);
+      expect(retrieved).toEqual(expect.objectContaining(initialData));
+
+      // 2. Set with merge: true (should update value, replace tags, keep name)
+      await testCollection.set(docId, partialUpdateData, { merge: true });
+      retrieved = await testCollection.get(docId);
+      expect(retrieved?.name).toBe('Initial Merge'); // Name should persist
+      expect(retrieved?.value).toBe(200); // Value updated
+      expect(retrieved?.tags).toEqual(['two']); // Tags replaced
+
+      // 3. Set with mergeFields (should only update name, keep value and tags from step 2)
+      await testCollection.set(docId, mergeFieldsUpdateData, { mergeFields: ['name'] });
+      retrieved = await testCollection.get(docId);
+      expect(retrieved?.name).toBe('Merged Fields Name'); // Name updated
+      expect(retrieved?.value).toBe(200); // Value from step 2 persists
+      expect(retrieved?.tags).toEqual(['two']); // Tags from step 2 persist
+
+    } finally {
+      await testCollection.delete(docId);
+    }
+  });
+
     try {
       await testCollection.set(docId, initialData);
 
@@ -688,37 +900,7 @@ describe('Client Runtime Integration Tests', () => {
     }
   });
 
-  // --- Default Value Test --- // Moved here
-
-  it('should apply serverTimestamp default value from schema', async () => {
-    const docId = 'default-value-test';
-    const schemaWithDefault: CollectionSchema = {
-      fields: {
-        lastUpdated: { defaultValue: 'serverTimestamp' },
-      },
-    };
-    // Instantiate a new collection reference WITH the schema
-    const collectionWithSchema = new TestCollection(firestore, schemaWithDefault);
-    const dataToAdd: TestAddData = { name: 'Default Timestamp', value: 1 }; // lastUpdated is omitted
-
-    try {
-      // Use set to test if ClientBaseCollectionRef applies defaults on set
-      // (Requires ClientBaseCollectionRef.set to be updated similar to Admin)
-      await collectionWithSchema.set(docId, dataToAdd);
-
-      const retrievedData = await collectionWithSchema.get(docId);
-
-      expect(retrievedData).toBeDefined();
-      expect(retrievedData?.name).toBe('Default Timestamp');
-      expect(retrievedData?.value).toBe(1);
-      // Check that the default value was applied
-      expect(retrievedData?.lastUpdated).toBeInstanceOf(Timestamp);
-
-    } finally {
-      // Cleanup using the same collection reference
-      await collectionWithSchema.delete(docId);
-    }
-  });
+  // (Default value tests moved earlier)
 
   // --- Subcollection Test --- // Moved here
 
