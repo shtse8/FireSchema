@@ -52,14 +52,22 @@
        `typescript-admin.ts`, `dart-client.ts`).
      - Ensured adapters load their own templates and handle target-specific
        logic.
-   - **Phase 3: Update/Implement Tests:** ⏳ **IN PROGRESS**
+   - **Phase 3: Update/Implement Tests:** ✅ **COMPLETED (Initial Setup &
+     Fixes)**
      - Updated `src/__tests__/generator.test.ts` for new config format and fixed
        import errors. Snapshots updated.
      - Created initial unit and integration test files for `ts-client-runtime`
        and `ts-admin-runtime`.
-     - **Next:** Expand test coverage for runtime packages.
+     - **Resolved Jest Transformation Issues:** Switched Jest configuration from
+       `ts-jest` to `babel-jest` for both `ts-client-runtime` and
+       `ts-admin-runtime` projects, adding necessary Babel dependencies and
+       `babel.config.cjs` files to each package. This resolved persistent
+       TypeScript syntax parsing errors.
+     - **All TS runtime unit and integration tests now pass** when run with
+       `npx jest`.
+     - **Next:** Expand test coverage for runtime packages (Phase 3b).
      - Persistent test environment issues (`jest.mock` errors) remain when using
-       `bun test`, but tests pass with `npx jest`. (Deferring resolution).
+       `bun test`. (Deferring resolution, using `npx jest` for now).
    - **Phase 4: Update Memory Bank & Documentation:** ✅ **COMPLETED**
      - Updated `activeContext.md`, `progress.md`, `systemPatterns.md`,
        `techContext.md` to reflect the Executor + Adapter architecture and the
@@ -94,16 +102,17 @@ further analysis revealed significant structural differences between Client v9+
 and Admin SDKs, making shared interfaces impractical. Switched to **fully
 independent** TS Client and TS Admin runtime packages.
 
-**Current focus:** Build and unit tests are passing. Integration tests are set
-up but failing due to Firestore emulator connection issues. Next step is to
-ensure the emulator is running and verify the integration tests.
+**Current focus:** Initial unit and integration tests for both TS runtime
+packages are now passing using `npx jest` after resolving transformation issues.
+The next step is to expand the test coverage for these packages.
 
 **Known Issues:**
 
 - **Test Runner Incompatibility:**
   - (Removed fixed `fs` import issue)
   - `TypeError: jest.mock is not a function` in runtime package tests when run
-    via `bun test`. Tests pass when run with `npx jest`. (Deferring resolution).
+    via `bun test`. Tests pass when run with `npx jest`. (Deferring resolution,
+    using `npx jest`).
 - **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in
   `src/__tests__/dart-generated` due to path resolution issues.
 - **Test Cleanup Flakiness:** Generator snapshot tests sometimes fail during
