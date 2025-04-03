@@ -94,10 +94,9 @@ further analysis revealed significant structural differences between Client v9+
 and Admin SDKs, making shared interfaces impractical. Switched to **fully
 independent** TS Client and TS Admin runtime packages.
 
-**Current focus:** Initial test files for the new runtime packages
-(`ts-client-runtime`, `ts-admin-runtime`) have been created (unit and
-integration). Next steps involve expanding these tests to cover more
-functionality.
+**Current focus:** Build and unit tests are passing. Integration tests are set
+up but failing due to Firestore emulator connection issues. Next step is to
+ensure the emulator is running and verify the integration tests.
 
 **Known Issues:**
 

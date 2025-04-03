@@ -54,10 +54,12 @@ Review/Update tests.
      and `ts-admin-runtime` (covering CRUD, queries, updates, subcollections,
      default values).
    - Snapshot tests (`src/__tests__/generator.test.ts`) are up-to-date.
-2. **(Optional) Address Minor Test Issues:** Investigate the `fs` syntax error
+2. **Run Integration Tests:** Ensure Firestore emulator is running and re-run
+   `npx jest`.
+3. **(Optional) Address Minor Test Issues:** Investigate the `jest.mock` errors
    reported by `bun test` (but not `npx jest`).
-3. **(Future) Implement More Adapters:** Add adapters for new targets (e.g.,
+4. **(Future) Implement More Adapters:** Add adapters for new targets (e.g.,
    `dart-server-rest`, `csharp-client`).
-4. **(Future) Generator Enhancements:** Add support for more complex schema
+5. **(Future) Generator Enhancements:** Add support for more complex schema
    validation rules, improve error reporting.
-5. **(Future) Documentation:** Update documentation for the new architecture.
+6. **(Future) Documentation:** Update documentation for the new architecture.
