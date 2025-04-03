@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { FirestoreODMConfig, OutputTarget } from './types/config';
+import { FirestoreODMConfig, OutputTarget, TypeScriptOptions } from './types/config'; // Added TypeScriptOptions import
 
 /**
  * Loads, parses, and validates the Firestore ODM configuration file.
@@ -51,9 +51,32 @@ export function loadConfig(configPath: string): FirestoreODMConfig {
     if (!output.outputDir || typeof output.outputDir !== 'string') {
       throw new Error(`Output target for language "${output.language}" must have a valid "outputDir" (string path).`);
     }
+
+    // --- Validate and default language-specific options ---
+    let currentOptions = output.options || {}; // Ensure options object exists
+
+    if (output.language === 'typescript') {
+      const tsOptions = currentOptions as TypeScriptOptions;
+      // Validate sdk if provided
+      if (tsOptions.sdk && !['client', 'admin'].includes(tsOptions.sdk)) {
+        throw new Error(`Invalid "sdk" option for TypeScript output target: "${tsOptions.sdk}". Must be 'client' or 'admin'.`);
+      }
+      // Set default sdk if not provided
+      if (!tsOptions.sdk) {
+        tsOptions.sdk = 'client';
+      }
+      // TODO: Validate other TS options like dateTimeType if needed
+      currentOptions = tsOptions; // Assign back potentially modified options
+    } else if (output.language === 'dart') {
+      // TODO: Validate Dart options if needed
+    }
+    // --- End language-specific options ---
+
     return {
       ...output,
       outputDir: path.resolve(configDir, output.outputDir),
+      // Ensure options object is carried over
+      options: currentOptions,
     };
   });
 

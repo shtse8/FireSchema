@@ -9,7 +9,7 @@ import 'package:fireschema_dart_runtime/fireschema_dart_runtime.dart'; // Import
 // Import other necessary packages if needed
 
 <%# --- EJS Helper Functions --- %>
-<%_
+<% /* Standard scriptlet tag */
 // Keep track of generated nested classes to avoid duplicates
 const generatedNestedClasses = new Set();
 
@@ -25,15 +25,15 @@ const getDartType = (field, options, parentModelName) => {
     case 'boolean': return 'bool';
     case 'timestamp': return 'Timestamp';
     case 'geopoint': return 'GeoPoint';
-    case 'reference': return `DocumentReference<Map<String, dynamic>>`; // Use literal < >
+    case 'reference': return `DocumentReference<Map<String, dynamic>>`;
     case 'array':
-      if (!field.items) return 'List<dynamic>'; // Use literal < >
-      return `List<${getDartType(field.items, options, parentModelName)}>`; // Use literal < >
+      if (!field.items) return 'List<dynamic>';
+      return `List<${getDartType(field.items, options, parentModelName)}>`;
     case 'map':
-      if (field.properties && Object.keys(field.properties).length > 0) { // Use literal >
+      if (field.properties && Object.keys(field.properties).length > 0) {
         return getNestedClassName(parentModelName, field.fieldName);
       }
-      return 'Map<String, dynamic>'; // Use literal < >
+      return 'Map<String, dynamic>';
     default: return 'dynamic';
   }
 };
@@ -48,25 +48,25 @@ const generateFromJsonLogic = (field, options, parentModelName) => {
   switch (field.type) {
     case 'array':
       if (!field.items) {
-        parsingLogic = `${fieldAccess} as List<dynamic>?`; // Use literal < >
+        parsingLogic = `${fieldAccess} as List<dynamic>?`;
       } else {
         const itemType = getDartType(field.items, options, parentModelName);
-        const itemIsNestedClass = field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0; // Use literal >
+        const itemIsNestedClass = field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0;
 
         if (itemIsNestedClass) {
-           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => ${itemType}.fromJson(e as Map<String, dynamic>)).toList()`; // Use literal < >
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => ${itemType}.fromJson(e as Map<String, dynamic>)).toList()`;
         } else if (['timestamp', 'geopoint', 'reference'].includes(field.items.type)) {
-           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`; // Use literal < >
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`;
         } else if (field.items.type === 'array' || field.items.type === 'map') {
-           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`; // Use literal < >
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`;
         } else {
-           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`; // Use literal < >
+           parsingLogic = `(${fieldAccess} as List<dynamic>?)?.map((e) => e as ${itemType}).toList()`;
         }
       }
       break;
     case 'map':
-      if (field.properties && Object.keys(field.properties).length > 0) { // Use literal >
-        parsingLogic = `${fieldAccess} == null ? null : ${dartType}.fromJson(${fieldAccess} as Map<String, dynamic>)`; // Use literal < >
+      if (field.properties && Object.keys(field.properties).length > 0) {
+        parsingLogic = `${fieldAccess} == null ? null : ${dartType}.fromJson(${fieldAccess} as Map<String, dynamic>)`;
       } else {
         parsingLogic = `${fieldAccess} as ${dartType}?`;
       }
@@ -76,7 +76,7 @@ const generateFromJsonLogic = (field, options, parentModelName) => {
     case 'reference':
       parsingLogic = `${fieldAccess} as ${dartType}?`;
       break;
-    default:
+    default: // string, number, bool, dynamic
       parsingLogic = `${fieldAccess} as ${dartType}?`;
       break;
   }
@@ -92,12 +92,12 @@ const generateToJsonLogic = (field, options, parentModelName) => {
    let valueAccess = field.fieldName;
    switch (field.type) {
        case 'array':
-           if (field.items && field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0) { // Use literal >
+           if (field.items && field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0) {
                valueAccess = `${field.fieldName}?.map((e) => e.toJson()).toList()`;
            }
            break;
        case 'map':
-           if (field.properties && Object.keys(field.properties).length > 0) { // Use literal >
+           if (field.properties && Object.keys(field.properties).length > 0) {
                valueAccess = `${field.fieldName}?.toJson()`;
            }
            break;
@@ -115,10 +115,10 @@ const generateAssertionBodyStrings = (className, fields) => {
 
     if (field.type === 'string') {
       if (field.minLength != null) {
-        assertionStrings.push(`assert(${nullCheck}${field.fieldName}.length >= ${field.minLength}${closeNullCheck}, '${className}.${field.fieldName} must be at least ${field.minLength} characters long');`); // Use literal >=
+        assertionStrings.push(`assert(${nullCheck}${field.fieldName}.length >= ${field.minLength}${closeNullCheck}, '${className}.${field.fieldName} must be at least ${field.minLength} characters long');`);
       }
       if (field.maxLength != null) {
-         assertionStrings.push(`assert(${nullCheck}${field.fieldName}.length <= ${field.maxLength}${closeNullCheck}, '${className}.${field.fieldName} must be at most ${field.maxLength} characters long');`); // Use literal <=
+         assertionStrings.push(`assert(${nullCheck}${field.fieldName}.length <= ${field.maxLength}${closeNullCheck}, '${className}.${field.fieldName} must be at most ${field.maxLength} characters long');`);
       }
       if (field.pattern != null) {
         const dartPattern = field.pattern.replace(/\\/g, '\\\\');
@@ -126,10 +126,10 @@ const generateAssertionBodyStrings = (className, fields) => {
       }
     } else if (field.type === 'number') {
       if (field.minimum != null) {
-        assertionStrings.push(`assert(${nullCheck}${field.fieldName} >= ${field.minimum}${closeNullCheck}, '${className}.${field.fieldName} must be >= ${field.minimum}');`); // Use literal >=
+        assertionStrings.push(`assert(${nullCheck}${field.fieldName} >= ${field.minimum}${closeNullCheck}, '${className}.${field.fieldName} must be >= ${field.minimum}');`);
       }
       if (field.maximum != null) {
-        assertionStrings.push(`assert(${nullCheck}${field.fieldName} <= ${field.maximum}${closeNullCheck}, '${className}.${field.fieldName} must be <= ${field.maximum}');`); // Use literal <=
+        assertionStrings.push(`assert(${nullCheck}${field.fieldName} <= ${field.maximum}${closeNullCheck}, '${className}.${field.fieldName} must be <= ${field.maximum}');`);
       }
     }
   });
@@ -137,7 +137,7 @@ const generateAssertionBodyStrings = (className, fields) => {
 };
 
 
-// --- Main Class Generation Function ---
+// --- Main Class Data Preparation Function ---
 const prepareClassData = (className, fields, options, isNested = false, collectionDescription = null) => {
   const classData = {
       className: className,
@@ -152,7 +152,7 @@ const prepareClassData = (className, fields, options, isNested = false, collecti
           return `  /// ${field.description || field.fieldName} (${field.type}${field.required ? ', required' : ''})\n  final ${fieldDartType}${field.required ? '' : '?'} ${field.fieldName};`;
       }).join('\n'),
       constructorParams: Object.values(fields).map(field => `    ${field.required ? 'required ' : ''}this.${field.fieldName},`).join('\n'),
-      assertions: generateAssertionBodyStrings(className, fields), // Get assertions as an array for the body
+      assertions: generateAssertionBodyStrings(className, fields),
       fromJsonParams: Object.values(fields).map(field => `      ${field.fieldName}: ${generateFromJsonLogic(field, options, className)},`).join('\n'),
       toJsonEntries: Object.values(fields).map(field => `      '${field.fieldName}': ${generateToJsonLogic(field, options, className)},`).join('\n'),
       copyWithParams: Object.values(fields).map(field => `    ${getDartType(field, options, className)}? ${field.fieldName},`).join('\n'),
@@ -167,11 +167,11 @@ const prepareAddData = (modelName, fields, options) => {
     const fieldStrings = addFields.map(field => {
         const dartType = getDartType(field, options, modelName);
         const isOptionalForAdd = !field.required || !!field.defaultValue;
-        return `  /// ${field.description || field.fieldName} (${field.type}${field.required && !field.defaultValue ? ', required' : ''})\n  final ${dartType}${isOptionalForAdd ? '?' : ''} ${field.fieldName};`; // Use literal &&
+        return `  /// ${field.description || field.fieldName} (${field.type}${field.required && !field.defaultValue ? ', required' : ''})\n  final ${dartType}${isOptionalForAdd ? '?' : ''} ${field.fieldName};`;
     }).join('\n');
 
     const constructorParams = addFields.map(field => {
-        const isRequiredForAdd = field.required && !field.defaultValue; // Use literal &&
+        const isRequiredForAdd = field.required && !field.defaultValue;
         return `    ${isRequiredForAdd ? 'required ' : ''}this.${field.fieldName},`;
     }).join('\n');
 
@@ -207,16 +207,93 @@ const prepareUpdateData = (modelName, fields, options) => {
 };
 
 // --- Recursive generation for nested classes ---
+// This function now directly returns the Dart code string for nested classes
 const generateNestedClasses = (className, fields, options) => {
   let nestedClassesString = '';
   Object.values(fields).forEach(field => {
-      if (field.type === 'map' && field.properties && Object.keys(field.properties).length > 0) { // Use literal >
+      if (field.type === 'map' && field.properties && Object.keys(field.properties).length > 0) {
           const nestedClassName = getNestedClassName(className, field.fieldName);
-          nestedClassesString += generateSingleClass(nestedClassName, field.properties, options, true); // Recursive call
-      } else if (field.type === 'array' && field.items && field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0) { // Use literal >
+          const nestedClassData = prepareClassData(nestedClassName, field.properties, options, true);
+          // Manually build the nested class string
+          nestedClassesString += `
+/// Represents the data structure for a nested '${nestedClassData.className}' map.
+class ${nestedClassData.className} ${nestedClassData.implementsToJson}{
+
+${nestedClassData.fieldStrings}
+
+  ${nestedClassData.className}({
+${nestedClassData.constructorParams}
+  }) { // Constructor body for asserts
+${nestedClassData.assertions.length > 0 ? nestedClassData.assertions.map(a => `    ${a}`).join('\\n') : ''}
+  } // End of constructor body
+
+  /// Creates a ${nestedClassData.className} instance from a Map.
+  factory ${nestedClassData.className}.fromJson(Map<String, dynamic> data) {
+    return ${nestedClassData.className}(
+${nestedClassData.fromJsonParams}
+    );
+  }
+
+  /// Converts this ${nestedClassData.className} instance to a Map suitable for Firestore.
+  Map<String, dynamic> toJson() {
+    return {
+${nestedClassData.toJsonEntries}
+    };
+  }
+
+  /// Creates a copy of this instance with potentially modified fields.
+  ${nestedClassData.className} copyWith({
+${nestedClassData.copyWithParams}
+  }) {
+    return ${nestedClassData.className}(
+${nestedClassData.copyWithBody}
+    );
+  }
+
+} // End of ${nestedClassData.className} class
+`;
+      } else if (field.type === 'array' && field.items && field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0) {
           const nestedClassName = getNestedClassName(className, field.items.fieldName || field.fieldName + 'Item');
           if (!generatedNestedClasses.has(nestedClassName)) {
-             nestedClassesString += generateSingleClass(nestedClassName, field.items.properties, options, true);
+             const nestedClassData = prepareClassData(nestedClassName, field.items.properties, options, true);
+             // Manually build the nested class string
+             nestedClassesString += `
+/// Represents the data structure for a nested '${nestedClassData.className}' map.
+class ${nestedClassData.className} ${nestedClassData.implementsToJson}{
+
+${nestedClassData.fieldStrings}
+
+  ${nestedClassData.className}({
+${nestedClassData.constructorParams}
+  }) { // Constructor body for asserts
+${nestedClassData.assertions.length > 0 ? nestedClassData.assertions.map(a => `    ${a}`).join('\\n') : ''}
+  } // End of constructor body
+
+  /// Creates a ${nestedClassData.className} instance from a Map.
+  factory ${nestedClassData.className}.fromJson(Map<String, dynamic> data) {
+    return ${nestedClassData.className}(
+${nestedClassData.fromJsonParams}
+    );
+  }
+
+  /// Converts this ${nestedClassData.className} instance to a Map suitable for Firestore.
+  Map<String, dynamic> toJson() {
+    return {
+${nestedClassData.toJsonEntries}
+    };
+  }
+
+  /// Creates a copy of this instance with potentially modified fields.
+  ${nestedClassData.className} copyWith({
+${nestedClassData.copyWithParams}
+  }) {
+    return ${nestedClassData.className}(
+${nestedClassData.copyWithBody}
+    );
+  }
+
+} // End of ${nestedClassData.className} class
+`;
              generatedNestedClasses.add(nestedClassName);
           }
       }
@@ -224,45 +301,51 @@ const generateNestedClasses = (className, fields, options) => {
   return nestedClassesString;
 };
 
-// --- Generates a single class using the template ---
-const generateSingleClass = (className, fields, options, isNested = false, collectionDescription = null) => {
-    const classData = prepareClassData(className, fields, options, isNested, collectionDescription);
-    // Use a separate template string for the class structure
-    const template = `
-/// Represents the data structure for <%- isNested ? \`a nested '\${className}' map\` : \`a '\${className}' document\` %>.
-<%- !isNested ? \`/// Description: ${classData.collectionDescription || 'N/A'}\` : '' %>
-class <%- className %><%- dataSuffix %> <%- implementsToJson %>{
+// Removed generateSingleClass function as it's no longer needed
 
-<%- fieldStrings %>
+%> <%# End of main scriptlet block %>
 
-  <%- className %><%- dataSuffix %>({
-<%- constructorParams %>
+<%# --- Template Output --- %>
+<%# Generate nested classes first %>
+<%- generateNestedClasses(modelName, collection.fields, options) %>
+
+<%# Prepare data for the main class %>
+<% const mainClassData = prepareClassData(modelName, collection.fields, options, false, collection.description); %>
+
+<%# Render the main class directly using its data %>
+/// Represents the data structure for a '<%- mainClassData.className %>' document.
+/// Description: <%- mainClassData.collectionDescription || 'N/A' %>
+class <%- mainClassData.className %><%- mainClassData.dataSuffix %> {
+
+<%- mainClassData.fieldStrings %>
+
+  <%- mainClassData.className %><%- mainClassData.dataSuffix %>({
+<%- mainClassData.constructorParams %>
   }) { // Constructor body for asserts
-<% if (assertions.length > 0) { %>
-<%- assertions.map(a => \`    \${a}\`).join('\\n') %>
+<% if (mainClassData.assertions.length > 0) { %>
+<%- mainClassData.assertions.map(a => `    ${a}`).join('\\n') %>
 <% } %>
   } // End of constructor body
 
-  /// Creates a <%- className %><%- dataSuffix %> instance from a Map.
-  factory <%- className %><%- dataSuffix %>.fromJson(Map<String, dynamic> data) {
-    return <%- className %><%- dataSuffix %>(
-<%- fromJsonParams %>
+  /// Creates a <%- mainClassData.className %><%- mainClassData.dataSuffix %> instance from a Map.
+  factory <%- mainClassData.className %><%- mainClassData.dataSuffix %>.fromJson(Map<String, dynamic> data) {
+    return <%- mainClassData.className %><%- mainClassData.dataSuffix %>(
+<%- mainClassData.fromJsonParams %>
     );
   }
-<% if (!isNested) { %>
 
-  /// Creates a <%- className %>Data instance from a Firestore DocumentSnapshot.
-  factory <%- className %>Data.fromSnapshot(DocumentSnapshot snapshot) {
+  /// Creates a <%- mainClassData.className %>Data instance from a Firestore DocumentSnapshot.
+  factory <%- mainClassData.className %>Data.fromSnapshot(DocumentSnapshot snapshot) {
     final data = snapshot.data() as Map<String, dynamic>?;
     if (data == null) {
         throw Exception("Document data was null on snapshot ${snapshot.id}!");
     }
-    return <%- className %>Data.fromJson(data);
+    return <%- mainClassData.className %>Data.fromJson(data);
   }
 
-  /// Creates a <%- className %>Data instance from a Firestore DocumentSnapshot.
-  /// Required for Firestore \`withConverter\`.
-  factory <%- className %>Data.fromFirestore(
+  /// Creates a <%- mainClassData.className %>Data instance from a Firestore DocumentSnapshot.
+  /// Required for Firestore `withConverter`.
+  factory <%- mainClassData.className %>Data.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
   ) {
@@ -270,49 +353,35 @@ class <%- className %><%- dataSuffix %> <%- implementsToJson %>{
     if (data == null) {
       throw Exception('Snapshot data was null!');
     }
-    return <%- className %>Data.fromJson(data);
+    return <%- mainClassData.className %>Data.fromJson(data);
   }
-<% } %>
 
-  /// Converts this <%- className %><%- dataSuffix %> instance to a Map suitable for Firestore.
+  /// Converts this <%- mainClassData.className %><%- mainClassData.dataSuffix %> instance to a Map suitable for Firestore.
   Map<String, dynamic> toJson() {
     return {
-<%- toJsonEntries %>
+<%- mainClassData.toJsonEntries %>
     };
   }
-<% if (!isNested) { %>
 
-  /// Converts this <%- className %>Data instance to a Map suitable for Firestore.
-  /// Required for Firestore \`withConverter\`.
+  /// Converts this <%- mainClassData.className %>Data instance to a Map suitable for Firestore.
+  /// Required for Firestore `withConverter`.
   Map<String, Object?> toFirestore(SetOptions? options) {
     return toJson();
   }
-<% } %>
 
   /// Creates a copy of this instance with potentially modified fields.
-  <%- className %><%- dataSuffix %> copyWith({
-<%- copyWithParams %>
+  <%- mainClassData.className %><%- mainClassData.dataSuffix %> copyWith({
+<%- mainClassData.copyWithParams %>
   }) {
-    return <%- className %><%- dataSuffix %>(
-<%- copyWithBody %>
+    return <%- mainClassData.className %><%- mainClassData.dataSuffix %>(
+<%- mainClassData.copyWithBody %>
     );
   }
 
-} // End of <%- className %><%- dataSuffix %> class
-`;
-    return ejs.render(template, classData);
-};
+} // End of <%- mainClassData.className %><%- mainClassData.dataSuffix %> class
 
-_ %>
 
-<%# --- Template Output --- %>
-<%- /* Generate nested classes first */ %>
-<%- generateNestedClasses(modelName, collection.fields, options) %>
-
-<%- /* Generate the main class */ %>
-<%- generateSingleClass(modelName, collection.fields, options, false, collection.description) %>
-
-<%- /* Generate AddData class */ %>
+<%# Generate AddData class %>
 <% const addData = prepareAddData(modelName, collection.fields, options); %>
 /// Represents the data structure for adding a new '<%- addData.modelName %>' document.
 /// Fields with default values (like server timestamps) or optional fields are nullable.
@@ -333,7 +402,7 @@ class <%- addData.modelName %>AddData implements ToJsonSerializable {
   }
 }
 
-<%- /* Generate UpdateData class */ %>
+<%# Generate UpdateData class %>
 <% const updateData = prepareUpdateData(modelName, collection.fields, options); %>
 /// Represents the data structure for updating an existing '<%- updateData.modelName %>' document.
 /// All fields are optional, allowing for partial updates.

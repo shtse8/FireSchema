@@ -1,95 +1,133 @@
 /**
  * Base functionality for generated CollectionReference classes.
+ * Designed to work with both firebase (client) and firebase-admin (server) SDKs.
  */
+import type {
+  Firestore as ClientFirestore,
+  CollectionReference as ClientCollectionReference,
+  DocumentReference as ClientDocumentReference,
+  DocumentData as ClientDocumentData,
+  SetOptions as ClientSetOptions,
+  Timestamp as ClientTimestamp,
+  FieldValue as ClientFieldValueType,
+  DocumentSnapshot as ClientDocumentSnapshot,
+  GeoPoint as ClientGeoPoint, // Import client GeoPoint
+} from 'firebase/firestore';
+// Import client functions needed for operations
 import {
-  Firestore,
-  CollectionReference,
-  DocumentReference,
-  // Import the actual functions to get their types
-  collection,
-  doc,
-  getDoc,
-  addDoc,
-  setDoc,
-  deleteDoc,
-  serverTimestamp, // Keep for potential default value handling
-  DocumentData,
-  SetOptions, // For set with merge option
+  serverTimestamp as clientServerTimestamp,
+  collection as clientCollection,
+  doc as clientDoc,
+  addDoc as clientAddDoc,
+  setDoc as clientSetDoc,
+  deleteDoc as clientDeleteDoc,
+  getDoc as clientGetDoc,
 } from 'firebase/firestore';
 
-// Placeholder for a type definition for schema fields, needed for default handling
-// This might need refinement based on how schema info is passed.
+import type {
+  Firestore as AdminFirestore,
+  CollectionReference as AdminCollectionReference,
+  DocumentReference as AdminDocumentReference,
+  DocumentData as AdminDocumentData,
+  Timestamp as AdminTimestamp,
+  DocumentSnapshot as AdminDocumentSnapshot,
+  GeoPoint as AdminGeoPoint, // Import admin GeoPoint
+} from 'firebase-admin/firestore';
+// Import admin values/classes needed
+import { FieldValue as AdminFieldValue, FieldPath as AdminFieldPath } from 'firebase-admin/firestore';
+
+// --- Generic Type Aliases/Interfaces ---
+
+export type FirestoreLike = ClientFirestore | AdminFirestore;
+export type CollectionReferenceLike<T extends DocumentDataLike> = ClientCollectionReference<T> | AdminCollectionReference<T>;
+export type DocumentReferenceLike<T extends DocumentDataLike> = ClientDocumentReference<T> | AdminDocumentReference<T>;
+export type DocumentSnapshotLike<T extends DocumentDataLike> = ClientDocumentSnapshot<T> | AdminDocumentSnapshot<T>;
+export type AdminSetOptionsLike = { merge?: boolean; mergeFields?: (string | AdminFieldPath)[] };
+export type SetOptionsLike = ClientSetOptions | AdminSetOptionsLike;
+export type TimestampLike = ClientTimestamp | AdminTimestamp;
+export type FieldValueLike = ClientFieldValueType | AdminFieldValue;
+export type DocumentDataLike = ClientDocumentData | AdminDocumentData;
+export type GeoPointLike = ClientGeoPoint | AdminGeoPoint; // Define GeoPointLike
+
+// --- Type Guards ---
+export function isAdminFirestore(db: FirestoreLike): db is AdminFirestore {
+  return typeof (db as any).settings === 'function' && typeof (db as any).listCollections === 'function';
+}
+export function isClientFirestore(db: FirestoreLike): db is ClientFirestore {
+    return !isAdminFirestore(db);
+}
+export function isAdminDocumentReference<T extends DocumentDataLike>(ref: DocumentReferenceLike<T>): ref is AdminDocumentReference<T> {
+    return typeof (ref as any).listCollections === 'function';
+}
+export function isClientDocumentReference<T extends DocumentDataLike>(ref: DocumentReferenceLike<T>): ref is ClientDocumentReference<T> {
+    return typeof (ref as any).converter === 'object';
+}
+export function isAdminCollectionReference<T extends DocumentDataLike>(ref: CollectionReferenceLike<T>): ref is AdminCollectionReference<T> {
+    return typeof (ref as any).listDocuments === 'function';
+}
+export function isClientCollectionReference<T extends DocumentDataLike>(ref: CollectionReferenceLike<T>): ref is ClientCollectionReference<T> {
+     return typeof (ref as any).converter === 'object';
+}
+
+
+// Placeholder for schema definitions
 export interface FieldSchema {
   defaultValue?: any;
-  // Add other relevant properties from your schema definition if needed
 }
-
 export interface CollectionSchema {
   fields: Record<string, FieldSchema>;
-  // Potentially add subcollection info if needed for base helpers
 }
-
-// Removed FirestoreFunctions interface
 
 /**
  * Abstract base class for FireSchema-generated collection references.
- * Provides common CRUD operations and path handling.
- *
- * TData: The type of the document data for the collection.
- * TAddData: The type for data used when adding a new document (often with optional defaults).
- * TUpdateData: The type for data used when updating (usually Partial<TData> plus FieldValues).
  */
 export abstract class BaseCollectionRef<
-  TData extends DocumentData,
-  TAddData extends DocumentData, // Use TAddData for add/set operations
-  // TUpdateData is implicitly handled by Firestore's UpdateData type for updateDoc
+  TData extends DocumentDataLike,
+  TAddData extends DocumentDataLike,
 > {
-  public ref: CollectionReference<TData>;
-  protected firestore: Firestore;
+  public ref: CollectionReferenceLike<TData>;
+  protected firestore: FirestoreLike;
   protected collectionId: string;
-  protected schema?: CollectionSchema; // Optional schema for advanced features like defaults
-  // Removed firestoreFunctions property
+  protected schema?: CollectionSchema;
+  protected isClient: boolean;
 
-  /**
-   * Creates a BaseCollectionRef instance.
-   * @param firestore The Firestore instance.
-   * @param collectionId The ID of the collection.
-   * @param schema Optional schema definition for the collection.
-   * @param parentRef Optional DocumentReference of the parent document (for subcollections).
-   */
   constructor(
-    firestore: Firestore, // Keep Firestore instance for context, subcollections etc.
+    firestore: FirestoreLike,
     collectionId: string,
     schema?: CollectionSchema,
-    parentRef?: DocumentReference<DocumentData>
+    parentRef?: DocumentReferenceLike<DocumentDataLike>
   ) {
     this.firestore = firestore;
     this.collectionId = collectionId;
     this.schema = schema;
-    // Removed storing injected functions
+    this.isClient = isClientFirestore(this.firestore);
 
-    // --- Debugging ---
-    // Removed debug log
-    // --- End Debugging ---
-
-    // Use injected collection function
+    // Initialize ref based on SDK type
     if (parentRef) {
-      this.ref = collection(parentRef, collectionId) as CollectionReference<TData>; // Use imported collection
+        if (this.isClient) {
+            this.ref = clientCollection(parentRef as ClientDocumentReference<ClientDocumentData>, collectionId) as ClientCollectionReference<TData>;
+        } else {
+            this.ref = (parentRef as AdminDocumentReference<AdminDocumentData>).collection(collectionId) as AdminCollectionReference<TData>;
+        }
     } else {
-      this.ref = collection(firestore, collectionId) as CollectionReference<TData>; // Use imported collection
+        if (this.isClient) {
+            this.ref = clientCollection(this.firestore as ClientFirestore, collectionId) as ClientCollectionReference<TData>;
+        } else {
+            this.ref = (this.firestore as AdminFirestore).collection(collectionId) as AdminCollectionReference<TData>;
+        }
     }
   }
 
   /** Returns the DocumentReference for a given ID. */
-  doc(id: string): DocumentReference<TData> {
-    return doc(this.ref, id); // Use imported doc
+  doc(id: string): DocumentReferenceLike<TData> {
+    if (this.isClient) {
+        return clientDoc(this.ref as ClientCollectionReference<TData>, id);
+    } else {
+        return (this.ref as AdminCollectionReference<TData>).doc(id);
+    }
   }
 
-  /**
-   * Prepares data for writing by applying default values (e.g., serverTimestamp).
-   * This base implementation handles serverTimestamp. Generated classes might override
-   * or extend this for other default types.
-   */
+  /** Prepares data for writing by applying default values. */
   protected applyDefaults(data: TAddData): TData {
     const dataWithDefaults = { ...data };
     if (this.schema) {
@@ -99,93 +137,81 @@ export abstract class BaseCollectionRef<
           fieldDef.defaultValue === 'serverTimestamp' &&
           (dataWithDefaults as any)[fieldName] === undefined
         ) {
-          (dataWithDefaults as any)[fieldName] = serverTimestamp();
+          (dataWithDefaults as any)[fieldName] = this.isClient
+            ? clientServerTimestamp()
+            : AdminFieldValue.serverTimestamp();
         }
-        // TODO: Handle other default value types if necessary
       }
     }
-    // It's assumed TAddData is compatible with TData after defaults are applied.
-    // A cast might be necessary depending on strictness, but Firestore handles
-    // ServerTimestamp internally.
     return dataWithDefaults as unknown as TData;
   }
 
-  /** Adds a new document with the given data, returning the new DocumentReference. */
-  async add(data: TAddData): Promise<DocumentReference<TData>> {
+  /** Adds a new document. */
+  async add(data: TAddData): Promise<DocumentReferenceLike<TData>> {
     const dataToWrite = this.applyDefaults(data);
-    // Firestore's addDoc expects the final data type (TData after defaults)
-    return addDoc(this.ref, dataToWrite); // Use imported addDoc
+    if (this.isClient) {
+        return clientAddDoc(this.ref as ClientCollectionReference<TData>, dataToWrite);
+    } else {
+        return (this.ref as AdminCollectionReference<TData>).add(dataToWrite);
+    }
   }
 
-  /**
-   * Sets the data for a document, overwriting existing data by default.
-   * @param id The document ID.
-   * @param data The data to set.
-   * @param options Options for set operation (e.g., { merge: true }).
-   */
-  async set(id: string, data: TAddData, options?: SetOptions): Promise<void> {
-    // Note: set typically doesn't apply defaults in the same way as add.
-    // If defaults are desired for set, the logic might need adjustment or
-    // the TAddData type should already include them.
-    // We cast TAddData to TData assuming compatibility for the set operation.
-    // If TAddData has optional fields that TData requires, this could be an issue,
-    // requiring a different type or more complex handling.
-    await setDoc(this.doc(id), data as unknown as TData, options || {}); // Use imported setDoc
+  /** Sets the data for a document. */
+  async set(id: string, data: TAddData, options?: SetOptionsLike): Promise<void> {
+    const docRef = this.doc(id);
+    if (this.isClient) {
+        await clientSetDoc(docRef as ClientDocumentReference<TData>, data as unknown as TData, options as ClientSetOptions || {});
+    } else {
+        await (docRef as AdminDocumentReference<TData>).set(data as unknown as TData, options as AdminSetOptionsLike || {});
+    }
   }
 
   /** Deletes a document. */
   async delete(id: string): Promise<void> {
-    await deleteDoc(this.doc(id)); // Use imported deleteDoc
+    const docRef = this.doc(id);
+    if (this.isClient) {
+        await clientDeleteDoc(docRef as ClientDocumentReference<TData>);
+    } else {
+        await (docRef as AdminDocumentReference<TData>).delete();
+    }
   }
 
   /** Reads a single document. */
   async get(id: string): Promise<TData | undefined> {
-    const snapshot = await getDoc(this.doc(id)); // Use imported getDoc
-    return snapshot.exists() ? snapshot.data() : undefined;
+    const docRef = this.doc(id);
+    let snapshot: DocumentSnapshotLike<TData>;
+    let exists: boolean;
+
+    if (this.isClient) {
+        const clientSnap = await clientGetDoc(docRef as ClientDocumentReference<TData>);
+        snapshot = clientSnap;
+        exists = clientSnap.exists();
+    } else {
+        const adminSnap = await (docRef as AdminDocumentReference<TData>).get();
+        snapshot = adminSnap;
+        exists = adminSnap.exists;
+    }
+
+    return exists ? snapshot.data() : undefined;
   }
 
-  // --- Abstract methods or placeholders for generated classes to implement ---
-
-  /**
-   * Creates a new QueryBuilder instance for this collection.
-   * Must be implemented by the generated class.
-   */
-  // abstract query(): BaseQueryBuilder<TData>; // Example if BaseQueryBuilder exists
-
-  /**
-   * Creates a new UpdateBuilder instance for the document with the given ID.
-   * Must be implemented by the generated class.
-   */
-  // abstract update(id: string): BaseUpdateBuilder<TData, TUpdateData>; // Example if BaseUpdateBuilder exists
-
-  /**
-   * Helper to access a subcollection. Generated classes will provide specific methods
-   * like `posts(parentId): PostsCollection`.
-   * @param parentId The ID of the document containing the subcollection.
-   * @param subCollectionId The ID of the subcollection.
-   * @param SubCollectionClass The constructor of the subcollection's generated class.
-   */
+  /** Helper to access a subcollection. */
   protected subCollection<
-    SubTData extends DocumentData,
-    SubTAddData extends DocumentData,
-    // SubTUpdateData extends DocumentData,
-    SubCollectionType extends BaseCollectionRef<SubTData, SubTAddData /*, SubTUpdateData*/>
+    SubTData extends DocumentDataLike,
+    SubTAddData extends DocumentDataLike,
+    SubCollectionType extends BaseCollectionRef<SubTData, SubTAddData>
   >(
     parentId: string,
     subCollectionId: string,
     SubCollectionClass: new (
-      firestore: Firestore,
+      firestore: FirestoreLike,
       collectionId: string,
-      // firestoreFunctions removed from signature
       schema?: CollectionSchema,
-      parentRef?: DocumentReference<DocumentData>
+      parentRef?: DocumentReferenceLike<DocumentDataLike>
     ) => SubCollectionType,
-    subSchema?: CollectionSchema // Optional schema for the subcollection
+    subSchema?: CollectionSchema
   ): SubCollectionType {
     const parentDocRef = this.doc(parentId);
-    // We pass the specific subCollectionId and potentially its schema
-    // Pass the same injected functions down to the subcollection constructor
-    // Removed firestoreFunctions from constructor call
     return new SubCollectionClass(this.firestore, subCollectionId, subSchema, parentDocRef);
   }
 }

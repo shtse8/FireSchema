@@ -43,6 +43,8 @@ export interface TypeScriptOptions {
   /** How to represent Firestore Timestamps ('Timestamp' or 'Date'). Defaults to 'Timestamp'. */
   dateTimeType?: 'Timestamp' | 'Date';
   // Add more TS-specific options here later
+  /** Target SDK ('client' for firebase, 'admin' for firebase-admin). Defaults to 'client'. */
+  sdk?: 'client' | 'admin';
 }
 
 /**

@@ -5,6 +5,8 @@
  */
 
 export { BaseCollectionRef, type CollectionSchema, type FieldSchema } from './baseCollection'; // Removed FirestoreFunctions export
+// Export generic types
+export type { FirestoreLike, CollectionReferenceLike, DocumentReferenceLike, DocumentSnapshotLike, SetOptionsLike, TimestampLike, FieldValueLike, DocumentDataLike, GeoPointLike } from './baseCollection'; // Added GeoPointLike
 export { BaseQueryBuilder } from './baseQueryBuilder';
 export { BaseUpdateBuilder } from './baseUpdateBuilder';
 

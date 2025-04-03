@@ -3,7 +3,7 @@ import path from 'path';
 import ejs from 'ejs';
 import { WhereFilterOp } from 'firebase/firestore'; // Use TS type for reference
 import { FirestoreODMConfig, OutputTarget, DartOptions } from '../types/config';
-import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition, FieldType } from '../types/schema';
+import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition } from '../types/schema'; // Removed FieldType
 import { capitalizeFirstLetter, camelToPascalCase, toSnakeCase } from '../utils/naming';
 // Dart Runtime Imports (Placeholders - adjust paths/names as needed)
 // import 'package:fireschema_dart_runtime/src/base_collection_ref.dart';
@@ -39,22 +39,13 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
   const updateBuilderTemplatePath = path.resolve(__dirname, '../../templates/dart/updateBuilder.dart.ejs');
 
   // Pre-load all templates
-  if (!fs.existsSync(modelTemplatePath)) {
-    throw new Error(`Dart model template not found at: ${modelTemplatePath}`);
-  }
-  if (!fs.existsSync(collectionRefTemplatePath)) {
-    throw new Error(`Dart collectionRef template not found at: ${collectionRefTemplatePath}`);
-  }
-  if (!fs.existsSync(queryBuilderTemplatePath)) {
-    throw new Error(`Dart queryBuilder template not found at: ${queryBuilderTemplatePath}`);
-  }
-  if (!fs.existsSync(coreTemplatePath)) {
-    throw new Error(`Dart core template not found at: ${coreTemplatePath}`);
-  }
-  if (!fs.existsSync(updateBuilderTemplatePath)) {
-    throw new Error(`Dart updateBuilder template not found at: ${updateBuilderTemplatePath}`);
-  }
+  if (!fs.existsSync(modelTemplatePath)) throw new Error(`Dart model template not found at: ${modelTemplatePath}`);
+  if (!fs.existsSync(collectionRefTemplatePath)) throw new Error(`Dart collectionRef template not found at: ${collectionRefTemplatePath}`);
+  if (!fs.existsSync(queryBuilderTemplatePath)) throw new Error(`Dart queryBuilder template not found at: ${queryBuilderTemplatePath}`);
+  if (!fs.existsSync(coreTemplatePath)) throw new Error(`Dart core template not found at: ${coreTemplatePath}`);
+  if (!fs.existsSync(updateBuilderTemplatePath)) throw new Error(`Dart updateBuilder template not found at: ${updateBuilderTemplatePath}`);
 
+  // Explicitly set encoding when reading templates
   const templates: DartTemplateStrings = {
       model: fs.readFileSync(modelTemplatePath, 'utf-8'),
       collectionRef: fs.readFileSync(collectionRefTemplatePath, 'utf-8'),
@@ -66,67 +57,52 @@ export async function generateDart(target: OutputTarget, schema: ParsedFirestore
   // Generate files for each top-level collection
   for (const collectionId in schema.collections) {
     const collection = schema.collections[collectionId];
+    // Pass templates object, not individual strings
     await generateFilesForDartCollection(collection, target.outputDir, options, templates);
   }
 
   // --- Generate Core Runtime File (COMMENTED OUT FOR RUNTIME REFACTOR) ---
-  /*
-  if (options.generateCore !== false) { // Default to true
-    try {
-        const renderedCore = ejs.render(coreTemplate, {});
-        const coreFileName = `firestore_odm_core.dart`; // Naming convention
-        const coreFilePath = path.join(target.outputDir, coreFileName);
-        await fs.promises.writeFile(coreFilePath, renderedCore);
-        console.log(`  ✓ Generated core runtime library: ${coreFilePath}`);
-    } catch (error: any) {
-        console.error(`  ✗ Error generating core runtime library: ${error.message}`);
-    }
-  }
-  */
+  /* ... */
 
   // --- Generate pubspec.yaml (Optional) ---
   if (target.package) {
     try {
-        // Calculate path relative from the output directory to the runtime package
-        // Use process.cwd() as the generator is run from the project root
         const runtimePackageDir = path.resolve(process.cwd(), 'packages/fireschema_dart_runtime');
-        const relativeRuntimePath = path.relative(target.outputDir, runtimePackageDir).replace(/\\/g, '/'); // Ensure forward slashes
+        const relativeRuntimePath = path.relative(target.outputDir, runtimePackageDir).replace(/\\/g, '/');
 
-        // Basic pubspec content
         const pubspecContent = `
 name: ${target.package.name}
 description: ${target.package.description || `Generated Firestore ODM for ${target.package.name}`}
 version: ${target.package.version || '0.1.0'}
-publish_to: none # Prevent accidental publishing with path dependencies
-# repository: # Optional: Add repository URL if available
+publish_to: none
 
 environment:
-  sdk: '>=2.17.0 <4.0.0' # Example SDK constraint, adjust as needed
-  flutter: '>=1.17.0' # Optional: if primarily for Flutter
+  sdk: '>=2.17.0 <4.0.0'
+  # flutter: '>=1.17.0' # Uncomment if needed
 
 dependencies:
-  flutter: # Optional: if primarily for Flutter
-    sdk: flutter
-  cloud_firestore: ^4.0.0 # Example version constraint, adjust as needed
+  # flutter: # Uncomment if needed
+  #   sdk: flutter
+  cloud_firestore: ^4.0.0 # Adjust version as needed
   fireschema_dart_runtime:
-    path: ${relativeRuntimePath} # Use path relative to project root
-  # Add other necessary dependencies if the generated code requires them
+    path: ${relativeRuntimePath}
+  # meta: ^1.8.0 # Add if using @required or similar annotations
 
 dev_dependencies:
-  flutter_test: # Optional: if primarily for Flutter
-    sdk: flutter
+  # flutter_test: # Uncomment if needed
+  #   sdk: flutter
   flutter_lints: ^2.0.0 # Example linter
 
 # For information on the generic Dart part of this file, see
 # https://dart.dev/tools/pub/pubspec
-`.trimStart(); // Remove leading newline
+`.trimStart();
 
         const pubspecPath = path.join(target.outputDir, 'pubspec.yaml');
         await fs.promises.writeFile(pubspecPath, pubspecContent);
         console.log(`  ✓ Generated pubspec.yaml: ${pubspecPath}`);
     } catch (error: any) {
         console.error(`  ✗ Error generating pubspec.yaml: ${error.message}`);
-        throw error; // Re-throw
+        throw error;
     }
   }
 
@@ -136,60 +112,54 @@ dev_dependencies:
 
 /**
  * Generates the necessary Dart files for a single collection and recursively calls itself for subcollections.
- *
- * @param collection The parsed definition of the collection.
- * @param outputBaseDir The base directory for the current language output.
- * @param options Dart generation options.
- * @param templates Pre-loaded Dart template strings.
- * @param parentPath Optional path prefix for subcollections (e.g., 'users'). Used for directory structure.
  */
 async function generateFilesForDartCollection(
     collection: ParsedCollectionDefinition,
     outputBaseDir: string,
     options: DartOptions,
-    templates: DartTemplateStrings,
-    parentPath: string = '' // Base path for top-level collections
+    templates: DartTemplateStrings, // Accept templates object
+    parentPath: string = ''
 ): Promise<void> {
     const collectionId = collection.collectionId;
     const modelName = camelToPascalCase(collectionId);
     const fileNameBase = toSnakeCase(collectionId);
-    // Determine output directory for this specific collection (potentially nested)
     const currentOutputDir = parentPath ? path.join(outputBaseDir, parentPath) : outputBaseDir;
-    // Ensure nested directory exists
+
     if (parentPath) {
-        // Create directory if it doesn't exist, handling potential race conditions safely
         try {
             await fs.promises.mkdir(currentOutputDir, { recursive: true });
         } catch (err: any) {
-            // Ignore error if directory already exists, re-throw otherwise
-            if (err.code !== 'EEXIST') {
-                throw err;
-            }
+            if (err.code !== 'EEXIST') throw err;
         }
     }
-
 
     console.log(`  Generating Dart files for collection: ${parentPath ? parentPath + '/' : ''}${collectionId}`);
 
     // Prepare data objects for templates
     const commonData = {
         modelName: modelName,
-        fileNameBase: fileNameBase, // Add fileNameBase here
+        fileNameBase: fileNameBase,
         collection: collection,
         options: options,
-        getDartType: getDartType,
+        // Pass helper functions needed by templates
+        getDartType: (field: ParsedFieldDefinition) => getDartType(field, options), // Pass options
         capitalizeFirstLetter: capitalizeFirstLetter,
         camelToPascalCase: camelToPascalCase,
         toSnakeCase: toSnakeCase,
-        parentPath: parentPath, // Pass parentPath for context if needed by templates
+        parentPath: parentPath,
         isSubcollection: !!parentPath,
     };
-    const queryBuilderData = { ...commonData, getDartQueryInfoForField: getDartQueryInfoForField };
+    // Pass getDartQueryInfoForField helper
+    const queryBuilderData = {
+        ...commonData,
+        getDartQueryInfoForField: (field: ParsedFieldDefinition) => getDartQueryInfoForField(field, options) // Pass options
+    };
     const updateBuilderData = { ...commonData };
-    const collectionRefData = { ...commonData }; // Pass parentPath here too
+    const collectionRefData = { ...commonData };
 
     // Generate Model File
     try {
+        // Pass the pre-read template string and data
         const renderedModel = ejs.render(templates.model, commonData);
         const modelFileName = `${fileNameBase}_data.dart`;
         const modelFilePath = path.join(currentOutputDir, modelFileName);
@@ -197,7 +167,7 @@ async function generateFilesForDartCollection(
         console.log(`    ✓ Generated model: ${modelFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating model for collection "${collectionId}": ${error.message}`);
-        throw error; // Re-throw
+        throw error;
     }
 
     // Generate Collection Reference File
@@ -209,7 +179,7 @@ async function generateFilesForDartCollection(
         console.log(`    ✓ Generated collection reference: ${collectionRefFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating collection reference for collection "${collectionId}": ${error.message}`);
-        throw error; // Re-throw
+        throw error;
     }
 
     // Generate Query Builder File
@@ -221,7 +191,7 @@ async function generateFilesForDartCollection(
         console.log(`    ✓ Generated query builder: ${queryBuilderFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating query builder for collection "${collectionId}": ${error.message}`);
-        throw error; // Re-throw
+        throw error;
     }
 
     // Generate Update Builder File
@@ -233,17 +203,17 @@ async function generateFilesForDartCollection(
         console.log(`    ✓ Generated update builder: ${updateBuilderFilePath}`);
     } catch (error: any) {
         console.error(`    ✗ Error generating update builder for collection "${collectionId}": ${error.message}`);
-        throw error; // Re-throw
+        throw error;
     }
 
     // --- Generate Subcollection Files (Recursive Call) ---
     if (collection.subcollections) {
         for (const subcollectionId in collection.subcollections) {
             const subcollection = collection.subcollections[subcollectionId];
-            // Construct the path for the subcollection output (Dart uses simple nesting based on parent collection ID)
             const subcollectionParentPath = parentPath
-                ? `${parentPath}/${collectionId}` // Nested subcollection path
-                : `${collectionId}`; // Top-level subcollection path
+                ? `${parentPath}/${collectionId}`
+                : `${collectionId}`;
+            // Pass templates object down
             await generateFilesForDartCollection(subcollection, outputBaseDir, options, templates, subcollectionParentPath);
         }
     }
@@ -253,27 +223,22 @@ async function generateFilesForDartCollection(
  * Helper function to determine the Dart type string for a given field definition.
  */
 function getDartType(field: ParsedFieldDefinition, options: DartOptions): string {
-    // TODO: Add option for DateTime vs Timestamp
+    const safeOptions = options || {};
     switch (field.type) {
       case 'string': return 'String';
-      case 'number': return 'num'; // Or double/int based on further schema info?
+      case 'number': return 'num';
       case 'boolean': return 'bool';
-      case 'timestamp': return 'Timestamp'; // from cloud_firestore
-      case 'geopoint': return 'GeoPoint'; // from cloud_firestore
+      case 'timestamp': return 'Timestamp';
+      case 'geopoint': return 'GeoPoint';
       case 'reference':
-        const refModelName = field.referenceTo ? camelToPascalCase(field.referenceTo) + 'Data' : 'DocumentSnapshot';
-        // Assuming the target model class (e.g., UserData) exists and is imported.
-        // DocumentReference itself isn't generic in the same way in Dart firestore client.
-        // We type the CollectionReference and Query, but DocumentReference often remains dynamic.
-        // For stronger typing, one might use `DocumentReference<Map<String, dynamic>>` or a custom wrapper.
-        // Let's return a reasonable type for now.
-        return `DocumentReference<Map<String, dynamic>>`; // Or DocumentReference?
+        // const refModelName = field.referenceTo ? camelToPascalCase(field.referenceTo) + 'Data' : 'DocumentSnapshot';
+        return `DocumentReference<Map<String, dynamic>>`;
       case 'array':
         if (!field.items) return 'List<dynamic>';
-        return `List<${getDartType(field.items, options)}>`;
+        return `List<${getDartType(field.items, safeOptions)}>`; // Pass safeOptions
       case 'map':
         if (!field.properties) return 'Map<String, dynamic>';
-        // TODO: Generate typed map class if possible/desired
+        // TODO: Generate typed map class
         return 'Map<String, dynamic>';
       default: return 'dynamic';
     }
@@ -281,70 +246,52 @@ function getDartType(field: ParsedFieldDefinition, options: DartOptions): string
 
 // Map Firestore query operators to Dart query method parameter names
 const dartQueryOpMap: { [key in WhereFilterOp]?: string } = {
-    '==': 'isEqualTo',
-    '!=': 'isNotEqualTo',
-    '<': 'isLessThan',
-    '<=': 'isLessThanOrEqualTo',
-    '>': 'isGreaterThan',
-    '>=': 'isGreaterThanOrEqualTo',
-    'array-contains': 'arrayContains',
-    'array-contains-any': 'arrayContainsAny',
-    'in': 'whereIn',
-    'not-in': 'whereNotIn',
+    '==': 'isEqualTo', '!=': 'isNotEqualTo',
+    '<': 'isLessThan', '<=': 'isLessThanOrEqualTo',
+    '>': 'isGreaterThan', '>=': 'isGreaterThanOrEqualTo',
+    'array-contains': 'arrayContains', 'array-contains-any': 'arrayContainsAny',
+    'in': 'whereIn', 'not-in': 'whereNotIn',
 };
 
 /**
  * Returns an array of valid Dart query parameter details for a given field.
  */
 function getDartQueryInfoForField(field: ParsedFieldDefinition, options: DartOptions): Array<{ paramName: string, valueType: string }> {
-    const valueType = getDartType(field, options);
+    const safeOptions = options || {};
+    const valueType = getDartType(field, safeOptions); // Pass safeOptions
     let validOps: WhereFilterOp[];
 
-    // Determine valid Firestore operators based on field type
     switch (field.type) {
-        case 'string':
-        case 'number':
-        case 'boolean':
-        case 'timestamp':
-        case 'geopoint':
-        case 'reference':
+        case 'string': case 'number': case 'boolean': case 'timestamp':
+        case 'geopoint': case 'reference':
             validOps = ['==', '!=', '<', '<=', '>', '>=', 'in', 'not-in'];
             break;
         case 'array':
             validOps = ['array-contains', 'array-contains-any', 'in', 'not-in'];
             break;
         case 'map':
-            validOps = ['==', '!=', 'in', 'not-in']; // Limited ops for direct map equality
+            validOps = ['==', '!=', 'in', 'not-in'];
             break;
-        default:
-            validOps = [];
+        default: validOps = [];
     }
 
     const queryInfos: Array<{ paramName: string, valueType: string }> = [];
-
     for (const op of validOps) {
         const paramName = dartQueryOpMap[op];
-        if (!paramName) continue; // Skip if no corresponding Dart parameter
+        if (!paramName) continue;
 
-        let specificValueType = valueType; // Default type
-
-        // Adjust type based on operator for Dart
+        let specificValueType = valueType;
         if (paramName === 'arrayContains') {
-             specificValueType = field.items ? getDartType(field.items, options) : 'dynamic';
+             specificValueType = field.items ? getDartType(field.items, safeOptions) : 'dynamic'; // Pass safeOptions
         } else if (paramName === 'arrayContainsAny' || paramName === 'whereIn' || paramName === 'whereNotIn') {
-             const itemType = field.items ? getDartType(field.items, options) : 'dynamic';
-             // whereIn/notIn on array fields compares the whole array
+             const itemType = field.items ? getDartType(field.items, safeOptions) : 'dynamic'; // Pass safeOptions
              specificValueType = field.type === 'array' ? `List<${valueType}>` : `List<${itemType}>`;
-        }
-        // For non-array fields, whereIn/notIn expect List<FieldType>
-        else if (field.type !== 'array' && (paramName === 'whereIn' || paramName === 'whereNotIn')) {
+        } else if (field.type !== 'array' && (paramName === 'whereIn' || paramName === 'whereNotIn')) {
              specificValueType = `List<${valueType}>`;
         }
 
-        // Ensure nullability matches field definition for non-list types
         const isNullable = !field.required && !specificValueType.startsWith('List<');
         queryInfos.push({ paramName: paramName, valueType: `${specificValueType}${isNullable ? '?' : ''}` });
     }
-
     return queryInfos;
 }
