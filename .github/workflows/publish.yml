@@ -22,9 +22,17 @@ jobs:
       - name: Build all packages
         run: bun run build
 
-      - name: Run tests
-        run: bun run test
+      - name: Run tests (using npx jest due to bun test issues)
+        run: npx jest
 
+      - name: Build VitePress site
+        run: npm run docs:build # Or use bun run docs:build if preferred
+
+      - name: Upload VitePress build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages # Artifact name
+          path: ./docs # Directory containing VitePress build output (defined in config.mts outDir)
   publish-npm:
     needs: build-and-test # Run after build and test succeed
     runs-on: ubuntu-latest
@@ -47,13 +55,18 @@ jobs:
           node-version: '20' # Use a version compatible with your project/npm
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Publish @fireschema/ts-runtime to npm
-        run: cd packages/fireschema-ts-runtime && npm publish --access public
+      - name: Publish @shtse8/fireschema-ts-client-runtime to npm
+        run: cd packages/fireschema-ts-client-runtime && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Publish fireschema CLI to npm
-        run: npm publish --access public
+      - name: Publish @shtse8/fireschema-ts-admin-runtime to npm
+        run: cd packages/fireschema-ts-admin-runtime && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @shtse8/fireschema CLI to npm
+        run: npm publish --access public # Assumes root package is the CLI
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -68,3 +81,24 @@ jobs:
         # If you configure a GitHub Environment called 'pub.dev' for added protection:
         # environment: pub.dev
         # environment: pub.dev
+
+  deploy-docs:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to push to gh-pages branch
+    steps:
+      - name: Download VitePress build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages # Match artifact name from build job
+          # No path needed, defaults to workflow run directory
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: . # Deploy the downloaded artifact content from the root
+          # Optional: configure user name and email for commit
+          # user_name: 'github-actions[bot]'
+          # user_email: 'github-actions[bot]@users.noreply.github.com'

@@ -7,8 +7,9 @@ working with Firestore, especially in multi-language projects.
 
 Currently supports generating code for:
 
-- TypeScript
-- Dart
+- TypeScript (Client SDK - `firebase`)
+- TypeScript (Admin SDK - `firebase-admin`)
+- Dart (Client SDK - `cloud_firestore`)
 
 ## Features
 
@@ -16,11 +17,13 @@ Currently supports generating code for:
   using standard JSON Schema.
 - **Strongly-Typed:** Generates typed model interfaces/classes, collection
   references, query builders, and update builders.
-- **Multi-Language:** Supports TypeScript and Dart code generation from a single
-  schema.
-- **Runtime Libraries:** Generated code relies on lightweight runtime packages
-  (`@fireschema/ts-runtime`, `fireschema_dart_runtime`) containing common logic,
-  keeping generated code lean.
+- **Multi-Target:** Supports generating code for different targets (TS Client,
+  TS Admin, Dart Client) from a single schema using an adapter-based
+  architecture.
+- **Independent Runtimes:** Generated code relies on target-specific runtime
+  packages (`@shtse8/fireschema-ts-client-runtime`,
+  `@shtse8/fireschema-ts-admin-runtime`, `fireschema_dart_runtime`) containing
+  necessary base logic.
 - **Basic CRUD & Queries:** Generated code includes methods for document
   manipulation (`add`, `set`, `update`, `delete`, `get`) and querying
   (`where<Field>`, `orderBy`, `limit`, pagination/cursors) via runtime base
@@ -37,10 +40,10 @@ Currently supports generating code for:
 
    ```bash
    # Install globally (recommended for CLI usage)
-   npm install -g . # For local dev build | Or: npm install -g fireschema (once published)
+   npm install -g . # For local dev build | Or: npm install -g @shtse8/fireschema (once published)
 
    # Or install as a dev dependency in your project
-   npm install --save-dev . # For local dev build | Or: npm install --save-dev fireschema (once published)
+   npm install --save-dev . # For local dev build | Or: npm install --save-dev @shtse8/fireschema (once published)
    ```
 
    _(Note: Requires Node.js and npm)_
@@ -50,12 +53,22 @@ Currently supports generating code for:
    The generated code requires corresponding runtime libraries. Install the
    one(s) you need in the project where you'll use the generated code:
 
-   **For TypeScript:**
+   **For TypeScript (Client SDK):**
 
    ```bash
-   npm install @fireschema/ts-runtime # Or yarn add / pnpm add
-   # Also ensure you have firebase installed:
+   # Install the client runtime
+   npm install @shtse8/fireschema-ts-client-runtime
+   # Also ensure you have the Firebase JS SDK (v9+) installed:
    npm install firebase
+   ```
+
+   **For TypeScript (Admin SDK):**
+
+   ```bash
+   # Install the admin runtime
+   npm install @shtse8/fireschema-ts-admin-runtime
+   # Also ensure you have the Firebase Admin SDK installed:
+   npm install firebase-admin
    ```
 
    **For Dart/Flutter:**
@@ -154,19 +167,35 @@ assuming you have initialized the Firebase Admin SDK (Node.js/TypeScript) or
 ### TypeScript Example
 
 ```typescript
-import { cert, initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-// Import generated collection class
-import { UsersCollection } from "./generated/firestore-ts/users.collection";
-// Firestore FieldValue types might still be needed directly
-import { increment, serverTimestamp } from "firebase/firestore";
+// --- TypeScript Client SDK Example ---
+import { FirebaseApp, initializeApp } from "firebase/app";
+import {
+  connectFirestoreEmulator,
+  Firestore,
+  getFirestore,
+} from "firebase/firestore";
+// Import generated collection class (assuming outputDir is './generated/firestore-ts-client')
+import { UsersCollection } from "./generated/firestore-ts-client/users.collection";
+// Import runtime helpers if needed directly (usually used internally by generated code)
+// import { ClientBaseCollectionRef } from "@shtse8/fireschema-ts-client-runtime";
+
+// --- TypeScript Admin SDK Example ---
+// import * as admin from 'firebase-admin';
+// import { getFirestore as getAdminFirestore, Firestore as AdminFirestore } from 'firebase-admin/firestore';
+// import { UsersCollection as AdminUsersCollection } from './generated/firestore-ts-admin/users.collection';
+
+// Example using Client SDK:
+const firebaseConfig = {/* your firebase config */};
+const app: FirebaseApp = initializeApp(firebaseConfig);
+const firestore: Firestore = getFirestore(app);
+// connectFirestoreEmulator(firestore, '127.0.0.1', 8080); // Connect to emulator if needed
 
 // Initialize Firebase Admin (example)
-// initializeApp({ credential: cert(serviceAccount) });
-const firestore = getFirestore();
+// const firestore = getAdminFirestore(); // For Admin SDK
 
 // Get a typed collection reference
-const usersCollection = new UsersCollection(firestore);
+const usersCollection = new UsersCollection(firestore); // Pass the Firestore instance
+// const adminUsersCollection = new AdminUsersCollection(firestore); // For Admin SDK
 
 async function runExample() {
   try {
@@ -215,7 +244,8 @@ async function runExample() {
     console.log(`Found ${betaTesters.length} beta testers.`);
 
     // Access a subcollection
-    const userPosts = usersCollection.posts(newUserRef.id); // Generated accessor uses runtime helper
+    // Assuming 'posts' is defined as a subcollection in your schema
+    const userPosts = usersCollection.posts(newUserRef.id); // Generated accessor
     await userPosts.add({ title: "My First Post", content: "Hello world!" });
     console.log("Added post to subcollection.");
   } catch (error) {
@@ -304,7 +334,8 @@ void main() async {
     }
 
     // Access a subcollection
-    final userPosts = usersCollection.posts(newUserRef.id); // Generated accessor uses runtime helper
+    // Assuming 'posts' is defined as a subcollection in your schema
+    final userPosts = usersCollection.posts(newUserRef.id); // Generated accessor
     await userPosts.add({'title': 'My Dart Post', 'content': 'Hello Dart!'}); // Pass Map for now
     print('Added post to subcollection.');
 
@@ -446,11 +477,10 @@ if (updatedUserData?.primaryAddressRef != null) {
   "schema": "./path/to/your/firestore.schema.json", // Required: Path to schema file
   "outputs": [ // Required: Array of output targets
     {
-      "language": "typescript", // 'typescript' or 'dart'
-      "outputDir": "./src/generated/firestore-ts", // Directory for generated TS code
-      "options": { // Optional TS options
-        // "generateCore": false, // No longer applicable
-        "dateTimeType": "Timestamp" // 'Timestamp' or 'Date' (default: 'Timestamp')
+      "target": "typescript-client", // Target identifier (e.g., 'typescript-client', 'typescript-admin', 'dart-client')
+      "outputDir": "./src/generated/firestore-ts-client", // Directory for generated code
+      "options": { // Optional target-specific options
+        "dateTimeType": "Timestamp" // 'Timestamp' or 'Date' (default: 'Timestamp') for TS targets
       },
       "package": { // Optional: Generate package.json
         "name": "my-project-firestore-ts",
@@ -458,10 +488,17 @@ if (updatedUserData?.primaryAddressRef != null) {
       }
     },
     {
-      "language": "dart",
-      "outputDir": "./lib/generated/firestore_dart", // Directory for generated Dart code
+      "target": "typescript-admin",
+      "outputDir": "./src/generated/firestore-ts-admin",
+      "options": {
+        "dateTimeType": "Timestamp" // 'Timestamp' or 'Date' (default: 'Timestamp')
+      }
+      // "package": { ... } // Optional package generation
+    },
+    {
+      "target": "dart-client",
+      "outputDir": "./lib/generated/firestore_dart",
       "options": { // Optional Dart options
-        // "generateCore": false, // No longer applicable
         "nullSafety": true // Generate null-safe code (default: true)
       },
       "package": { // Optional: Generate pubspec.yaml
@@ -483,17 +520,18 @@ if (updatedUserData?.primaryAddressRef != null) {
 - **`schema`** (Required, string): Path to your `firestore.schema.json` file,
   relative to the config file's location.
 - **`outputs`** (Required, array): An array of output target objects.
-  - **`language`** (Required, string): Target language (`"typescript"` or
-    `"dart"`).
+  - **`target`** (Required, string): Target identifier (e.g.,
+    `"typescript-client"`, `"typescript-admin"`, `"dart-client"`). Determines
+    which adapter and runtime to use.
   - **`outputDir`** (Required, string): Output directory for the generated code,
     relative to the config file's location.
   - **`options`** (Optional, object): Language-specific options.
-    - **TypeScript Options:**
+    - **TypeScript Client/Admin Options:**
       - `dateTimeType` (Optional, string, default: `"Timestamp"`): Specifies
-        whether to use `Timestamp` (from `firebase/firestore`) or JavaScript
-        `Date` for timestamp fields. Using `Date` requires manual handling
-        during Firestore operations.
-    - **Dart Options:**
+        whether to use Firestore `Timestamp` or JavaScript `Date` for timestamp
+        fields. Using `Date` requires manual handling during Firestore
+        operations.
+    - **Dart Client Options:**
       - `nullSafety` (Optional, boolean, default: `true`): Whether to generate
         null-safe Dart code.
   - **`package`** (Optional, object): If provided, generates a basic
@@ -556,17 +594,21 @@ _(Refer to `src/schema-definition.json` for the formal validation schema and
 2. Install dependencies: `npm install` (uses workspaces)
 3. Fetch Dart runtime dependencies:
    `cd packages/fireschema_dart_runtime && dart pub get && cd ../..`
-4. Build the tool & TS runtime: `npm run build --workspaces` (or configure root
-   build script)
-5. Run locally: `node dist/cli.js generate -c examples/fireschema.config.json`
+4. Build the project (including CLI and runtimes): `npm run build --workspaces`
+   or `tsc -b` (using project references)
+5. Run CLI locally:
+   `node dist/cli.js generate -c examples/fireschema.config.json` or
+   `bun dist/cli.js generate -c examples/fireschema.config.json`
 
 ## TODO / Future Enhancements
 
-- **Complete Runtime Refactor:**
-  - Test generated code thoroughly with runtime libraries.
-  - Refine build/linking process for monorepo.
-  - Consider publishing runtime packages.
-  - Address TODOs in runtime base classes.
+- **Expand Test Coverage:** Increase unit and integration tests for runtime
+  packages.
+- **Publish Packages:** Publish CLI and runtime packages (`@shtse8/fireschema`,
+  `@shtse8/fireschema-ts-client-runtime`, `@shtse8/fireschema-ts-admin-runtime`,
+  `fireschema_dart_runtime`).
+- **CI/CD:** Ensure GitHub Actions workflow correctly builds, tests (using
+  `npx jest`), and publishes all packages.
 - Refine `fromJson`/`toJson` for complex types (nested maps, arrays of
   references, etc.).
 - Improve `AddData`/`UpdateData` type generation (automatic omission of

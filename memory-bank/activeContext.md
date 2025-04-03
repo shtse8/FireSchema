@@ -1,7 +1,7 @@
 # Active Context: FireSchema (Executor + Adapter Refactor Complete)
 
-**Current Focus:** TS Runtime refactoring (Independent Runtimes) complete. Next:
-Review/Update tests.
+**Current Focus:** Initial documentation setup using VitePress is complete.
+Next: Expand runtime test coverage.
 
 **Recent Changes (Executor + Adapter Refactor):**
 
@@ -43,23 +43,32 @@ Review/Update tests.
   - Created initial integration test files (`client.integration.test.ts`,
     `admin.integration.test.ts`) for `ts-client-runtime` and `ts-admin-runtime`,
     configured for Firestore emulator.
+    - Resolved Jest transformation issues by switching to `babel-jest`. All TS
+      runtime tests pass with `npx jest`.
+- **Documentation:**
+  - Replaced TypeDoc setup with VitePress.
+  - Created initial VitePress site structure (`docs-src`), configuration
+    (`config.mts`), homepage (`index.md`), and basic guide pages.
+  - Added npm scripts for VitePress (`docs:dev`, `docs:build`, `docs:preview`).
+  - Updated GitHub Actions workflow (`publish.yml`) to build and deploy
+    VitePress site to GitHub Pages.
 
 **Next Steps:**
 
-1. **Expand Runtime Tests:** - **(Current Task)**
+1. **Expand Runtime Tests:** - **(Next Task)**
    - Add comprehensive test cases to unit tests for `ts-client-runtime` and
      `ts-admin-runtime` (covering `BaseCollectionRef`, `BaseQueryBuilder`,
      `BaseUpdateBuilder`).
    - Add comprehensive test cases to integration tests for `ts-client-runtime`
      and `ts-admin-runtime` (covering CRUD, queries, updates, subcollections,
      default values).
-   - Snapshot tests (`src/__tests__/generator.test.ts`) are up-to-date.
-2. **Run Integration Tests:** Ensure Firestore emulator is running and re-run
-   `npx jest`.
+2. **Populate VitePress Documentation:** Add more detailed content to the
+   VitePress site (`docs-src`), explaining features, API, and advanced usage.
 3. **(Optional) Address Minor Test Issues:** Investigate the `jest.mock` errors
    reported by `bun test` (but not `npx jest`).
 4. **(Future) Implement More Adapters:** Add adapters for new targets (e.g.,
    `dart-server-rest`, `csharp-client`).
 5. **(Future) Generator Enhancements:** Add support for more complex schema
    validation rules, improve error reporting.
-6. **(Future) Documentation:** Update documentation for the new architecture.
+6. **(Future) Documentation:** Continue refining and expanding the VitePress
+   documentation.

@@ -13,6 +13,9 @@
     "build:generated-ts": "bun run --filter '@my-project/firestore-models-ts' build",
     "build:root": "bun run clean && tsc -b && copyfiles -u 1 \"src/adapters/**/*.ejs\" dist",
     "build": "bun run build:workspaces && bun run build:root",
+    "docs:dev": "vitepress dev docs-src",
+    "docs:build": "vitepress build docs-src",
+    "docs:preview": "vitepress preview docs-src",
     "prepublishOnly": "bun run build"
   },
   "keywords": [],
@@ -32,7 +35,9 @@
     "jest": "^29.7.0",
     "rimraf": "^6.0.1",
     "ts-jest": "^29.3.1",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitepress": "^1.6.3",
+    "vue": "^3.5.13"
   },
   "dependencies": {
     "@types/ejs": "^3.1.5",

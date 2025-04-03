@@ -88,8 +88,13 @@
 2. **Generator Enhancements (Post-Refactor):**
    - Support more complex validation rules.
    - Improve error handling.
-3. **Documentation (Post-Refactor):**
-   - Add detailed documentation for the new architecture, adapters, and usage.
+3. **Documentation (Post-Refactor):** ✅ **COMPLETED (Initial VitePress Setup)**
+   - Replaced TypeDoc with VitePress.
+   - Created initial site structure, config, homepage, and basic guide pages in
+     `docs-src/`.
+   - Configured GitHub Actions to build and deploy VitePress site to GitHub
+     Pages.
+   - **Next:** Populate documentation with more detailed content.
 
 **Current Status:**
 
@@ -102,9 +107,9 @@ further analysis revealed significant structural differences between Client v9+
 and Admin SDKs, making shared interfaces impractical. Switched to **fully
 independent** TS Client and TS Admin runtime packages.
 
-**Current focus:** Initial unit and integration tests for both TS runtime
-packages are now passing using `npx jest` after resolving transformation issues.
-The next step is to expand the test coverage for these packages.
+**Current focus:** Initial VitePress documentation site setup is complete and
+configured for deployment. The next step is to expand the test coverage for the
+runtime packages.
 
 **Known Issues:**
 
