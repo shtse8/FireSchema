@@ -3,13 +3,15 @@ import path from 'path';
 import { FirestoreODMConfig, OutputTarget } from './types/config';
 import { ParsedFirestoreSchema } from './types/schema';
 
-// Placeholder imports for language-specific generators
-import { generateTypeScript } from './generators/typescript';
-import { generateDart } from './generators/dart';
+// Define the expected interface for an adapter module
+interface AdapterModule {
+  generate(target: OutputTarget, schema: ParsedFirestoreSchema, config: FirestoreODMConfig): Promise<void>;
+}
 
 /**
  * Main function to orchestrate the code generation process.
- * Iterates through output targets and calls the appropriate language generator.
+ * Iterates through output targets, loads the appropriate adapter,
+ * and calls its generate function.
  *
  * @param config The loaded and processed configuration object.
  * @param schema The loaded, validated, and parsed schema object.
@@ -18,7 +20,7 @@ export async function generate(config: FirestoreODMConfig, schema: ParsedFiresto
   console.log('\nStarting code generation for all targets...');
 
   for (const outputTarget of config.outputs) {
-    console.log(`\nProcessing target: ${outputTarget.language.toUpperCase()} -> ${outputTarget.outputDir}`);
+    console.log(`\nProcessing target: ${outputTarget.target} -> ${outputTarget.outputDir}`);
 
     // Ensure output directory exists
     try {
@@ -28,39 +30,54 @@ export async function generate(config: FirestoreODMConfig, schema: ParsedFiresto
       throw new Error(`Failed to create output directory "${outputTarget.outputDir}": ${error.message}`);
     }
 
-    switch (outputTarget.language) {
-      case 'typescript':
-        await generateTypeScript(outputTarget, schema, config);
-        break;
-      case 'dart':
-        await generateDart(outputTarget, schema, config);
-        break;
-      default:
-        // This should ideally be caught by config validation, but good to have a fallback
-        console.warn(`Unsupported language target: ${outputTarget.language}. Skipping.`);
+    let adapter: AdapterModule | null = null;
+    let adapterPath = ''; // For error reporting
+
+    try {
+      // Dynamically import the correct adapter based on the target string
+      switch (outputTarget.target) {
+        case 'typescript-client':
+          adapterPath = './adapters/typescript-client'; // Relative path from dist/generator.js
+          adapter = await import(adapterPath);
+          break;
+        case 'typescript-admin':
+          adapterPath = './adapters/typescript-admin';
+          adapter = await import(adapterPath);
+          break;
+        case 'dart-client':
+          adapterPath = './adapters/dart-client';
+          adapter = await import(adapterPath);
+          break;
+        // Add cases for future targets here
+        // case 'dart-server-rest':
+        //   adapterPath = './adapters/dart-server-rest'; // Example
+        //   adapter = await import(adapterPath);
+        //   break;
+        default:
+          console.warn(`Unsupported target: ${outputTarget.target}. Skipping.`);
+      }
+
+      // Execute the adapter's generate function if found
+      if (adapter && typeof adapter.generate === 'function') {
+        await adapter.generate(outputTarget, schema, config);
+      } else if (outputTarget.target && !adapter) {
+          // Log warning only if target was specified but adapter wasn't loaded (e.g., unsupported target)
+          console.warn(`No adapter found or loaded for target: ${outputTarget.target}. Skipping.`);
+      }
+    } catch (error: any) {
+        // Log detailed error including which adapter failed
+        console.error(`\n--- Error processing target "${outputTarget.target}" ---`);
+        if (adapterPath) {
+            console.error(`Adapter Path: ${adapterPath}`);
+        }
+        console.error(`Error Message: ${error.message}`);
+        if (error.stack) {
+            console.error(`Stack Trace:\n${error.stack}`);
+        }
+        // Re-throw to halt the entire generation process on adapter error
+        throw new Error(`Failed to generate code for target "${outputTarget.target}". See logs for details.`);
     }
   }
 
   console.log('\nCode generation process finished for all targets.');
 }
-
-// --- Placeholder Language-Specific Generators ---
-// These will be moved to separate files later (e.g., src/generators/typescript.ts)
-
-// async function generateTypeScript(target: OutputTarget, schema: ParsedFirestoreSchema, config: FirestoreODMConfig) {
-//   console.log(`Generating TypeScript for ${target.outputDir}...`);
-//   // 1. Load TS templates from templates/typescript/
-//   // 2. Prepare data object for templates (schema, options)
-//   // 3. Render templates using EJS
-//   // 4. Write rendered files to target.outputDir
-//   // 5. Optionally generate package.json
-// }
-
-// async function generateDart(target: OutputTarget, schema: ParsedFirestoreSchema, config: FirestoreODMConfig) {
-//   console.log(`Generating Dart for ${target.outputDir}...`);
-//   // 1. Load Dart templates from templates/dart/
-//   // 2. Prepare data object for templates (schema, options)
-//   // 3. Render templates using EJS
-//   // 4. Write rendered files to target.outputDir
-//   // 5. Optionally generate pubspec.yaml
-// }

@@ -36,7 +36,7 @@ import type {
   QuerySnapshot as AdminQuerySnapshot,
   WhereFilterOp as AdminWhereFilterOp,
   OrderByDirection as AdminOrderByDirection,
-  FieldPath as AdminFieldPath, // Import FieldPath for admin
+  FieldPath as AdminFieldPath,
 } from 'firebase-admin/firestore';
 
 // --- Re-import shared types from baseCollection ---
@@ -46,11 +46,13 @@ import type {
   DocumentSnapshotLike,
   DocumentDataLike,
 } from './baseCollection';
-import { isClientFirestore } from './baseCollection'; // Import type guard
+import { isClientFirestore } from './baseCollection';
 
 // --- Generic Type Aliases/Interfaces ---
 export type QueryLike<T extends DocumentDataLike> = ClientQuery<T> | AdminQuery<T>;
 export type QuerySnapshotLike<T extends DocumentDataLike> = ClientQuerySnapshot<T> | AdminQuerySnapshot<T>;
+// QueryConstraint is structurally compatible even if not named the same
+export type QueryConstraintLike = ClientQueryConstraint; // Admin functions return compatible constraints
 export type WhereFilterOpLike = ClientWhereFilterOp | AdminWhereFilterOp;
 export type OrderByDirectionLike = ClientOrderByDirection | AdminOrderByDirection;
 
@@ -62,7 +64,7 @@ interface BaseConstraint {
 }
 interface WhereConstraint extends BaseConstraint {
   type: 'where';
-  fieldPath: string | AdminFieldPath; // Allow FieldPath for admin
+  fieldPath: string | AdminFieldPath;
   opStr: WhereFilterOpLike;
   value: any;
 }
@@ -77,12 +79,12 @@ interface LimitConstraint extends BaseConstraint {
 }
 interface CursorConstraint extends BaseConstraint {
   type: 'startAt' | 'startAfter' | 'endAt' | 'endBefore';
-  // Use 'any' for snapshotOrFieldValue to avoid complex admin/client snapshot type issues here
   snapshotOrFieldValue: any;
   fieldValues: unknown[];
 }
 
-type QueryConstraintDefinition = WhereConstraint | OrderByConstraint | LimitConstraint | CursorConstraint;
+// Export the definition type
+export type QueryConstraintDefinition = WhereConstraint | OrderByConstraint | LimitConstraint | CursorConstraint;
 
 
 /**
@@ -91,7 +93,6 @@ type QueryConstraintDefinition = WhereConstraint | OrderByConstraint | LimitCons
 export abstract class BaseQueryBuilder<TData extends DocumentDataLike> {
   protected firestore: FirestoreLike;
   protected collectionRef: CollectionReferenceLike<TData>;
-  // Store definitions instead of results of static functions
   protected constraintDefinitions: QueryConstraintDefinition[] = [];
   protected isClient: boolean;
 
@@ -120,7 +121,7 @@ export abstract class BaseQueryBuilder<TData extends DocumentDataLike> {
    * Adds an orderBy clause definition.
    */
   orderBy(
-    fieldPath: keyof TData | string | AdminFieldPath, // Allow FieldPath for admin
+    fieldPath: keyof TData | string | AdminFieldPath,
     directionStr: OrderByDirectionLike = 'asc'
   ): this {
     return this.addConstraintDefinition({ type: 'orderBy', fieldPath: fieldPath as string | AdminFieldPath, directionStr });
@@ -195,7 +196,7 @@ export abstract class BaseQueryBuilder<TData extends DocumentDataLike> {
 
     } else {
       // Build admin query using chaining methods
-      let adminQuery: AdminQuery<TData> = this.collectionRef as AdminCollectionReference<TData>; // Start with collection ref
+      let adminQuery: AdminQuery<TData> = this.collectionRef as AdminCollectionReference<TData>;
       this.constraintDefinitions.forEach(def => {
         switch (def.type) {
           case 'where':
@@ -249,10 +250,8 @@ export abstract class BaseQueryBuilder<TData extends DocumentDataLike> {
   /** Internal helper to fetch snapshot based on SDK */
   private async getSnapshotInternal(q: QueryLike<TData>): Promise<QuerySnapshotLike<TData>> {
       if (this.isClient) {
-          // Use client static helper
           return clientGetDocs(q as ClientQuery<TData>);
       } else {
-          // Use admin query's get() method
           return (q as AdminQuery<TData>).get();
       }
   }

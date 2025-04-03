@@ -1,0 +1,25 @@
+{
+  "name": "@fireschema/core-ts",
+  "version": "0.1.0",
+  "description": "Core interfaces and types for FireSchema TypeScript adapters",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "npx rimraf dist",
+    "build": "bun run clean && tsc -b",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "firestore",
+    "odm",
+    "typescript",
+    "core",
+    "fireschema"
+  ],
+  "author": "FireSchema Contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "rimraf": "^6.0.1"
+  }
+}

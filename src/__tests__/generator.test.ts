@@ -6,41 +6,38 @@ import { execSync } from 'child_process';
 
 // Define paths relative to the project root
 const testOutputDir = path.resolve(__dirname, 'test-output');
-const testConfigPath = path.resolve(testOutputDir, 'test-fireschema.config.json');
-const testConfigAdminPath = path.resolve(testOutputDir, 'test-fireschema-admin.config.json');
-const testSchemaPath = path.resolve(testOutputDir, 'test-firestore.schema.json');
-const cliPath = path.resolve(__dirname, '../../dist/cli.js');
+const testConfigPath = path.resolve(testOutputDir, 'test-fireschema.config.json'); // Combined config
+const testSchemaPath = path.resolve(testOutputDir, 'test-firestore.schema.json'); // Shared schema
+const cliPath = path.resolve(__dirname, '../../dist/cli.js'); // Path to compiled CLI
 
 // --- Test Data ---
-// Sample Config (Client SDK - Default) - TEMPORARILY REMOVED DART OUTPUT AGAIN
-const testConfigClient = {
+// Combined Config using 'target' - TEMPORARILY DISABLED DART
+const testConfig = {
   schema: './test-firestore.schema.json',
   outputs: [
+    // TypeScript Client Target
     {
-      language: 'typescript',
+      target: 'typescript-client', // Use target string
       outputDir: './ts-generated-client',
       package: { name: '@test/generated-ts-client', version: '1.0.0' },
-      options: { dateTimeType: 'Timestamp', sdk: 'client' },
+      options: { dateTimeType: 'Timestamp' }, // Keep relevant options
     },
-    // { // Temporarily disabled Dart output AGAIN to isolate TS testing
-    //   language: 'dart',
+    // TypeScript Admin Target
+    {
+      target: 'typescript-admin', // Use target string
+      outputDir: './ts-generated-admin',
+      package: { name: '@test/generated-ts-admin', version: '1.0.0' },
+      options: { dateTimeType: 'Timestamp' }, // Keep relevant options
+    },
+    // Dart Client Target - Temporarily Disabled
+    // {
+    //   target: 'dart-client', // Use target string
     //   outputDir: './dart-generated',
     //   package: { name: 'test_generated_dart', version: '1.0.0', description: 'Test Dart generated code', environment: { sdk: '>=3.0.0 <4.0.0' } },
     // },
   ],
 };
-// Sample Config (Admin SDK)
-const testConfigAdmin = {
-  schema: './test-firestore.schema.json',
-  outputs: [
-    {
-      language: 'typescript',
-      outputDir: './ts-generated-admin',
-      package: { name: '@test/generated-ts-admin', version: '1.0.0' },
-      options: { dateTimeType: 'Timestamp', sdk: 'admin' },
-    },
-  ],
-};
+
 // Sample Schema (Shared)
 const testSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
@@ -76,27 +73,26 @@ describe('FireSchema Generator', () => {
     if (fs.existsSync(testOutputDir)) fs.rmSync(testOutputDir, { recursive: true, force: true });
     fs.mkdirSync(testOutputDir, { recursive: true });
     fs.writeFileSync(testSchemaPath, JSON.stringify(testSchema, null, 2));
-    fs.writeFileSync(testConfigPath, JSON.stringify(testConfigClient, null, 2));
-    fs.writeFileSync(testConfigAdminPath, JSON.stringify(testConfigAdmin, null, 2));
+    fs.writeFileSync(testConfigPath, JSON.stringify(testConfig, null, 2));
   });
   afterAll(() => {
     // Keep output for inspection during development
     // if (fs.existsSync(testOutputDir)) fs.rmSync(testOutputDir, { recursive: true, force: true });
   });
 
-  it('should run the generator CLI successfully for both client and admin configs', () => {
+  // Simplified test - run generator once with the combined config
+  it('should run the generator CLI successfully', () => {
     try {
-      console.log(`Running generator for Client SDK config: ${testConfigPath}`);
+      console.log(`Running generator with config: ${testConfigPath}`);
       execSync(`node ${cliPath} generate -c "${testConfigPath}"`, { cwd: testOutputDir, stdio: 'inherit' });
-      console.log(`Running generator for Admin SDK config: ${testConfigAdminPath}`);
-      execSync(`node ${cliPath} generate -c "${testConfigAdminPath}"`, { cwd: testOutputDir, stdio: 'inherit' });
     } catch (error) {
       console.error('Generator CLI execution failed:', error);
       throw error;
     }
-    const generatedClientDir = path.resolve(testOutputDir, testConfigClient.outputs[0].outputDir);
-    const generatedAdminDir = path.resolve(testOutputDir, testConfigAdmin.outputs[0].outputDir);
-    // const generatedDartDir = path.resolve(testOutputDir, testConfigClient.outputs[1].outputDir); // Dart dir check removed
+    // Check existence of output directories based on the combined config
+    const generatedClientDir = path.resolve(testOutputDir, testConfig.outputs[0].outputDir); // ts-client
+    const generatedAdminDir = path.resolve(testOutputDir, testConfig.outputs[1].outputDir); // ts-admin
+    // const generatedDartDir = path.resolve(testOutputDir, testConfig.outputs[2].outputDir); // Dart dir check removed
 
     expect(fs.existsSync(generatedClientDir)).toBe(true);
     expect(fs.existsSync(generatedAdminDir)).toBe(true);
@@ -111,7 +107,7 @@ describe('FireSchema Generator', () => {
   ];
 
   it('should generate TypeScript client files matching snapshots', () => {
-    const generatedBaseDir = path.resolve(testOutputDir, testConfigClient.outputs[0].outputDir);
+    const generatedBaseDir = path.resolve(testOutputDir, testConfig.outputs[0].outputDir); // Index 0 = ts-client
     tsExpectedFiles.forEach((relPath) => {
       const filePath = path.join(generatedBaseDir, relPath);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -121,7 +117,7 @@ describe('FireSchema Generator', () => {
   });
 
   it('should generate TypeScript admin files matching snapshots', () => {
-    const generatedBaseDir = path.resolve(testOutputDir, testConfigAdmin.outputs[0].outputDir);
+    const generatedBaseDir = path.resolve(testOutputDir, testConfig.outputs[1].outputDir); // Index 1 = ts-admin
     tsExpectedFiles.forEach((relPath) => {
       const filePath = path.join(generatedBaseDir, relPath);
       expect(fs.existsSync(filePath)).toBe(true);
@@ -130,20 +126,6 @@ describe('FireSchema Generator', () => {
     });
   });
 
-  // Temporarily skip Dart test due to unrelated EJS error
-  // it('should generate Dart files matching snapshots', () => {
-  //   const generatedBaseDir = path.resolve(testOutputDir, testConfigClient.outputs[1].outputDir);
-  //   const expectedFiles = [
-  //     'items_data.dart', 'items_collection.dart', 'items_query.dart', 'items_update.dart',
-  //     'items/tags_data.dart', 'items/tags_collection.dart', 'items/tags_query.dart', 'items/tags_update.dart',
-  //     'pubspec.yaml',
-  //   ];
-  //   expectedFiles.forEach((relPath) => {
-  //     const filePath = path.join(generatedBaseDir, relPath);
-  //     expect(fs.existsSync(filePath)).toBe(true);
-  //     const fileContent = fs.readFileSync(filePath, 'utf-8');
-  //     const snapshotName = relPath.replace(/[\\/]/g, '_');
-  //     expect(fileContent).toMatchSnapshot(snapshotName);
-  //   });
-  // });
+  // Dart test skipped
+  // it('should generate Dart files matching snapshots', () => { ... });
 });

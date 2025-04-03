@@ -11,7 +11,8 @@ import type { Firestore as ClientFirestore, DocumentReference as ClientDocumentR
 
 // Runtime Imports - Base class and generic types
 import { BaseCollectionRef } from '@shtse8/fireschema-runtime';
-import type { FirestoreLike, DocumentReferenceLike, CollectionReferenceLike, CollectionSchema, FieldSchema } from '@shtse8/fireschema-runtime';
+// Ensure all needed generic types are imported
+import type { FirestoreLike, DocumentReferenceLike, CollectionReferenceLike, CollectionSchema, FieldSchema, DocumentDataLike } from '@shtse8/fireschema-runtime';
 
 // Local Imports
 import { <%- modelName %>Data } from './<%= collection.collectionId %>.types.js';
@@ -42,14 +43,12 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
    * @param firestore The Firestore instance (client or admin).
    * @param parentRef Optional DocumentReference of the parent document (for subcollections).
    */
-  // Use generic types from runtime for constructor parameters
+  // Simplified constructor: Accepts only firestore and optional parentRef
   constructor(
     firestore: FirestoreLike,
-    // collectionId is implicitly passed via super() call logic now
-    // schema is processed internally before super()
     parentRef?: DocumentReferenceLike<DocumentDataLike> // Use generic type
   ) {
-    // Process fields from the input schema to create a valid CollectionSchema for the runtime
+    // Process fields to create schema for runtime base class
     const processedFields: Record<string, FieldSchema> = {};
     <% Object.entries(collection.fields).forEach(([fieldName, fieldDef]) => { %>
       processedFields['<%- fieldName %>'] = {
@@ -60,7 +59,8 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
     <% }); %>
     const schemaForRuntime: CollectionSchema = { fields: processedFields };
 
-    // Call the base class constructor with correct arguments
+    // Call the base class constructor, providing the hardcoded collectionId
+    // Base class constructor: (firestore, collectionId, schema?, parentRef?)
     super(firestore, '<%- collection.collectionId %>', schemaForRuntime, parentRef);
   }
 
@@ -68,20 +68,15 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
 
   /**
    * Creates a new UpdateBuilder instance for the document with the given ID.
-   * @param id The ID of the document to update.
-   * @returns A new <%- modelName %>UpdateBuilder instance.
    */
   update(id: string): <%- modelName %>UpdateBuilder {
-    // Pass the generic DocumentReferenceLike from this.doc(id)
     return new <%- modelName %>UpdateBuilder(this.doc(id));
   }
 
   /**
    * Creates a new QueryBuilder instance for this collection.
-   * @returns A new <%- modelName %>QueryBuilder instance.
    */
   query(): <%- modelName %>QueryBuilder {
-    // Pass the generic FirestoreLike and CollectionReferenceLike
     return new <%- modelName %>QueryBuilder(this.firestore, this.ref);
   }
 
@@ -92,11 +87,9 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
 <%     const subCollectionDef = collection.subcollections[subId]; %>
   /**
    * Access the '<%- subId %>' subcollection for a specific document.
-   * @param documentId The ID of the parent '<%- collection.collectionId %>' document.
-   * @returns A typed reference to the '<%- subId %>' subcollection.
    */
   <%- subId %>(documentId: string): <%- subModelName %>Collection {
-    // Process subcollection fields similarly to the main constructor
+    // Process subcollection fields
     const processedSubFields: Record<string, FieldSchema> = {};
     <% Object.entries(subCollectionDef.fields).forEach(([fieldName, fieldDef]) => { %>
       processedSubFields['<%- fieldName %>'] = {
@@ -107,6 +100,7 @@ export class <%- modelName %>Collection extends BaseCollectionRef<<%- modelName 
     <% }); %>
     const subSchema: CollectionSchema = { fields: processedSubFields };
     // Use the subCollection helper from BaseCollectionRef
+    // It expects: parentId, subCollectionId, SubCollectionClass, subSchema?
     return this.subCollection(documentId, '<%- subId %>', <%- subModelName %>Collection, subSchema);
   }
 <%   }); %>

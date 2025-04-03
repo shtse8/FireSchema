@@ -1,43 +1,55 @@
-# System Patterns: FireSchema (Runtime Refactor)
+# System Patterns: FireSchema (Executor + Adapter Refactor)
 
-**Core Architecture:** Command-Line Code Generator with Runtime Libraries
+**Core Architecture:** Command-Line Executor with Internal Adapters
 
 ```mermaid
 graph LR
-    subgraph FireSchema Tool (Node.js Monorepo)
+    subgraph FireSchema_Tool [FireSchema Tool (@shtse8/fireschema)]
+        style FireSchema_Tool fill:#f9f,stroke:#333,stroke-width:2px
         A[User runs `fireschema generate`] --> B{CLI Parser (commander)};
         B -- Config Path --> C[Config Loader];
         C -- Schema Path --> D[Schema Loader];
-        D -- Validated Schema --> E[Generator Orchestrator];
-        C -- Config Object --> E;
-        E -- Target: TS --> F[TS Generator];
-        E -- Target: Dart --> G[Dart Generator];
-        F -- Schema, Config --> H{EJS Template Engine};
-        G -- Schema, Config --> H;
-        I[TS Templates (Leaner)] --> H;
-        J[Dart Templates (Leaner)] --> H;
-        H -- Rendered Code --> K[File System Writer];
+        D -- Parsed Schema --> E[Executor (src/generator.ts)];
+        C -- Config Object (with target) --> E;
+        E -- Target='ts-client' --> AdapterTSClient["TS Client Adapter (src/adapters/typescript-client.ts)"];
+        E -- Target='ts-admin' --> AdapterTSAdmin["TS Admin Adapter (src/adapters/typescript-admin.ts)"];
+        E -- Target='dart-client' --> AdapterDartClient["Dart Client Adapter (src/adapters/dart-client.ts)"];
+        AdapterTSClient -- Loads --> TemplatesTS[Templates (templates/typescript/)]
+        AdapterTSAdmin -- Loads --> TemplatesTS
+        AdapterDartClient -- Loads --> TemplatesDart[Templates (templates/dart/)]
+        AdapterTSClient -- Uses --> TemplateEngine[EJS]
+        AdapterTSAdmin -- Uses --> TemplateEngine
+        AdapterDartClient -- Uses --> TemplateEngine
+        TemplateEngine -- Rendered Code --> FileSystemWriter
     end
 
-    subgraph User Project
-        K --> L[Generated TS Files];
-        K --> M[Generated Dart Files];
-        L -- imports & extends --> TS_RT[@shtse8/fireschema-runtime];
-        M -- imports & extends --> DART_RT[fireschema_dart_runtime];
-        UserCodeTS[User TS Code] --> L;
-        UserCodeDart[User Dart Code] --> M;
-        UserInstalls1[User installs] --> TS_RT;
-        UserInstalls2[User installs] --> DART_RT;
+    subgraph User_Project [User Project]
+        style User_Project fill:#ccf,stroke:#333,stroke-width:2px
+        FileSystemWriter --> GeneratedTS["Generated TS Code (Client or Admin)"];
+        FileSystemWriter --> GeneratedDart["Generated Dart Code (Client)"];
+        GeneratedTS -- Depends On --> RuntimeTS["@shtse8/fireschema-runtime"];
+        GeneratedDart -- Depends On --> RuntimeDart["fireschema_dart_runtime"];
+        UserCodeTS[User TS Code] --> GeneratedTS;
+        UserCodeDart[User Dart Code] --> GeneratedDart;
+        UserInstalls1[User installs] --> RuntimeTS;
+        UserInstalls2[User installs] --> RuntimeDart;
+        UserInstalls3[User installs] --> SDK_Firebase["firebase (SDK)"];
+        UserInstalls4[User installs] --> SDK_Admin["firebase-admin (SDK)"];
+        UserInstalls5[User installs] --> SDK_CloudFirestore["cloud_firestore (SDK)"];
     end
 
-    subgraph Runtime Libraries (Published Packages)
-        TS_RT
-        DART_RT
+    subgraph Runtime_Libraries [Runtime Libraries (Published Packages)]
+        style Runtime_Libraries fill:#cfc,stroke:#333,stroke-width:2px
+        RuntimeTS
+        RuntimeDart
     end
 
-    style FireSchema Tool fill:#f9f,stroke:#333,stroke-width:2px
-    style User Project fill:#ccf,stroke:#333,stroke-width:2px
-    style Runtime Libraries fill:#cfc,stroke:#333,stroke-width:2px
+    subgraph Firebase_SDKs [Firebase SDKs (External)]
+         style Firebase_SDKs fill:#ffc,stroke:#333,stroke-width:2px
+         SDK_Firebase
+         SDK_Admin
+         SDK_CloudFirestore
+    end
 ```
 
 **Key Patterns:**
@@ -45,47 +57,50 @@ graph LR
 1. **CLI Application:** Uses `commander` for command definition, argument
    parsing (`-c` for config), and help generation. Entry point is `src/cli.ts`.
 2. **Configuration Loading:** `src/configLoader.ts` reads the specified JSON
-   config file, performs basic validation, and resolves relative paths (schema,
-   output directories) to absolute paths based on the config file's location.
+   config file, validates the new `target` property for each output, resolves
+   relative paths (schema, output directories), and passes the config to the
+   Executor.
 3. **Schema Validation & Parsing:** `src/schemaLoader.ts` reads the user's JSON
-   schema file, validates its structure against a predefined JSON Schema
-   (`src/schema-definition.json`) using `ajv`, and transforms the raw JSON into
-   an internal `ParsedFirestoreSchema` TypeScript representation.
-4. **Template-Based Code Generation:** Uses `ejs` as the templating engine.
-   Language-specific templates (`templates/typescript/`, `templates/dart/`) are
-   now leaner, focusing on generating the schema-specific parts (model
-   interfaces/classes, field-specific builder methods) and importing/extending
-   base classes from the runtime libraries.
-5. **Orchestration:** `src/generator.ts` contains the main `generate` function
-   which iterates through the output targets defined in the configuration and
-   calls the appropriate language-specific generator function.
-6. **Language-Specific Generators:** `src/generators/typescript.ts` and
-   `src/generators/dart.ts` contain the logic specific to each language,
-   including:
-   - Loading the correct (leaner) templates.
-   - Preparing the data object to be passed to EJS (including schema details
-     needed by base classes).
-   - Rendering templates using EJS.
-   - Writing the generated files to the specified output directory.
-   - **Recursive Structure:** Each generator uses a helper function (e.g.,
-     `generateFilesForCollection`) that processes a single collection and calls
-     itself recursively for any defined subcollections, ensuring nested
-     generation.
-7. **Helper Functions:** Utility functions (e.g., naming conventions in
-   `src/utils/naming.ts`, type generation helpers within generator files) are
-   used to assist template rendering and maintain consistency.
-8. **Builder Pattern (Runtime-Based):** The core logic for update
-   (`BaseUpdateBuilder`) and query (`BaseQueryBuilder`) operations resides in
-   the runtime libraries. The generated code extends these base builders,
-   providing schema-specific, type-safe methods (e.g., `where<FieldName>`,
-   `set<FieldName>`) that delegate to the base class's implementation.
-9. **Runtime Libraries:** Separate packages (`@shtse8/fireschema-runtime`,
-   `fireschema_dart_runtime`) contain the reusable base classes and logic,
-   allowing generated code to be smaller and updates to Firestore interaction
-   logic to be centralized.
-10. **CI/CD Publishing (GitHub Actions):** An automated workflow
-    (`.github/workflows/publish.yml`) triggers on version tag pushes (`v*.*.*`).
-    It builds the monorepo, runs tests, and publishes the CLI tool and TS
-    runtime (`@shtse8/fireschema-runtime`) to npm (using `NPM_TOKEN` secret and
-    `--access public`) and the Dart runtime to pub.dev (using OIDC
-    authentication via a reusable workflow).
+   schema file, validates it against `src/schema-definition.json` (using `ajv`),
+   and transforms it into an internal `ParsedFirestoreSchema` representation.
+4. **Executor / Orchestrator (`src/generator.ts`):**
+   - Receives the parsed schema and config.
+   - Iterates through the `outputs` array in the config.
+   - For each output, it reads the `target` string (e.g., `'typescript-client'`,
+     `'dart-client'`).
+   - Dynamically imports or calls the corresponding **internal Adapter module**
+     (e.g., from `src/adapters/typescript-client.ts` or a unified
+     `src/adapters/typescript.ts` that handles different targets).
+   - Invokes a standard function (e.g., `generate`) on the adapter, passing the
+     schema, the specific output config (including `target` and `options`), and
+     potentially the global config.
+   - The Executor itself does **not** contain language-specific logic or
+     template rendering code.
+5. **Internal Adapters (`src/adapters/*.ts`):**
+   - Modules dedicated to specific generation targets (e.g.,
+     `typescript-client`, `typescript-admin`, `dart-client`).
+   - Each adapter contains **all** logic required for its target:
+     - Loading the necessary EJS templates (from the main `templates/`
+       directory).
+     - Preparing the data object to be passed to EJS, including any
+       target-specific flags (like an internal `sdk` flag for TS adapters).
+     - Rendering templates using EJS.
+     - Writing the generated files to the specified output directory.
+     - Handling target-specific `options` from the config.
+   - Adapters generate code that relies on the appropriate **Runtime Package**.
+6. **Template-Based Code Generation:** Adapters use `ejs` to render templates
+   located in the main `templates/` directory (organized by language).
+7. **Runtime Libraries (Separate Packages):**
+   - `@shtse8/fireschema-runtime`: Contains reusable TypeScript base classes and
+     generic types. It handles the differences between `firebase` (client) and
+     `firebase-admin` (server) SDKs internally. Generated TypeScript code
+     depends on this.
+   - `fireschema_dart_runtime`: Contains reusable Dart base classes/mixins.
+     Generated Dart code depends on this.
+   - These packages are installed by the end-user alongside the relevant
+     Firebase SDK (`firebase`, `firebase-admin`, `cloud_firestore`).
+8. **Helper Functions:** Utility functions (e.g., naming conventions in
+   `src/utils/naming.ts`) are used by Adapters.
+9. **CI/CD Publishing (GitHub Actions):** Workflow remains largely the same,
+   publishing the core tool (`@shtse8/fireschema`) and the runtime packages.
+   Adapters are part of the core tool, not published separately.

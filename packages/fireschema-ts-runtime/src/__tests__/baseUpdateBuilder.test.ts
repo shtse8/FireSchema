@@ -1,158 +1,205 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { BaseUpdateBuilder } from '../baseUpdateBuilder'; // Adjust path as needed
-import {
-  Firestore,
-  DocumentReference,
-  DocumentData,
-  doc,
-  updateDoc,
-  serverTimestamp,
-  deleteField,
-  arrayUnion,
-  arrayRemove,
-  increment,
-  // Add other necessary Firestore types/functions
-} from 'firebase/firestore';
+import { BaseUpdateBuilder } from '../baseUpdateBuilder';
+import type { DocumentReferenceLike, FieldValueLike, DocumentDataLike, SetOptionsLike } from '../baseCollection'; // Import generic types
 
-// Mock the 'firebase/firestore' module for update functions
-const mockDoc = jest.fn<(...args: any[]) => DocumentReference<TestData>>();
-const mockUpdateDoc = jest.fn<(...args: any[]) => Promise<void>>();
-const mockServerTimestamp = jest.fn(() => 'mockServerTimestampValue');
-const mockDeleteField = jest.fn(() => 'mockDeleteFieldValue');
-const mockArrayUnion = jest.fn((...args: any[]) => ({ type: 'arrayUnion', args }));
-const mockArrayRemove = jest.fn((...args: any[]) => ({ type: 'arrayRemove', args }));
-const mockIncrement = jest.fn((value: number) => ({ type: 'increment', value }));
+// --- Mock Client SDK ('firebase/firestore') ---
+const mockClientUpdateDoc = jest.fn<(...args: any[]) => Promise<void>>();
+const mockClientServerTimestamp = jest.fn(() => 'mockClientServerTimestampValue');
+const mockClientDeleteField = jest.fn(() => 'mockClientDeleteFieldValue');
+const mockClientArrayUnion = jest.fn((...args: any[]) => ({ type: 'clientArrayUnion', args }));
+const mockClientArrayRemove = jest.fn((...args: any[]) => ({ type: 'clientArrayRemove', args }));
+const mockClientIncrement = jest.fn((value: number) => ({ type: 'clientIncrement', value }));
 
 jest.mock('firebase/firestore', () => ({
-  collection: jest.fn().mockReturnValue({ id: 'mockCollId', path: 'coll' }),
-  doc: (...args: any[]) => mockDoc(...args),
-  updateDoc: (...args: any[]) => mockUpdateDoc(...args),
-  serverTimestamp: () => mockServerTimestamp(),
-  deleteField: () => mockDeleteField(),
-  arrayUnion: (...args: any[]) => mockArrayUnion(...args),
-  arrayRemove: (...args: any[]) => mockArrayRemove(...args),
-  increment: (value: number) => mockIncrement(value),
+  doc: jest.fn(),
+  collection: jest.fn(),
+  updateDoc: (...args: any[]) => mockClientUpdateDoc(...args),
+  serverTimestamp: () => mockClientServerTimestamp(),
+  deleteField: () => mockClientDeleteField(),
+  arrayUnion: (...args: any[]) => mockClientArrayUnion(...args),
+  arrayRemove: (...args: any[]) => mockClientArrayRemove(...args),
+  increment: (value: number) => mockClientIncrement(value),
+  Timestamp: { now: jest.fn() }, // Add placeholders for types if needed
+  GeoPoint: jest.fn(),
 }));
 
-// Define dummy types for testing
-interface TestData extends DocumentData {
+// --- Mock Admin SDK ('firebase-admin/firestore') ---
+const mockAdminFieldValueServerTimestamp = jest.fn(() => 'mockAdminServerTimestampValue');
+const mockAdminFieldValueDelete = jest.fn(() => 'mockAdminDeleteFieldValue');
+const mockAdminFieldValueIncrement = jest.fn((value: number) => ({ type: 'adminIncrement', value }));
+const mockAdminFieldValueArrayUnion = jest.fn((...args: any[]) => ({ type: 'adminArrayUnion', args }));
+const mockAdminFieldValueArrayRemove = jest.fn((...args: any[]) => ({ type: 'adminArrayRemove', args }));
+const mockAdminDocRefUpdate = jest.fn<(...args: any[]) => Promise<any>>(); // Mock for adminRef.update()
+
+jest.mock('firebase-admin/firestore', () => ({
+  FieldValue: {
+    serverTimestamp: () => mockAdminFieldValueServerTimestamp(),
+    delete: () => mockAdminFieldValueDelete(),
+    increment: (value: number) => mockAdminFieldValueIncrement(value),
+    arrayUnion: (...args: any[]) => mockAdminFieldValueArrayUnion(...args),
+    arrayRemove: (...args: any[]) => mockAdminFieldValueArrayRemove(...args),
+  },
+  Timestamp: { now: jest.fn() },
+  GeoPoint: jest.fn(),
+  FieldPath: jest.fn(),
+}));
+
+
+// --- Test Setup ---
+
+type TestData = DocumentDataLike & {
   id?: string;
   name?: string;
   value?: number;
-  status?: string | any; // Allow FieldValue
-  tags?: any; // Allow FieldValue
-  count?: any; // Allow FieldValue
+  status?: string | FieldValueLike;
+  tags?: any[] | FieldValueLike;
+  count?: number | FieldValueLike;
   nested?: {
-    prop?: string | any; // Allow FieldValue
+    prop?: string | FieldValueLike;
   };
-}
+};
 
-// Concrete implementation for testing
-class TestUpdateBuilder extends BaseUpdateBuilder<TestData> {
-  constructor(docRef: DocumentReference<TestData>) {
-    super(docRef);
-  }
-}
+class TestUpdateBuilder extends BaseUpdateBuilder<TestData> {}
 
 describe('BaseUpdateBuilder', () => {
-  let mockDocumentRef: DocumentReference<TestData>;
-  let testUpdateBuilder: TestUpdateBuilder;
+  let mockClientDocRef: DocumentReferenceLike<TestData>;
+  let mockAdminDocRef: DocumentReferenceLike<TestData>;
+  let clientBuilder: TestUpdateBuilder;
+  let adminBuilder: TestUpdateBuilder;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockDocumentRef = { id: 'testDoc123', path: 'testItems/testDoc123' } as DocumentReference<TestData>;
-    mockDoc.mockReturnValue(mockDocumentRef); // Ensure doc() mock returns this if used
+    // Mock refs satisfying type guards
+    mockClientDocRef = { id: 'clientDoc123', path: 'test/clientDoc123', converter: null } as unknown as DocumentReferenceLike<TestData>;
+    mockAdminDocRef = { id: 'adminDoc456', path: 'test/adminDoc456', listCollections: jest.fn(), update: mockAdminDocRefUpdate } as unknown as DocumentReferenceLike<TestData>;
 
-    testUpdateBuilder = new TestUpdateBuilder(mockDocumentRef);
+    clientBuilder = new TestUpdateBuilder(mockClientDocRef);
+    adminBuilder = new TestUpdateBuilder(mockAdminDocRef);
   });
 
-  it('should initialize with the correct document reference', () => {
-    expect(testUpdateBuilder).toBeInstanceOf(BaseUpdateBuilder);
-    expect((testUpdateBuilder as any)._docRef).toBe(mockDocumentRef);
-    expect((testUpdateBuilder as any)._updateData).toEqual({});
+  it('should initialize correctly for both client and admin refs', () => {
+    expect((clientBuilder as any).isClient).toBe(true);
+    expect((adminBuilder as any).isClient).toBe(false);
   });
 
-  // --- Update Accumulation Tests ---
-
-  it('should add a field update using _set', () => {
-    const result = (testUpdateBuilder as any)._set('name', 'New Name');
-    expect(result).toBe(testUpdateBuilder);
-    expect((testUpdateBuilder as any)._updateData).toEqual({ name: 'New Name' });
+  it('should add field updates using _set', () => {
+    (clientBuilder as any)._set('name', 'Client Name');
+    expect((clientBuilder as any)._updateData).toEqual({ name: 'Client Name' });
   });
 
-  it('should add multiple field updates using _set', () => {
-    (testUpdateBuilder as any)._set('name', 'Another Name');
-    (testUpdateBuilder as any)._set('value', 123);
-    (testUpdateBuilder as any)._set('nested.prop', 'Nested Value');
-    expect((testUpdateBuilder as any)._updateData).toEqual({
-      name: 'Another Name',
-      value: 123,
-      'nested.prop': 'Nested Value',
-    });
+  // --- Convenience Helper Tests (Check correct mock called) ---
+
+  it('should use correct serverTimestamp via _serverTimestamp', () => {
+    (clientBuilder as any)._serverTimestamp('status');
+    expect(mockClientServerTimestamp).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueServerTimestamp).not.toHaveBeenCalled();
+    expect((clientBuilder as any)._updateData['status']).toBe('mockClientServerTimestampValue');
+
+    (adminBuilder as any)._serverTimestamp('status');
+    expect(mockClientServerTimestamp).toHaveBeenCalledTimes(1); // No change
+    expect(mockAdminFieldValueServerTimestamp).toHaveBeenCalledTimes(1);
+    expect((adminBuilder as any)._updateData['status']).toBe('mockAdminServerTimestampValue');
   });
 
-  it('should overwrite previous updates for the same field using _set', () => {
-    (testUpdateBuilder as any)._set('status', 'pending');
-    (testUpdateBuilder as any)._set('status', 'completed');
-    expect((testUpdateBuilder as any)._updateData).toEqual({ status: 'completed' });
+  it('should use correct deleteField via _deleteField', () => {
+    (clientBuilder as any)._deleteField('value');
+    expect(mockClientDeleteField).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueDelete).not.toHaveBeenCalled();
+    expect((clientBuilder as any)._updateData['value']).toBe('mockClientDeleteFieldValue');
+
+    (adminBuilder as any)._deleteField('value');
+    expect(mockClientDeleteField).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueDelete).toHaveBeenCalledTimes(1);
+    expect((adminBuilder as any)._updateData['value']).toBe('mockAdminDeleteFieldValue');
   });
 
-  // --- Convenience Helper Tests ---
+   it('should use correct arrayUnion via _arrayUnion', () => {
+    const tags = ['a', 'b'];
+    (clientBuilder as any)._arrayUnion('tags', tags);
+    expect(mockClientArrayUnion).toHaveBeenCalledTimes(1);
+    expect(mockClientArrayUnion).toHaveBeenCalledWith(...tags);
+    expect(mockAdminFieldValueArrayUnion).not.toHaveBeenCalled();
+    expect((clientBuilder as any)._updateData['tags']).toEqual({ type: 'clientArrayUnion', args: tags });
 
-  it('should add serverTimestamp using _serverTimestamp', () => {
-    (testUpdateBuilder as any)._serverTimestamp('status');
-    expect(mockServerTimestamp).toHaveBeenCalledTimes(1);
-    expect((testUpdateBuilder as any)._updateData).toEqual({ status: 'mockServerTimestampValue' });
+    (adminBuilder as any)._arrayUnion('tags', tags);
+    expect(mockClientArrayUnion).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueArrayUnion).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueArrayUnion).toHaveBeenCalledWith(...tags);
+    expect((adminBuilder as any)._updateData['tags']).toEqual({ type: 'adminArrayUnion', args: tags });
   });
 
-  it('should add deleteField using _deleteField', () => {
-    (testUpdateBuilder as any)._deleteField('value');
-    expect(mockDeleteField).toHaveBeenCalledTimes(1);
-    expect((testUpdateBuilder as any)._updateData).toEqual({ value: 'mockDeleteFieldValue' });
+   it('should use correct arrayRemove via _arrayRemove', () => {
+    const tags = ['c'];
+    (clientBuilder as any)._arrayRemove('tags', tags);
+    expect(mockClientArrayRemove).toHaveBeenCalledTimes(1);
+    expect(mockClientArrayRemove).toHaveBeenCalledWith(...tags);
+    expect(mockAdminFieldValueArrayRemove).not.toHaveBeenCalled();
+    expect((clientBuilder as any)._updateData['tags']).toEqual({ type: 'clientArrayRemove', args: tags });
+
+    (adminBuilder as any)._arrayRemove('tags', tags);
+    expect(mockClientArrayRemove).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueArrayRemove).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueArrayRemove).toHaveBeenCalledWith(...tags);
+    expect((adminBuilder as any)._updateData['tags']).toEqual({ type: 'adminArrayRemove', args: tags });
   });
 
-  it('should add arrayUnion using _arrayUnion', () => {
-    const tagsToAdd = ['new', 'urgent'];
-    (testUpdateBuilder as any)._arrayUnion('tags', tagsToAdd);
-    expect(mockArrayUnion).toHaveBeenCalledTimes(1);
-    expect(mockArrayUnion).toHaveBeenCalledWith(...tagsToAdd);
-    expect((testUpdateBuilder as any)._updateData).toEqual({ tags: { type: 'arrayUnion', args: tagsToAdd } });
+   it('should use correct increment via _increment', () => {
+    (clientBuilder as any)._increment('count', 2);
+    expect(mockClientIncrement).toHaveBeenCalledTimes(1);
+    expect(mockClientIncrement).toHaveBeenCalledWith(2);
+    expect(mockAdminFieldValueIncrement).not.toHaveBeenCalled();
+    expect((clientBuilder as any)._updateData['count']).toEqual({ type: 'clientIncrement', value: 2 });
+
+    (adminBuilder as any)._increment('count', 3);
+    expect(mockClientIncrement).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueIncrement).toHaveBeenCalledTimes(1);
+    expect(mockAdminFieldValueIncrement).toHaveBeenCalledWith(3);
+    expect((adminBuilder as any)._updateData['count']).toEqual({ type: 'adminIncrement', value: 3 });
   });
 
-  it('should add arrayRemove using _arrayRemove', () => {
-    const tagsToRemove = ['old'];
-    (testUpdateBuilder as any)._arrayRemove('tags', tagsToRemove);
-    expect(mockArrayRemove).toHaveBeenCalledTimes(1);
-    expect(mockArrayRemove).toHaveBeenCalledWith(...tagsToRemove);
-    expect((testUpdateBuilder as any)._updateData).toEqual({ tags: { type: 'arrayRemove', args: tagsToRemove } });
+
+  // --- Commit Tests (Check correct function/method called) ---
+
+  it('should call correct update function/method on commit', async () => {
+    mockClientUpdateDoc.mockResolvedValue(undefined);
+    mockAdminDocRefUpdate.mockResolvedValue({ writeTime: 'mockTime' });
+
+    const clientData = { name: 'Client Final' };
+    const adminData = { name: 'Admin Final' };
+
+    (clientBuilder as any)._set('name', 'Client Final');
+    await clientBuilder.commit();
+    expect(mockClientUpdateDoc).toHaveBeenCalledTimes(1);
+    expect(mockClientUpdateDoc).toHaveBeenCalledWith(mockClientDocRef, clientData);
+    expect(mockAdminDocRefUpdate).not.toHaveBeenCalled();
+
+    // Reset mocks for admin call verification
+    mockClientUpdateDoc.mockClear();
+    mockAdminDocRefUpdate.mockClear();
+
+    (adminBuilder as any)._set('name', 'Admin Final');
+    await adminBuilder.commit();
+    expect(mockClientUpdateDoc).not.toHaveBeenCalled();
+    expect(mockAdminDocRefUpdate).toHaveBeenCalledTimes(1);
+    expect(mockAdminDocRefUpdate).toHaveBeenCalledWith(adminData);
   });
 
-  it('should add increment using _increment', () => {
-    (testUpdateBuilder as any)._increment('count', 5);
-    expect(mockIncrement).toHaveBeenCalledTimes(1);
-    expect(mockIncrement).toHaveBeenCalledWith(5);
-    expect((testUpdateBuilder as any)._updateData).toEqual({ count: { type: 'increment', value: 5 } });
-  });
+  it('should not call update function/method if no updates are staged', async () => {
+    mockClientUpdateDoc.mockResolvedValue(undefined);
+    mockAdminDocRefUpdate.mockResolvedValue({ writeTime: 'mockTime' });
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-  // --- Commit Tests ---
-
-  it('should call updateDoc with accumulated data on commit', async () => {
-    mockUpdateDoc.mockResolvedValue(undefined);
-    (testUpdateBuilder as any)._set('name', 'Final Name');
-    (testUpdateBuilder as any)._increment('count', 1);
-    const expectedUpdateData = { name: 'Final Name', count: { type: 'increment', value: 1 } };
-    await testUpdateBuilder.commit();
-    expect(mockUpdateDoc).toHaveBeenCalledTimes(1);
-    expect(mockUpdateDoc).toHaveBeenCalledWith(mockDocumentRef, expectedUpdateData);
-  });
-
-  it('should not call updateDoc if no updates are staged', async () => {
-    mockUpdateDoc.mockResolvedValue(undefined);
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {}); // Fix mockImplementation call
-    await testUpdateBuilder.commit();
-    expect(mockUpdateDoc).not.toHaveBeenCalled();
+    await clientBuilder.commit();
+    expect(mockClientUpdateDoc).not.toHaveBeenCalled();
+    expect(mockAdminDocRefUpdate).not.toHaveBeenCalled();
     expect(consoleWarnSpy).toHaveBeenCalledWith('Update commit called with no changes specified.');
+
+    await adminBuilder.commit();
+    expect(mockClientUpdateDoc).not.toHaveBeenCalled();
+    expect(mockAdminDocRefUpdate).not.toHaveBeenCalled();
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(2);
+
     consoleWarnSpy.mockRestore();
   });
 });

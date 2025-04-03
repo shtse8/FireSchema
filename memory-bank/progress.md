@@ -1,4 +1,4 @@
-# Progress: FireSchema (CI/CD Setup Complete)
+# Progress: FireSchema (Pivoting to Executor + Adapter Architecture)
 
 **What Works:**
 
@@ -6,88 +6,81 @@
   - CLI tool (`fireschema generate`) executes via Node.js/Bun.
   - Parses and validates configuration (`fireschema.config.json`) and schema
     (`firestore.schema.json`).
-  - Generates strongly-typed TypeScript and Dart code (models, collection refs,
-    query builders, update builders) based on the schema.
-  - Subcollection generation works correctly for both languages.
-- **Runtime Architecture:**
+  - _Previous architecture_ generated TS/Dart code (models, wrappers) using
+    separate runtime libraries.
+  - Subcollection generation worked correctly.
+- **Runtime Architecture (Previous):**
   - Separate, installable runtime libraries (`@shtse8/fireschema-runtime`,
-    `fireschema_dart_runtime`) contain base logic.
-  - Generated code correctly imports and extends/uses these runtime libraries.
+    `fireschema_dart_runtime`) contained base logic.
   - Monorepo structure with npm workspaces is functional.
 - **Build & Development:**
-  - Refined build system using Bun for development speed and TSC for reliable
-    CLI builds.
-  - Project builds successfully, including runtime packages and the core tool.
-  - Development tooling standardized on Bun, while maintaining Node.js
-    compatibility for users.
-- **Testing:**
-  - **Runtime Unit Tests:** Comprehensive unit tests using Jest (TS) and
-    `flutter test` (Dart) cover the base classes in the runtime libraries and
-    are passing.
-  - **Generator Snapshot Tests:** Snapshot tests using Jest verify the generated
-    TypeScript output against stored snapshots and are passing.
-  - **Dart Analysis:** Generated Dart code (`generated/dart`) and the Dart
-    runtime package pass `dart analyze`.
-  - **TypeScript Compilation:** Generated TypeScript code (`generated/ts`) and
-    the TS runtime package compile successfully.
-- **Documentation & Examples:**
-  - Memory Bank files (`activeContext.md`, `techContext.md`,
-    `systemPatterns.md`) updated.
-  - `README.md` updated with current installation/usage.
-  - Runtime package READMEs created (`packages/*/README.md`).
-  - Dart runtime LICENSE and CHANGELOG created.
-  - Example files (`examples/`) are up-to-date.
+  - Build system using Bun/TSC is functional for the previous architecture.
+  - Development tooling standardized on Bun.
+- **Testing (Previous Architecture):**
+  - Runtime unit tests passed when run with `npx jest`.
+  - Generator snapshot tests passed for TS (client) and Dart after EJS fix. TS
+    Admin snapshots were generated.
+  - Dart analysis and TS compilation passed for generated code and runtimes.
 - **Publishing & CI/CD:**
-  - GitHub Actions workflow (`.github/workflows/publish.yml`) created for
-    automated build, test, and publish to npm/pub.dev on version tag push
-    (`v*.*.*`).
-  - Uses OIDC for secure pub.dev publishing (no token secret needed).
-  - Requires `NPM_TOKEN` secret for npm publishing.
-  - Initial version (0.1.0) of Dart runtime published manually.
-  - CI/CD workflow successfully debugged and used to publish version 0.1.3.
+  - GitHub Actions workflow is functional for building, testing (with known
+    issues), and publishing existing packages (`@shtse8/fireschema`,
+    `@shtse8/fireschema-runtime`, `fireschema_dart_runtime`) on version tags.
+- **Partial TS Admin Support (Committed but Superseded):**
+  - TS Runtime (`@shtse8/fireschema-runtime`) was refactored for dual SDK
+    support.
+  - Config/Generator/Templates were updated for `sdk` option.
+- **Dart EJS Fix:**
+  - Resolved persistent EJS parsing error in Dart model template.
 
-**What's Left (Next Steps):**
+**What's Left (New Refactoring Plan):**
 
-- **Runtime Refinements:**
-  - **Support updating nested map fields via dot notation in TS `UpdateBuilder`.
-    (DONE)**
-  - Improve `AddData`/`UpdateData` type generation (Dart defaults [AddData done,
-    UpdateData N/A], read-only [AddData done, UpdateBuilder done]).
-- **Generator Enhancements:**
-  - Support more complex validation rules from JSON Schema (Dart: string
-    `minLength`, `maxLength`; number `minimum`, `maximum` via `assert`; TS:
-    string `minLength`, `maxLength`, `pattern`; number `minimum`, `maximum` via
-    TSDoc). (Note: Dart `pattern` assertion via `RegExp` currently blocked by
-    EJS template issues).
-  - Improve error handling and reporting during generation (re-throw errors on
-    file/package generation failures).
-- **Documentation & Publishing:**
-  - Add more detailed documentation (advanced usage, schema details).
-  - Prepare packages for publishing (consider build steps, versioning).
-    **(DONE)**
+1. **Architectural Refactor (Executor + Adapter Pattern):** - **HIGHEST
+   PRIORITY**
+   - **Phase 1: Update Config & Core Generator:**
+     - Modify config (`src/types/config.ts`, `src/configLoader.ts`) to use
+       `target` string (e.g., `'typescript-client'`).
+     - Rewrite core generator (`src/generator.ts`) as an orchestrator
+       loading/calling adapters based on `target`.
+   - **Phase 2: Create/Refactor Adapters:**
+     - Create `src/adapters/` directory.
+     - Move/Refactor logic from old `src/generators/` into new adapter files
+       (`typescript-client.ts`, `typescript-admin.ts`, `dart-client.ts`).
+     - Ensure adapters load their own templates and handle target-specific
+       logic.
+   - **Phase 3: Update Tests:**
+     - Update `src/__tests__/generator.test.ts` for new config format.
+     - Verify/Update snapshots.
+     - Address persistent test environment issues (`fs` syntax error,
+       `jest.mock` errors) - potentially by standardizing on `npx jest`.
+   - **Phase 4: Update Memory Bank & Documentation:**
+     - Update all relevant `.md` files (`activeContext.md`, `progress.md`,
+       `systemPatterns.md`, `techContext.md`) to reflect the new architecture.
+2. **Generator Enhancements (Post-Refactor):**
+   - Support more complex validation rules.
+   - Improve error handling.
+3. **Documentation (Post-Refactor):**
+   - Add detailed documentation for the new architecture, adapters, and usage.
 
 **Current Status:**
 
-The major runtime refactoring is **complete**. The core generator functionality
-is working with the new architecture based on separate runtime libraries. The
-testing strategy has successfully shifted to **unit tests for runtimes** and
-**snapshot tests for generator output**. All existing tests are passing, and the
-generated code for both TypeScript and Dart is clean and buildable according to
-linters and compilers.
-
-**Automated publishing via GitHub Actions is set up and functional.** Packages
-(`@shtse8/fireschema`, `@shtse8/fireschema-runtime`, `fireschema_dart_runtime`)
-are published to npm and pub.dev when a version tag (e.g., `v0.1.1`) is pushed.
+**Pivot:** The project has pivoted to a new **Executor + Adapter** architecture.
+Progress on the previous approach (adding TS Admin support via runtime changes)
+has been committed but is now superseded by this major refactoring plan. The
+**current focus is implementing Phase 1** of the new plan: modifying the
+configuration structure and rewriting the core generator (`src/generator.ts`) to
+act as an orchestrator that calls internal adapter modules.
 
 **Known Issues:**
 
-# (Removed - Verified 2025-04-02: Existing logic handles nested maps/objects and arrays of references correctly)
-
-- **(Resolved 2025-04-02)** TypeScript `UpdateBuilder` now supports updating
-  nested map fields via dot notation through generated methods (e.g.,
-  `setAddressStreet`).
+- **Test Runner Incompatibility:**
+  - `SyntaxError: Unexpected token '*'` related to `fs` import in
+    `src/__tests__/generator.test.ts` when run via `bun test`. (Ignored for
+    now).
+  - `TypeError: jest.mock is not a function` in runtime package tests when run
+    via `bun test`. Tests pass when run with `npx jest`. (To be addressed in
+    Phase 3).
 - **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in
-  `src/__tests__/dart-generated` due to path resolution issues from that
-  specific directory, even though the generated code structure is correct.
+  `src/__tests__/dart-generated` due to path resolution issues.
 - **Test Cleanup Flakiness:** Generator snapshot tests sometimes fail during
-  cleanup (`fs.rmSync`) with `EBUSY` error (likely environmental/Windows issue).
+  cleanup (`fs.rmSync`) with `EBUSY` error. (Cleanup currently disabled in
+  test).

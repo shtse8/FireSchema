@@ -207,93 +207,16 @@ const prepareUpdateData = (modelName, fields, options) => {
 };
 
 // --- Recursive generation for nested classes ---
-// This function now directly returns the Dart code string for nested classes
 const generateNestedClasses = (className, fields, options) => {
   let nestedClassesString = '';
   Object.values(fields).forEach(field => {
       if (field.type === 'map' && field.properties && Object.keys(field.properties).length > 0) {
           const nestedClassName = getNestedClassName(className, field.fieldName);
-          const nestedClassData = prepareClassData(nestedClassName, field.properties, options, true);
-          // Manually build the nested class string
-          nestedClassesString += `
-/// Represents the data structure for a nested '${nestedClassData.className}' map.
-class ${nestedClassData.className} ${nestedClassData.implementsToJson}{
-
-${nestedClassData.fieldStrings}
-
-  ${nestedClassData.className}({
-${nestedClassData.constructorParams}
-  }) { // Constructor body for asserts
-${nestedClassData.assertions.length > 0 ? nestedClassData.assertions.map(a => `    ${a}`).join('\\n') : ''}
-  } // End of constructor body
-
-  /// Creates a ${nestedClassData.className} instance from a Map.
-  factory ${nestedClassData.className}.fromJson(Map<String, dynamic> data) {
-    return ${nestedClassData.className}(
-${nestedClassData.fromJsonParams}
-    );
-  }
-
-  /// Converts this ${nestedClassData.className} instance to a Map suitable for Firestore.
-  Map<String, dynamic> toJson() {
-    return {
-${nestedClassData.toJsonEntries}
-    };
-  }
-
-  /// Creates a copy of this instance with potentially modified fields.
-  ${nestedClassData.className} copyWith({
-${nestedClassData.copyWithParams}
-  }) {
-    return ${nestedClassData.className}(
-${nestedClassData.copyWithBody}
-    );
-  }
-
-} // End of ${nestedClassData.className} class
-`;
+          nestedClassesString += generateSingleClass(nestedClassName, field.properties, options, true); // Recursive call
       } else if (field.type === 'array' && field.items && field.items.type === 'map' && field.items.properties && Object.keys(field.items.properties).length > 0) {
           const nestedClassName = getNestedClassName(className, field.items.fieldName || field.fieldName + 'Item');
           if (!generatedNestedClasses.has(nestedClassName)) {
-             const nestedClassData = prepareClassData(nestedClassName, field.items.properties, options, true);
-             // Manually build the nested class string
-             nestedClassesString += `
-/// Represents the data structure for a nested '${nestedClassData.className}' map.
-class ${nestedClassData.className} ${nestedClassData.implementsToJson}{
-
-${nestedClassData.fieldStrings}
-
-  ${nestedClassData.className}({
-${nestedClassData.constructorParams}
-  }) { // Constructor body for asserts
-${nestedClassData.assertions.length > 0 ? nestedClassData.assertions.map(a => `    ${a}`).join('\\n') : ''}
-  } // End of constructor body
-
-  /// Creates a ${nestedClassData.className} instance from a Map.
-  factory ${nestedClassData.className}.fromJson(Map<String, dynamic> data) {
-    return ${nestedClassData.className}(
-${nestedClassData.fromJsonParams}
-    );
-  }
-
-  /// Converts this ${nestedClassData.className} instance to a Map suitable for Firestore.
-  Map<String, dynamic> toJson() {
-    return {
-${nestedClassData.toJsonEntries}
-    };
-  }
-
-  /// Creates a copy of this instance with potentially modified fields.
-  ${nestedClassData.className} copyWith({
-${nestedClassData.copyWithParams}
-  }) {
-    return ${nestedClassData.className}(
-${nestedClassData.copyWithBody}
-    );
-  }
-
-} // End of ${nestedClassData.className} class
-`;
+             nestedClassesString += generateSingleClass(nestedClassName, field.items.properties, options, true);
              generatedNestedClasses.add(nestedClassName);
           }
       }
@@ -301,85 +224,37 @@ ${nestedClassData.copyWithBody}
   return nestedClassesString;
 };
 
-// Removed generateSingleClass function as it's no longer needed
-
+// --- Generates a single class using the template ---
+const generateSingleClass = (className, fields, options, isNested = false, collectionDescription = null) => {
+    const classData = prepareClassData(className, fields, options, isNested, collectionDescription);
+    // Define the template string for a single class, escaping inner EJS tags
+    // Simplified inner template content for diagnostics
+    const template = `
+/// Represents the data structure for <%%- isNested ? 'a nested map' : 'a document' %%>.
+class <%%- className %%><%%- dataSuffix %%> <%%- implementsToJson %%>{
+  // Simplified content for diagnostics
+  <%%- className %%><%%- dataSuffix %%>();
+  factory <%%- className %%><%%- dataSuffix %%>.fromJson(Map<String, dynamic> data) => <%%- className %%><%%- dataSuffix %%>();
+  Map<String, dynamic> toJson() => {};
+<%%% if (!isNested) { %%%>
+  factory <%%- className %%>Data.fromSnapshot(DocumentSnapshot snapshot) => <%%- className %%>Data();
+  factory <%%- className %%>Data.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot, SnapshotOptions? options) => <%%- className %%>Data();
+  Map<String, Object?> toFirestore(SetOptions? options) => toJson();
+<%%% } %%%>
+  <%%- className %%><%%- dataSuffix %%> copyWith() => this;
+}
+`;
+    // Render the inner template string
+    return ejs.render(template, classData); // Re-enabled nested render
+};
 %> <%# End of main scriptlet block %>
 
 <%# --- Template Output --- %>
 <%# Generate nested classes first %>
 <%- generateNestedClasses(modelName, collection.fields, options) %>
 
-<%# Prepare data for the main class %>
-<% const mainClassData = prepareClassData(modelName, collection.fields, options, false, collection.description); %>
-
-<%# Render the main class directly using its data %>
-/// Represents the data structure for a '<%- mainClassData.className %>' document.
-/// Description: <%- mainClassData.collectionDescription || 'N/A' %>
-class <%- mainClassData.className %><%- mainClassData.dataSuffix %> {
-
-<%- mainClassData.fieldStrings %>
-
-  <%- mainClassData.className %><%- mainClassData.dataSuffix %>({
-<%- mainClassData.constructorParams %>
-  }) { // Constructor body for asserts
-<% if (mainClassData.assertions.length > 0) { %>
-<%- mainClassData.assertions.map(a => `    ${a}`).join('\\n') %>
-<% } %>
-  } // End of constructor body
-
-  /// Creates a <%- mainClassData.className %><%- mainClassData.dataSuffix %> instance from a Map.
-  factory <%- mainClassData.className %><%- mainClassData.dataSuffix %>.fromJson(Map<String, dynamic> data) {
-    return <%- mainClassData.className %><%- mainClassData.dataSuffix %>(
-<%- mainClassData.fromJsonParams %>
-    );
-  }
-
-  /// Creates a <%- mainClassData.className %>Data instance from a Firestore DocumentSnapshot.
-  factory <%- mainClassData.className %>Data.fromSnapshot(DocumentSnapshot snapshot) {
-    final data = snapshot.data() as Map<String, dynamic>?;
-    if (data == null) {
-        throw Exception("Document data was null on snapshot ${snapshot.id}!");
-    }
-    return <%- mainClassData.className %>Data.fromJson(data);
-  }
-
-  /// Creates a <%- mainClassData.className %>Data instance from a Firestore DocumentSnapshot.
-  /// Required for Firestore `withConverter`.
-  factory <%- mainClassData.className %>Data.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? options,
-  ) {
-    final data = snapshot.data();
-    if (data == null) {
-      throw Exception('Snapshot data was null!');
-    }
-    return <%- mainClassData.className %>Data.fromJson(data);
-  }
-
-  /// Converts this <%- mainClassData.className %><%- mainClassData.dataSuffix %> instance to a Map suitable for Firestore.
-  Map<String, dynamic> toJson() {
-    return {
-<%- mainClassData.toJsonEntries %>
-    };
-  }
-
-  /// Converts this <%- mainClassData.className %>Data instance to a Map suitable for Firestore.
-  /// Required for Firestore `withConverter`.
-  Map<String, Object?> toFirestore(SetOptions? options) {
-    return toJson();
-  }
-
-  /// Creates a copy of this instance with potentially modified fields.
-  <%- mainClassData.className %><%- mainClassData.dataSuffix %> copyWith({
-<%- mainClassData.copyWithParams %>
-  }) {
-    return <%- mainClassData.className %><%- mainClassData.dataSuffix %>(
-<%- mainClassData.copyWithBody %>
-    );
-  }
-
-} // End of <%- mainClassData.className %><%- mainClassData.dataSuffix %> class
-
+<%# Generate the main class %>
+<%- generateSingleClass(modelName, collection.fields, options, false, collection.description) %>
 
 <%# Generate AddData class %>
 <% const addData = prepareAddData(modelName, collection.fields, options); %>

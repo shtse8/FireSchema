@@ -12,5 +12,9 @@
     "declaration": true // Generate corresponding '.d.ts' file
   },
   "include": ["src/**/*"], // Files to include in compilation
-  "exclude": ["node_modules", "**/*.spec.ts"] // Files/directories to exclude
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "src/__tests__/test-output" // Exclude generated test output from root compilation
+  ]
 }

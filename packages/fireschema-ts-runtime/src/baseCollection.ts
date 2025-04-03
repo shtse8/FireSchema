@@ -11,9 +11,13 @@ import type {
   Timestamp as ClientTimestamp,
   FieldValue as ClientFieldValueType,
   DocumentSnapshot as ClientDocumentSnapshot,
-  GeoPoint as ClientGeoPoint, // Import client GeoPoint
+  GeoPoint as ClientGeoPoint,
+  Query as ClientQuery,
+  QuerySnapshot as ClientQuerySnapshot,
+  WhereFilterOp as ClientWhereFilterOp, // Import client op type
+  OrderByDirection as ClientOrderByDirection, // Import client direction type
 } from 'firebase/firestore';
-// Import client functions needed for operations
+// Import client functions needed
 import {
   serverTimestamp as clientServerTimestamp,
   collection as clientCollection,
@@ -31,7 +35,11 @@ import type {
   DocumentData as AdminDocumentData,
   Timestamp as AdminTimestamp,
   DocumentSnapshot as AdminDocumentSnapshot,
-  GeoPoint as AdminGeoPoint, // Import admin GeoPoint
+  GeoPoint as AdminGeoPoint,
+  Query as AdminQuery,
+  QuerySnapshot as AdminQuerySnapshot,
+  WhereFilterOp as AdminWhereFilterOp, // Import admin op type
+  OrderByDirection as AdminOrderByDirection, // Import admin direction type
 } from 'firebase-admin/firestore';
 // Import admin values/classes needed
 import { FieldValue as AdminFieldValue, FieldPath as AdminFieldPath } from 'firebase-admin/firestore';
@@ -47,7 +55,13 @@ export type SetOptionsLike = ClientSetOptions | AdminSetOptionsLike;
 export type TimestampLike = ClientTimestamp | AdminTimestamp;
 export type FieldValueLike = ClientFieldValueType | AdminFieldValue;
 export type DocumentDataLike = ClientDocumentData | AdminDocumentData;
-export type GeoPointLike = ClientGeoPoint | AdminGeoPoint; // Define GeoPointLike
+export type GeoPointLike = ClientGeoPoint | AdminGeoPoint;
+export type QueryLike<T extends DocumentDataLike> = ClientQuery<T> | AdminQuery<T>;
+export type QuerySnapshotLike<T extends DocumentDataLike> = ClientQuerySnapshot<T> | AdminQuerySnapshot<T>;
+// Define and export Query Op/Direction types here
+export type WhereFilterOpLike = ClientWhereFilterOp | AdminWhereFilterOp;
+export type OrderByDirectionLike = ClientOrderByDirection | AdminOrderByDirection;
+
 
 // --- Type Guards ---
 export function isAdminFirestore(db: FirestoreLike): db is AdminFirestore {
@@ -102,7 +116,6 @@ export abstract class BaseCollectionRef<
     this.schema = schema;
     this.isClient = isClientFirestore(this.firestore);
 
-    // Initialize ref based on SDK type
     if (parentRef) {
         if (this.isClient) {
             this.ref = clientCollection(parentRef as ClientDocumentReference<ClientDocumentData>, collectionId) as ClientCollectionReference<TData>;
