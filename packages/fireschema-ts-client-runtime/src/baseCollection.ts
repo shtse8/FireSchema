@@ -28,6 +28,11 @@ export interface FieldSchema {
 }
 export interface CollectionSchema {
   fields: Record<string, FieldSchema>;
+  // Add subCollections definition
+  subCollections?: Record<string, {
+    schema?: CollectionSchema; // Recursive type for sub-schema
+    collectionClass: any; // Constructor type for the sub-collection class
+  }>;
 }
 
 export class ClientBaseCollectionRef<
@@ -77,7 +82,14 @@ export class ClientBaseCollectionRef<
           // Use client serverTimestamp function
           (dataWithDefaults as any)[fieldName] = serverTimestamp() as FieldValue; // Cast to FieldValue
         }
-        // Add other default value logic if needed
+        // Handle other literal default values
+        else if (
+          fieldDef.defaultValue !== undefined &&
+          fieldDef.defaultValue !== 'serverTimestamp' && // Already handled
+          (dataWithDefaults as any)[fieldName] === undefined
+        ) {
+          (dataWithDefaults as any)[fieldName] = fieldDef.defaultValue;
+        }
       }
     }
     return dataWithDefaults as unknown as TData;
@@ -145,7 +157,28 @@ export class ClientBaseCollectionRef<
     ) => SubCollectionType,
     subSchema?: CollectionSchema
   ): SubCollectionType {
+    // 1. Check schema existence
+    if (!this.schema?.subCollections || !this.schema.subCollections[subCollectionId]) {
+      throw new Error(`Sub-collection '${subCollectionId}' not found in schema for collection '${this.ref.id}'`);
+    }
+    const subCollectionDef = this.schema.subCollections[subCollectionId];
+
+    // 2. Check for collectionClass (use the one from the schema)
+    const ResolvedSubCollectionClass = subCollectionDef.collectionClass;
+    if (!ResolvedSubCollectionClass) {
+        throw new Error(`Collection class definition missing for sub-collection '${subCollectionId}' in schema for collection '${this.ref.id}'`);
+    }
+
+    // 3. Get parent document reference
     const parentDocRef = this.doc(parentId);
-    return new SubCollectionClass(this.firestore, subCollectionId, subSchema, parentDocRef);
+
+    // 4. Instantiate using the correct constructor signature
+    //    The base constructor handles initializing the internal ref correctly.
+    return new ResolvedSubCollectionClass(
+        this.firestore,
+        subCollectionId,
+        subCollectionDef.schema, // Pass schema from definition
+        parentDocRef // Pass parentRef
+    );
   }
 }

@@ -20,6 +20,11 @@ export interface FieldSchema {
 }
 export interface CollectionSchema {
   fields: Record<string, FieldSchema>;
+  // Add subCollections definition
+  subCollections?: Record<string, {
+    schema?: CollectionSchema; // Recursive type for sub-schema
+    collectionClass: any; // Constructor type for the sub-collection class
+  }>;
 }
 
 export class AdminBaseCollectionRef<
@@ -70,7 +75,14 @@ export class AdminBaseCollectionRef<
           // Use Admin FieldValue
           (dataWithDefaults as any)[fieldName] = AdminFieldValue.serverTimestamp();
         }
-        // Add other default value logic if needed
+        // Handle other literal default values
+        else if (
+          fieldDef.defaultValue !== undefined &&
+          fieldDef.defaultValue !== 'serverTimestamp' && // Already handled
+          (dataWithDefaults as any)[fieldName] === undefined
+        ) {
+          (dataWithDefaults as any)[fieldName] = fieldDef.defaultValue;
+        }
       }
     }
     return dataWithDefaults as unknown as TData;
@@ -139,8 +151,30 @@ export class AdminBaseCollectionRef<
     ) => SubCollectionType,
     subSchema?: CollectionSchema
   ): SubCollectionType {
+    // 1. Check schema existence
+    if (!this.schema?.subCollections || !this.schema.subCollections[subCollectionId]) {
+      throw new Error(`Sub-collection '${subCollectionId}' not found in schema for collection '${this.ref.id}'`);
+    }
+    const subCollectionDef = this.schema.subCollections[subCollectionId];
+
+    // 2. Check for collectionClass (use the one from the schema, not the argument)
+    const ResolvedSubCollectionClass = subCollectionDef.collectionClass;
+    if (!ResolvedSubCollectionClass) {
+        throw new Error(`Collection class definition missing for sub-collection '${subCollectionId}' in schema for collection '${this.ref.id}'`);
+    }
+
+    // 3. Get parent document reference
     const parentDocRef = this.doc(parentId);
-    return new SubCollectionClass(this.firestore, subCollectionId, subSchema, parentDocRef);
+
+    // 4. Instantiate using the correct constructor signature expected by AdminBaseCollectionRef
+    //    The constructor now handles getting the subcollection ref via parentRef.collection()
+    //    We pass the parentRef explicitly.
+    return new ResolvedSubCollectionClass(
+        this.firestore, // Pass Firestore instance
+        subCollectionId, // Pass subCollectionId
+        subCollectionDef.schema, // Pass schema from definition
+        parentDocRef // Pass parentRef
+    );
   }
 
   // --- Admin Specific Methods ---

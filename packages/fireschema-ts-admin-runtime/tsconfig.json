@@ -10,7 +10,7 @@
     "esModuleInterop": true // Add this line to address jest warning
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests"], // Exclude tests for main build
+  "exclude": ["node_modules", "dist", "tests", "src/__tests__"], // Exclude tests for main build
   "references": [
     // No longer references core-types
   ]

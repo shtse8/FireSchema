@@ -22,8 +22,33 @@ jobs:
       - name: Build all packages
         run: bun run build
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # Or another distribution
+          java-version: '11' # Or the version required by the emulator
+
+      - name: Start Firestore Emulator
+        run: |
+          curl -sL https://firebase.tools | bash
+          # Run emulator directly; rely on job termination or timeout + pkill step for cleanup
+          firebase emulators:start --only firestore --project=test-project
+          # Wait for emulator to start (adjust sleep time if needed)
+          sleep 10
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} # Optional: If needed for other firebase commands
+
       - name: Run tests (using npx jest due to bun test issues)
         run: npx jest
+        env:
+           FIRESTORE_EMULATOR_HOST: "localhost:8080" # Ensure tests use the emulator
+
+      - name: Stop Firestore Emulator
+        if: always() # Ensure emulator stops even if tests fail
+        run: |
+          # Find and kill the emulator process
+          # This might need adjustment based on how the process runs in CI
+          pkill -f firebase || echo "Emulator not running or already stopped."
 
       - name: Build VitePress site
         run: npm run docs:build # Or use bun run docs:build if preferred
