@@ -25,6 +25,9 @@ export default defineConfig({
             { text: 'Schema Definition', link: '/guide/schema-definition' },
             { text: 'Configuration', link: '/guide/configuration' },
             { text: 'Usage Examples', link: '/guide/usage-examples' },
+            { text: 'Advanced Schema', link: '/guide/advanced-schema' },
+            { text: 'Advanced Usage', link: '/guide/advanced-usage' },
+            { text: 'Runtime Libraries', link: '/guide/runtime-libraries' },
             // Add more guide pages here
           ]
         }
