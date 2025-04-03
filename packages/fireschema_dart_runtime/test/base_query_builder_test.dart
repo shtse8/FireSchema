@@ -183,7 +183,7 @@ void main() {
       expect(results.any((d) => d.name == 'Banana'), isTrue);
     });
 
-    /* // Commenting out problematic test due to fake_cloud_firestore limitations
+    /* // Commenting out entire comparison operator test due to fake_cloud_firestore limitations
     test('where() should filter with various comparison operators (fake limitations)', () async {
       final builder = TestQueryBuilder(
           firestore: fakeFirestore, collectionRef: itemsCollRef);

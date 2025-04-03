@@ -53,8 +53,7 @@
        `typescript-admin.ts`, `dart-client.ts`).
      - Ensured adapters load their own templates and handle target-specific
        logic.
-   - **Phase 3: Update/Implement Tests:** ✅ **COMPLETED (Initial Setup &
-     Fixes)**
+   - **Phase 3: Update/Implement Tests:** ✅ **COMPLETED (With Caveats)**
      - Updated `src/__tests__/generator.test.ts` for new config format and fixed
        import errors. Snapshots updated.
      - Created initial unit and integration test files for `ts-client-runtime`
@@ -72,7 +71,7 @@
        **(Done)**
      - ~~**Next:** Expand unit/integration test coverage for Dart runtime
        package.~~ **(Done - Unit tests pass with workarounds, Integration tests
-       blocked)**
+       fail due to fake library limitations)**
      - Persistent test environment issues (`jest.mock` errors) remain when using
        `bun test`. (Deferring resolution, using `npx jest` for now).
    - **Phase 4: Update Memory Bank & Documentation:** ✅ **COMPLETED**
@@ -126,10 +125,13 @@ generator enhancements and addressing known issues.
   test).
 - **Dart Unit Test Limitations:** `fake_cloud_firestore` appears to have
   bugs/limitations with comparison operators (`<`, `<=`, `>`, `>=`), requiring
-  workarounds or commenting out parts of `base_query_builder_test.dart`.
-  Integration tests are needed for full validation.
-- **Dart Integration Test Setup:** Tests in `integration_test.dart` fail during
-  `setUpAll` with a `PlatformException` when attempting to initialize
-  `firebase_core` and connect to the emulator. Requires user action to ensure
-  correct test environment configuration for `firebase_core` and emulator
-  connectivity.
+  workarounds (commenting out test case) in `base_query_builder_test.dart`.
+- **Dart Integration Test Limitations:** Integration tests
+  (`integration_test.dart`) **must** use `fake_cloud_firestore`. Attempts to
+  connect to the emulator via `firebase_core` in the `flutter test` VM
+  environment failed due to platform channel errors, even with mocking
+  `FirebasePlatform`. This confirms the reliance on `fake_cloud_firestore` is
+  necessary for this test setup. Several integration tests fail due to
+  `fake_cloud_firestore` limitations (e.g., `!=`, `arrayContainsAny`,
+  `startAfterDocument`). Full validation requires fixing the emulator connection
+  setup.
