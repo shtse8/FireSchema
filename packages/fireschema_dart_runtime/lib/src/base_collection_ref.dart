@@ -101,9 +101,23 @@ abstract class BaseCollectionRef<TData, TAddData extends ToJsonSerializable> {
   }
 
   /// Sets the data for a document, overwriting existing data by default.
+  /// Uses the `toFirestore` converter provided during initialization.
+  /// For partial updates or merges, use the `updateData` method.
   Future<void> set(String id, TData data, [SetOptions? options]) async {
-    // Set uses the converter automatically
+    // Set uses the converter automatically via the DocumentReference<TData>
     await doc(id).set(data, options);
+  }
+
+  /// Updates specific fields of a document using a Map.
+  /// This method does *not* use the `toFirestore` converter directly,
+  /// allowing for partial updates with FieldValue operations (increment, arrayUnion, etc.).
+  Future<void> updateData(String id, Map<String, dynamic> data) async {
+    // Get the unconverted reference to use the update method with a Map
+    final unconvertedDocRef = (parentRef != null
+            ? parentRef!.collection(collectionId)
+            : firestore.collection(collectionId))
+        .doc(id);
+    await unconvertedDocRef.update(data);
   }
 
   /// Deletes a document.
