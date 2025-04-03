@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS", // Keep CommonJS for Node compatibility for now
+    "lib": ["ESNext"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    // Base options needed by referencing projects
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": true, // Required for project references
+    "baseUrl": ".", // Needed for paths mapping
+    "paths": {
+      "@shtse8/*": ["packages/*/src"] // Map @shtse8/* to packages/*/src
+    }
+  }
+}

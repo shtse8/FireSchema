@@ -1,20 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "ESNext", // Use modern JavaScript features
-    "module": "CommonJS", // Standard module system for Node.js CLI tools
-    "outDir": "./dist", // Output directory for compiled JavaScript
-    "rootDir": "./src", // Source directory for TypeScript files
-    "strict": true, // Enable all strict type-checking options
-    "esModuleInterop": true, // Enables compatibility with CommonJS modules
-    "skipLibCheck": true, // Skip type checking of declaration files
-    "forceConsistentCasingInFileNames": true, // Ensure consistent file casing
-    "resolveJsonModule": true, // Allow importing JSON files
-    "declaration": true // Generate corresponding '.d.ts' file
-  },
-  "include": ["src/**/*"], // Files to include in compilation
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts",
-    "src/__tests__/test-output" // Exclude generated test output from root compilation
+  // This file is used to build the entire monorepo using `tsc -b`
+  "files": [], // No input files directly, relies on references
+  "references": [
+    // Core Tool
+    { "path": "./src" }, // Assuming src has its own tsconfig referencing base
+
+    // Runtime Packages
+    { "path": "./packages/fireschema-ts-client-runtime" },
+    { "path": "./packages/fireschema-ts-admin-runtime" },
+    // { "path": "./packages/fireschema_dart_runtime" } // Dart is not TS
+
+    // Add other TS packages here if any
   ]
 }

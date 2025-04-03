@@ -14,9 +14,9 @@ graph LR
         E -- Target='ts-client' --> AdapterTSClient["TS Client Adapter (src/adapters/typescript-client.ts)"];
         E -- Target='ts-admin' --> AdapterTSAdmin["TS Admin Adapter (src/adapters/typescript-admin.ts)"];
         E -- Target='dart-client' --> AdapterDartClient["Dart Client Adapter (src/adapters/dart-client.ts)"];
-        AdapterTSClient -- Loads --> TemplatesTS[Templates (templates/typescript/)]
-        AdapterTSAdmin -- Loads --> TemplatesTS
-        AdapterDartClient -- Loads --> TemplatesDart[Templates (templates/dart/)]
+        AdapterTSClient -- Loads --> TemplatesTSClient["Templates (src/adapters/typescript-client/templates/)"]
+        AdapterTSAdmin -- Loads --> TemplatesTSAdmin["Templates (src/adapters/typescript-admin/templates/)"]
+        AdapterDartClient -- Loads --> TemplatesDartClient["Templates (src/adapters/dart-client/templates/)"]
         AdapterTSClient -- Uses --> TemplateEngine[EJS]
         AdapterTSAdmin -- Uses --> TemplateEngine
         AdapterDartClient -- Uses --> TemplateEngine
@@ -27,11 +27,18 @@ graph LR
         style User_Project fill:#ccf,stroke:#333,stroke-width:2px
         FileSystemWriter --> GeneratedTS["Generated TS Code (Client or Admin)"];
         FileSystemWriter --> GeneratedDart["Generated Dart Code (Client)"];
-        GeneratedTS -- Depends On --> RuntimeTS["@shtse8/fireschema-runtime"];
+        GeneratedTSClient[Generated TS Client Code] -- Depends On --> RuntimeTSClient["@shtse8/fireschema-ts-client-runtime"];
+        GeneratedTSAdmin[Generated TS Admin Code] -- Depends On --> RuntimeTSAdmin["@shtse8/fireschema-ts-admin-runtime"];
+        RuntimeTSClient -- Depends On --> RuntimeTSCore["@shtse8/fireschema-core-types"];
+        RuntimeTSAdmin -- Depends On --> RuntimeTSCore;
         GeneratedDart -- Depends On --> RuntimeDart["fireschema_dart_runtime"];
+        FileSystemWriter --> GeneratedTSClient;
+        FileSystemWriter --> GeneratedTSAdmin;
         UserCodeTS[User TS Code] --> GeneratedTS;
         UserCodeDart[User Dart Code] --> GeneratedDart;
-        UserInstalls1[User installs] --> RuntimeTS;
+        UserInstalls1[User installs] --> RuntimeTSClient;
+        UserInstalls1a[User installs] --> RuntimeTSAdmin;
+        UserInstalls1b[User installs] --> RuntimeTSCore;
         UserInstalls2[User installs] --> RuntimeDart;
         UserInstalls3[User installs] --> SDK_Firebase["firebase (SDK)"];
         UserInstalls4[User installs] --> SDK_Admin["firebase-admin (SDK)"];
@@ -40,7 +47,9 @@ graph LR
 
     subgraph Runtime_Libraries [Runtime Libraries (Published Packages)]
         style Runtime_Libraries fill:#cfc,stroke:#333,stroke-width:2px
-        RuntimeTS
+        RuntimeTSCore
+        RuntimeTSClient
+        RuntimeTSAdmin
         RuntimeDart
     end
 
@@ -80,25 +89,58 @@ graph LR
    - Modules dedicated to specific generation targets (e.g.,
      `typescript-client`, `typescript-admin`, `dart-client`).
    - Each adapter contains **all** logic required for its target:
-     - Loading the necessary EJS templates (from the main `templates/`
-       directory).
-     - Preparing the data object to be passed to EJS, including any
-       target-specific flags (like an internal `sdk` flag for TS adapters).
+     - Loading the necessary EJS templates (from its **own** `templates/`
+       subdirectory, e.g., `src/adapters/typescript-client/templates/`).
+     - Preparing the data object to be passed to EJS (no longer needs
+       target-specific flags like `sdk` as templates are now specific).
      - Rendering templates using EJS.
      - Writing the generated files to the specified output directory.
      - Handling target-specific `options` from the config.
    - Adapters generate code that relies on the appropriate **Runtime Package**.
 6. **Template-Based Code Generation:** Adapters use `ejs` to render templates
-   located in the main `templates/` directory (organized by language).
-7. **Runtime Libraries (Separate Packages):**
-   - `@shtse8/fireschema-runtime`: Contains reusable TypeScript base classes and
-     generic types. It handles the differences between `firebase` (client) and
-     `firebase-admin` (server) SDKs internally. Generated TypeScript code
-     depends on this.
-   - `fireschema_dart_runtime`: Contains reusable Dart base classes/mixins.
-     Generated Dart code depends on this.
-   - These packages are installed by the end-user alongside the relevant
-     Firebase SDK (`firebase`, `firebase-admin`, `cloud_firestore`).
+   located within their own subdirectories (e.g.,
+   `src/adapters/dart-client/templates/`).
+7. **Runtime Libraries (Separate Packages):** Provide reusable interfaces, base
+   classes, and platform-specific implementations for the core ODM logic. This
+   structure promotes code reuse while ensuring clear dependencies and type
+   safety.
+   - **`@shtse8/fireschema-core-types` (TypeScript Core):**
+     - **Purpose:** Defines shared TypeScript interfaces (e.g., `FirestoreLike`,
+       `CollectionReferenceLike`), abstract base classes (e.g.,
+       `AbstractBaseCollectionRef`), and common utility types. Contains no
+       runtime logic or SDK dependencies.
+     - **Used by:** Both `ts-client-runtime` and `ts-admin-runtime`.
+   - **`@shtse8/fireschema-ts-client-runtime` (TypeScript Client):**
+     - **Purpose:** Provides concrete implementations of the `core-types`
+       abstractions, specifically using the `firebase` (Client) SDK. Contains
+       classes like `ClientCollectionRef` extending `AbstractBaseCollectionRef`.
+     - **Used by:** Code generated by the `typescript-client` adapter.
+     - **SDK Dependency:** Has a direct **dependency** on `firebase`. No
+       `peerDependencies` needed for the SDK.
+   - **`@shtse8/fireschema-ts-admin-runtime` (TypeScript Admin):**
+     - **Purpose:** Provides concrete implementations of the `core-types`
+       abstractions, specifically using the `firebase-admin` SDK. Contains
+       classes like `AdminCollectionRef` extending `AbstractBaseCollectionRef`,
+       potentially including Admin-only methods (e.g., `bulkWrite`).
+     - **Used by:** Code generated by the `typescript-admin` adapter.
+     - **SDK Dependency:** Has a direct **dependency** on `firebase-admin`. No
+       `peerDependencies` needed for the SDK.
+   - **`fireschema_dart_runtime` (Dart Client):**
+     - **Used by:** `dart-client` adapter.
+     - **Purpose:** Contains Dart equivalents of base classes and logic for the
+       `cloud_firestore` (Client) SDK. (No core/implementation split currently
+       planned for Dart unless a server-side Dart target emerges).
+     - **SDK Dependency:** Has a direct dependency on `cloud_firestore`.
+   - **Installation:** Users install the specific runtime package(s) needed for
+     their generated code (e.g., `ts-client-runtime` and `core-types` if using
+     TS Client) along with the corresponding Firebase SDK.
+   - **`fireschema_dart_runtime` (Dart):**
+     - **Used by:** `dart-client` adapter.
+     - **Purpose:** Contains Dart equivalents of base classes and logic,
+       specifically for the `cloud_firestore` (Client) SDK.
+     - **SDK Dependency:** Has a direct dependency on `cloud_firestore`.
+   - **Installation:** These runtime packages are installed by the end-user
+     alongside the relevant Firebase SDK(s) required by their project.
 8. **Helper Functions:** Utility functions (e.g., naming conventions in
    `src/utils/naming.ts`) are used by Adapters.
 9. **CI/CD Publishing (GitHub Actions):** Workflow remains largely the same,

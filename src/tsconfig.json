@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.base.json", // Extend the base config
+  "compilerOptions": {
+    "outDir": "../dist", // Output relative to the root
+    "rootDir": ".", // Root is the src directory itself
+    "composite": true // Required for project references
+    // No need for declaration/map/sourceMap here if base has them
+  },
+  "include": ["**/*", "**/*.json"], // Include all files within src, including JSON
+  "exclude": [
+    "node_modules",
+    "**/__tests__", // Exclude tests from this specific build config
+    "**/__snapshots__"
+  ],
+  "references": [
+    // Reference runtime packages if the core tool directly imports types from them
+    // (Unlikely, as adapters handle runtime interaction)
+    // { "path": "../packages/fireschema-core-types" }
+  ]
+}

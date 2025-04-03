@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json", // Assuming a base config exists at the root
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true, // Enable project references
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"], // Exclude tests for main build
+  "references": [
+    // No longer references core-types
+  ]
+}

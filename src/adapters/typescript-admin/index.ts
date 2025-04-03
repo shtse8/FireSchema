@@ -1,12 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import ejs from 'ejs';
-import type { WhereFilterOp } from 'firebase/firestore'; // Still useful for type hints
+// Remove incorrect import from client SDK
 import { FirestoreODMConfig, OutputTarget } from '../../types/config'; // Adjusted import path
 import { ParsedFirestoreSchema, ParsedCollectionDefinition, ParsedFieldDefinition } from '../../types/schema'; // Adjusted import path
 import { capitalizeFirstLetter, camelToPascalCase } from '../../utils/naming'; // Adjusted import path
 // Runtime Imports
-import type { FirestoreLike, DocumentReferenceLike, CollectionReferenceLike, FieldValueLike, TimestampLike, GeoPointLike, DocumentDataLike } from '@shtse8/fireschema-runtime';
+// No longer need core-types import
+// import type { FirestoreLike, DocumentReferenceLike, CollectionReferenceLike, FieldValueLike, TimestampLike, GeoPointLike, DocumentDataLike, WhereFilterOpLike } from '@shtse8/fireschema-core-types';
+// Import WhereFilterOp directly from the Admin SDK
+import type { WhereFilterOp } from 'firebase-admin/firestore';
 
 // Interfaces (copied)
 interface TemplateStrings {
@@ -30,10 +33,10 @@ interface UpdateMethodDefinition {
 export async function generate(target: OutputTarget, schema: ParsedFirestoreSchema, config: FirestoreODMConfig): Promise<void> {
   console.log(` -> Running TypeScript Admin Adapter...`);
   const options = target.options || {};
-  const sdkOption = 'admin'; // Hardcoded for this adapter
+  // const sdkOption = 'admin'; // No longer needed, templates are admin-specific
 
   // Load templates relative to project root
-  const templateDir = path.resolve(__dirname, '../../../templates/typescript'); // Use __dirname
+  const templateDir = path.resolve(__dirname, './templates'); // Load templates from adapter's directory
   const modelTemplatePath = path.join(templateDir, 'model.ejs');
   const collectionRefTemplatePath = path.join(templateDir, 'collectionRef.ejs');
   const queryBuilderTemplatePath = path.join(templateDir, 'queryBuilder.ejs');
@@ -52,12 +55,12 @@ export async function generate(target: OutputTarget, schema: ParsedFirestoreSche
       updateBuilder: fs.readFileSync(updateBuilderTemplatePath, 'utf-8'),
   };
 
-  console.log(`    (SDK Target: ${sdkOption})`);
+  // console.log(`    (SDK Target: ${sdkOption})`); // No longer needed
 
   // Generate files for each collection
   for (const collectionId in schema.collections) {
     const collection = schema.collections[collectionId];
-    await generateFilesForCollection(collection, target.outputDir, options, templates, sdkOption);
+    await generateFilesForCollection(collection, target.outputDir, options, templates); // Remove sdkOption
   }
 
   // Generate package.json (Optional)
@@ -68,8 +71,20 @@ export async function generate(target: OutputTarget, schema: ParsedFirestoreSche
             description: target.package.description || `Generated Firestore ODM for ${target.package.name} (TS Admin)`,
             "type": "module", "main": "./dist/index.js", "types": "./dist/index.d.ts",
             scripts: { "clean": "npx rimraf dist", "build": "bun run clean && tsc -b", "test": "jest" },
-            peerDependencies: { "@shtse8/fireschema-runtime": "^0.1.0", "firebase-admin": "^11.0.0 || ^12.0.0" },
-            devDependencies: { "@types/jest": "^29.5.14", "firebase-admin": "^12.0.0", "jest": "^29.7.0", "ts-jest": "^29.3.1", "typescript": "^5.0.0" }
+            // Dependencies now include only the specific admin runtime
+            "dependencies": {
+              "@shtse8/fireschema-ts-admin-runtime": "workspace:^" // Or specific version
+            },
+            "peerDependencies": {
+              "firebase-admin": "^11.0.0 || ^12.0.0" // Keep peer dependency for the SDK
+            },
+            "devDependencies": {
+              "@types/jest": "^29.5.14",
+              "firebase-admin": "^12.0.0", // Keep for testing/dev purposes if needed
+              "jest": "^29.7.0",
+              "ts-jest": "^29.3.1",
+              "typescript": "^5.0.0"
+            }
         };
         const packageJsonPath = path.join(target.outputDir, 'package.json');
         await fs.promises.writeFile(packageJsonPath, JSON.stringify(packageJsonContent, null, 2));
@@ -86,7 +101,7 @@ export async function generate(target: OutputTarget, schema: ParsedFirestoreSche
 
 async function generateFilesForCollection(
     collection: ParsedCollectionDefinition, outputBaseDir: string, options: Record<string, any>,
-    templates: TemplateStrings, sdkOption: 'client' | 'admin', parentPath: string = ''
+    templates: TemplateStrings, parentPath: string = '' // Remove sdkOption
 ): Promise<void> {
     const collectionId = collection.collectionId;
     const modelName = camelToPascalCase(collectionId);
@@ -96,14 +111,14 @@ async function generateFilesForCollection(
     console.log(`  Generating files for collection: ${parentPath ? parentPath + '/' : ''}${collectionId}`);
 
     const commonData = {
-        modelName, collection, options, sdk: sdkOption, getTypeScriptType,
+        modelName, collection, options, getTypeScriptType, // Remove sdk property
         capitalizeFirstLetter, camelToPascalCase, isSubcollection: !!parentPath,
         FirestoreLike: 'FirestoreLike', DocumentReferenceLike: 'DocumentReferenceLike',
         CollectionReferenceLike: 'CollectionReferenceLike', FieldValueLike: 'FieldValueLike',
         TimestampLike: 'TimestampLike', GeoPointLike: 'GeoPointLike', DocumentDataLike: 'DocumentDataLike',
     };
     const queryBuilderData = { ...commonData, getQueryInfoForField };
-    const updateMethods = getUpdateMethodsForFields(collection.fields, options, '', 'set', sdkOption);
+    const updateMethods = getUpdateMethodsForFields(collection.fields, options, '', 'set'); // Remove sdkOption
     const updateBuilderData = { ...commonData, updateMethods };
     const collectionRefData = { ...commonData, parentPath };
 
@@ -129,7 +144,7 @@ async function generateFilesForCollection(
         for (const subcollectionId in collection.subcollections) {
             const subcollection = collection.subcollections[subcollectionId];
             const subcollectionParentPath = parentPath ? `${parentPath}/${collectionId}/{${collectionId}Id}` : `${collectionId}/{${collectionId}Id}`;
-            await generateFilesForCollection(subcollection, outputBaseDir, options, templates, sdkOption, subcollectionParentPath);
+            await generateFilesForCollection(subcollection, outputBaseDir, options, templates, subcollectionParentPath); // Remove sdkOption
         }
     }
 }
@@ -156,6 +171,7 @@ function getTypeScriptType(field: ParsedFieldDefinition, options: Record<string,
   }
 }
 
+// Ensure WhereFilterOp from the Admin SDK is used
 function getQueryInfoForField(field: ParsedFieldDefinition, options: Record<string, any>): Array<{ op: WhereFilterOp, valueType: string }> {
     const safeOptions = options || {};
     const valueType = getTypeScriptType(field, safeOptions);
@@ -183,7 +199,7 @@ function getQueryInfoForField(field: ParsedFieldDefinition, options: Record<stri
 
 function getUpdateMethodsForFields(
     fields: Record<string, ParsedFieldDefinition>, options: Record<string, any>,
-    currentPath: string = '', methodPrefix: string = 'set', sdkOption: 'client' | 'admin'
+    currentPath: string = '', methodPrefix: string = 'set' // Remove sdkOption
 ): UpdateMethodDefinition[] {
     const safeOptions = options || {};
     let methods: UpdateMethodDefinition[] = [];
@@ -195,7 +211,7 @@ function getUpdateMethodsForFields(
         const fieldType = getTypeScriptType(field, safeOptions);
         methods.push({ methodName, fieldPath, fieldType: `${fieldType} | FieldValueLike`, fieldNameCamelCase: fieldName, originalField: field });
         if (field.type === 'map' && field.properties) {
-            const nestedMethods = getUpdateMethodsForFields(field.properties, safeOptions, fieldPath, methodName, sdkOption);
+            const nestedMethods = getUpdateMethodsForFields(field.properties, safeOptions, fieldPath, methodName); // Remove sdkOption
             methods = methods.concat(nestedMethods);
         }
     }
