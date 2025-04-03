@@ -120,7 +120,7 @@ describe('AdminBaseQueryBuilder', () => {
    it('should add a limitToLast constraint definition immutably', () => {
     const newBuilder = queryBuilder.limitToLast(5);
     expect(newBuilder).not.toBe(queryBuilder);
-    expect((newBuilder as any).constraintDefinitions).toEqual([]);
+    expect((queryBuilder as any).constraintDefinitions).toEqual([]); // Check original builder is unchanged
     expect((newBuilder as any).constraintDefinitions).toEqual([
       { type: 'limitToLast', limitCount: 5 },
     ]);
@@ -130,7 +130,7 @@ describe('AdminBaseQueryBuilder', () => {
     const mockSnapshot = { id: 'doc1' } as DocumentSnapshot<TestData>;
     const newBuilder = queryBuilder.startAt(mockSnapshot);
     expect(newBuilder).not.toBe(queryBuilder);
-    expect((newBuilder as any).constraintDefinitions).toEqual([]);
+    expect((queryBuilder as any).constraintDefinitions).toEqual([]); // Check original builder is unchanged
     expect((newBuilder as any).constraintDefinitions).toEqual([
       { type: 'startAt', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
     ]);

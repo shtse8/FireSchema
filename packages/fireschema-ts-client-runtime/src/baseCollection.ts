@@ -94,7 +94,8 @@ export class ClientBaseCollectionRef<
   async set(id: string, data: TAddData, options?: SetOptions): Promise<void> {
     const docRef = this.doc(id);
     // Use top-level setDoc function
-    await setDoc(docRef, data as unknown as TData, options || {});
+    const dataToWrite = this.applyDefaults(data); // Apply defaults for set as well
+    await setDoc(docRef, dataToWrite, options || {});
   }
 
   /** Deletes a document. */

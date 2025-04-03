@@ -75,6 +75,9 @@ describe('AdminBaseCollectionRef', () => {
       id: 'parent-doc',
       path: 'parents/parent-doc',
       collection: jest.fn().mockReturnValue(mockCollectionRef),
+      parent: { // Add mock parent
+        path: 'parents'
+      }
     };
 
     mockFirestore = {

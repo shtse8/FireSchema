@@ -26,7 +26,7 @@ export class ClientBaseUpdateBuilder<TData extends DocumentData> {
   }
 
   /** Protected method to add an update operation. */
-  protected _set(fieldPath: string, value: any | FieldValue): this {
+  _set(fieldPath: string, value: any | FieldValue): this {
     const newBuilder = Object.create(Object.getPrototypeOf(this));
     Object.assign(newBuilder, this);
     newBuilder._updateData = { ...this._updateData, [fieldPath]: value };
@@ -53,19 +53,19 @@ export class ClientBaseUpdateBuilder<TData extends DocumentData> {
 
   // --- Public methods using the helpers ---
 
-  protected _increment(fieldPath: string, value: number): this {
+  _increment(fieldPath: string, value: number): this {
     return this._set(fieldPath, this._getIncrementFieldValue(value));
   }
-  protected _arrayUnion(fieldPath: string, values: any[]): this {
+  _arrayUnion(fieldPath: string, values: any[]): this {
     return this._set(fieldPath, this._getArrayUnionFieldValue(values));
   }
-  protected _arrayRemove(fieldPath: string, values: any[]): this {
+  _arrayRemove(fieldPath: string, values: any[]): this {
     return this._set(fieldPath, this._getArrayRemoveFieldValue(values));
   }
-  protected _serverTimestamp(fieldPath: string): this {
+  _serverTimestamp(fieldPath: string): this {
     return this._set(fieldPath, this._getServerTimestampFieldValue());
   }
-  protected _deleteField(fieldPath: string): this {
+  _deleteField(fieldPath: string): this {
     return this._set(fieldPath, this._getDeleteFieldValue());
   }
 

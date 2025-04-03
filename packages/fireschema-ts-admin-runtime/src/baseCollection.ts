@@ -43,7 +43,8 @@ export class AdminBaseCollectionRef<
 
     if (parentRef) {
       // Use parentRef's collection method
-      this.ref = parentRef.collection(collectionId) as CollectionReference<TData>;
+      // Removed console logs here
+      this.ref = parentRef.collection(collectionId) as CollectionReference<TData>; // Use Admin SDK's built-in method
     } else {
       // Use firestore's collection method
       this.ref = this.firestore.collection(collectionId) as CollectionReference<TData>;
@@ -86,7 +87,9 @@ export class AdminBaseCollectionRef<
   async set(id: string, data: TAddData, options?: SetOptions): Promise<FirebaseFirestore.WriteResult> {
     const docRef = this.doc(id);
     // Use documentRef's set method
-    return docRef.set(data as unknown as TData, options || {});
+    const dataToWrite = this.applyDefaults(data); // Apply defaults for set as well
+    // Use documentRef's set method
+    return docRef.set(dataToWrite, options || {});
   }
 
   /** Deletes a document. */

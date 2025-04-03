@@ -6,7 +6,8 @@
     "composite": true, // Enable project references
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true, // Added comma here
+    "esModuleInterop": true // Add this line to address jest warning
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"], // Exclude tests for main build

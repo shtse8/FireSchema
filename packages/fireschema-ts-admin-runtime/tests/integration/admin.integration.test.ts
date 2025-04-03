@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { getFirestore, Firestore, DocumentReference, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, Firestore, DocumentReference, FieldValue, Timestamp, DocumentData } from 'firebase-admin/firestore'; // Added DocumentData
 import { AdminBaseCollectionRef, CollectionSchema } from '../../src/baseCollection'; // Import base class and schema type
 import { AdminBaseQueryBuilder } from '../../src/baseQueryBuilder';   // Import Query Builder
 import { AdminBaseUpdateBuilder } from '../../src/baseUpdateBuilder'; // Import Update Builder
@@ -33,8 +33,14 @@ type SubTestAdminAddData = Omit<SubTestAdminData, 'id'>;
 
 // Subcollection class
 class TestAdminSubCollection extends AdminBaseCollectionRef<SubTestAdminData, SubTestAdminAddData> {
-  constructor(db: Firestore, parentRef: DocumentReference<TestAdminData>) {
-    super(db, 'sub-admin-items', undefined, parentRef);
+  // Match the constructor signature expected by the subCollection helper
+  constructor(
+    firestore: Firestore,
+    collectionId: string, // Use the passed collectionId
+    schema: CollectionSchema | undefined, // Accept schema
+    parentRef: DocumentReference<DocumentData> // Use base DocumentData
+   ) {
+    super(firestore, collectionId, schema, parentRef); // Pass arguments to base
   }
 }
 
@@ -61,7 +67,7 @@ class TestAdminCollection extends AdminBaseCollectionRef<TestAdminData, TestAdmi
   subItems(parentId: string): TestAdminSubCollection {
     // Use the protected helper from the base class, casting this to any
     // Note: TestAdminSubCollection needs to be defined
-    return (this as any)._subCollection(parentId, 'sub-admin-items', TestAdminSubCollection);
+    return (this as any).subCollection(parentId, 'sub-admin-items', TestAdminSubCollection); // Use public method name
   }
 }
 
@@ -101,6 +107,8 @@ afterAll(async () => {
 
 // Helper function to clear the collection (more robust than single doc delete)
 async function cleanupCollection() {
+    // Check if testAdminCollection is initialized
+    if (!testAdminCollection || !testAdminCollection.ref) return;
     try {
         const snapshot = await testAdminCollection.ref.limit(50).get(); // Limit batch size
         if (snapshot.empty) {
@@ -154,10 +162,19 @@ describe('Admin Runtime Integration Tests', () => {
     const dataToSet: TestAdminAddData = { serviceName: 'Specific Admin Item', status: 'inactive' };
     try {
       await testAdminCollection.set(docId, dataToSet);
-
       const retrievedData = await testAdminCollection.get(docId);
 
-  // --- Query Tests --- 
+      // Assertions moved inside the try block
+      expect(retrievedData).toBeDefined();
+      expect(retrievedData).toEqual(expect.objectContaining(dataToSet));
+
+    } finally {
+      // Cleanup
+      await testAdminCollection.delete(docId);
+    }
+  }); // Correctly closed 'it' block
+
+  // --- Query Tests --- // Now correctly outside the previous 'it' block
 
   it('should query documents using where', async () => {
     const id1 = 'admin-query-1';
@@ -208,7 +225,7 @@ describe('Admin Runtime Integration Tests', () => {
     }
   });
 
-  // --- Update Tests --- 
+  // --- Update Tests ---
 
   it('should update a document using the update builder', async () => {
     const docId = 'admin-update-1';
@@ -264,7 +281,7 @@ describe('Admin Runtime Integration Tests', () => {
     }
   });
 
-  // --- Default Value Test --- 
+  // --- Default Value Test ---
 
   it('should apply serverTimestamp default value from schema', async () => {
     const docId = 'admin-default-value';
@@ -290,7 +307,7 @@ describe('Admin Runtime Integration Tests', () => {
     }
   });
 
-  // --- Subcollection Test --- 
+  // --- Subcollection Test ---
 
   it('should add, get, and delete documents in a subcollection', async () => {
     const parentId = 'admin-parent-for-sub';
@@ -327,16 +344,6 @@ describe('Admin Runtime Integration Tests', () => {
     }
   });
 
-
-      expect(retrievedData).toBeDefined();
-      expect(retrievedData).toEqual(expect.objectContaining(dataToSet));
-
-    } finally {
-      // Cleanup
-      await testAdminCollection.delete(docId);
-    }
-  });
-
    it('should delete a document', async () => {
     const docId = 'admin-to-be-deleted';
     const dataToSet: TestAdminAddData = { serviceName: 'Admin Delete Me', status: 'active' };
@@ -363,4 +370,4 @@ describe('Admin Runtime Integration Tests', () => {
   // - Subcollections
   // - Default values / Server Timestamps (if schema is used)
 
-});
+}); // Close describe block
