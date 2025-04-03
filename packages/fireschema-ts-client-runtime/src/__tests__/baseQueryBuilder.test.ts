@@ -164,20 +164,83 @@ describe('ClientBaseQueryBuilder', () => {
   it('should call query() with correct constraints when buildQuery() is called', () => {
     const finalBuilder = (queryBuilder as any)
       ._where('age', '>=', 21)
-      .orderBy('name');
+      .orderBy('name')
+      .limit(10); // Add limit constraint
 
     const mockWhereConstraint = { type: 'where', field: 'age', op: '>=', value: 21 };
     const mockOrderByConstraint = { type: 'orderBy', field: 'name', dir: 'asc' };
+    const mockLimitConstraint = { type: 'limit', num: 10 }; // Mock for limit
     (where as jest.Mock).mockReturnValueOnce(mockWhereConstraint);
     (orderBy as jest.Mock).mockReturnValueOnce(mockOrderByConstraint);
+    (limit as jest.Mock).mockReturnValueOnce(mockLimitConstraint); // Mock limit function return
 
     const builtQuery = finalBuilder.buildQuery();
 
     expect(where).toHaveBeenCalledWith('age', '>=', 21);
     expect(orderBy).toHaveBeenCalledWith('name', 'asc');
-    expect(query).toHaveBeenCalledWith(mockCollectionRef, mockWhereConstraint, mockOrderByConstraint);
+    expect(limit).toHaveBeenCalledWith(10); // Assert limit was called
+    // Assert query was called with all constraints
+    expect(query).toHaveBeenCalledWith(mockCollectionRef, mockWhereConstraint, mockOrderByConstraint, mockLimitConstraint);
     expect(builtQuery).toBe((query as jest.Mock).mock.results[0].value); // Ensure the result of query() is returned
   });
+
+  it('should call query() with cursor and limitToLast constraints when buildQuery() is called', () => {
+    const mockStartAtSnapshot = { id: 'startAtDoc' } as DocumentSnapshot<TestData>;
+    const mockStartAfterValue = 'startAfterValue';
+    const mockEndBeforeSnapshot = { id: 'endBeforeDoc' } as DocumentSnapshot<TestData>;
+    const mockEndAtValue = 'endAtValue';
+
+    const finalBuilder = queryBuilder
+      .limitToLast(5)
+      .startAt(mockStartAtSnapshot)
+      .startAfter(mockStartAfterValue)
+      .endBefore(mockEndBeforeSnapshot)
+      .endAt(mockEndAtValue);
+
+    // Mock the return values of the constraint functions
+    const mockLimitToLastConstraint = { type: 'limitToLast', num: 5 };
+    const mockStartAtConstraint = { type: 'startAt', val: mockStartAtSnapshot };
+    const mockStartAfterConstraint = { type: 'startAfter', val: mockStartAfterValue };
+    const mockEndBeforeConstraint = { type: 'endBefore', val: mockEndBeforeSnapshot };
+    const mockEndAtConstraint = { type: 'endAt', val: mockEndAtValue };
+
+    (limitToLast as jest.Mock).mockReturnValueOnce(mockLimitToLastConstraint);
+    (startAt as jest.Mock).mockReturnValueOnce(mockStartAtConstraint);
+    (startAfter as jest.Mock).mockReturnValueOnce(mockStartAfterConstraint);
+    (endBefore as jest.Mock).mockReturnValueOnce(mockEndBeforeConstraint);
+    (endAt as jest.Mock).mockReturnValueOnce(mockEndAtConstraint);
+
+    finalBuilder.buildQuery();
+
+    // Verify the constraint functions were called
+    expect(limitToLast).toHaveBeenCalledWith(5);
+    expect(startAt).toHaveBeenCalledWith(mockStartAtSnapshot);
+    expect(startAfter).toHaveBeenCalledWith(mockStartAfterValue);
+    expect(endBefore).toHaveBeenCalledWith(mockEndBeforeSnapshot);
+    expect(endAt).toHaveBeenCalledWith(mockEndAtValue);
+
+    // Verify query() was called with the collection ref and all the mock constraints
+    expect(query).toHaveBeenCalledWith(
+      mockCollectionRef,
+      mockLimitToLastConstraint,
+      mockStartAtConstraint,
+      mockStartAfterConstraint,
+      mockEndBeforeConstraint,
+      mockEndAtConstraint
+    );
+  });
+
+  it('should throw an error for unsupported constraint types in buildQuery', () => {
+    // Manually add an invalid constraint definition
+    (queryBuilder as any).constraintDefinitions.push({ type: 'invalid-constraint' });
+
+    // Expect buildQuery to throw an error
+    expect(() => queryBuilder.buildQuery()).toThrow(
+      'Unsupported client constraint type: invalid-constraint'
+    );
+  });
+
+
 
   // Test getSnapshot
   it('should call getDocs() with the built query when getSnapshot() is called', async () => {

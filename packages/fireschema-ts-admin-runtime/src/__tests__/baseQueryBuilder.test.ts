@@ -136,6 +136,37 @@ describe('AdminBaseQueryBuilder', () => {
     ]);
   });
 
+  it('should add a startAfter constraint definition immutably', () => {
+    const mockSnapshot = { id: 'doc1' } as DocumentSnapshot<TestData>;
+    const newBuilder = queryBuilder.startAfter(mockSnapshot);
+    expect(newBuilder).not.toBe(queryBuilder);
+    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
+    expect((newBuilder as any).constraintDefinitions).toEqual([
+      { type: 'startAfter', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
+    ]);
+  });
+
+  it('should add an endBefore constraint definition immutably', () => {
+    const mockSnapshot = { id: 'doc2' } as DocumentSnapshot<TestData>;
+    const newBuilder = queryBuilder.endBefore(mockSnapshot);
+    expect(newBuilder).not.toBe(queryBuilder);
+    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
+    expect((newBuilder as any).constraintDefinitions).toEqual([
+      { type: 'endBefore', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
+    ]);
+  });
+
+  it('should add an endAt constraint definition immutably', () => {
+    const mockSnapshot = { id: 'doc3' } as DocumentSnapshot<TestData>;
+    const newBuilder = queryBuilder.endAt(mockSnapshot);
+    expect(newBuilder).not.toBe(queryBuilder);
+    expect((queryBuilder as any).constraintDefinitions).toEqual([]);
+    expect((newBuilder as any).constraintDefinitions).toEqual([
+      { type: 'endAt', snapshotOrFieldValue: mockSnapshot, fieldValues: [] },
+    ]);
+  });
+
+
   // Test chaining definitions
   it('should chain constraint definitions immutably', () => {
     const finalBuilder = (queryBuilder as any)
@@ -177,6 +208,44 @@ describe('AdminBaseQueryBuilder', () => {
      // etc.
      expect(builtQuery).toBe(mockCollectionRef); // Returns the original ref if no constraints
    });
+
+  it('should call chained cursor and limitToLast methods when buildQuery() is called', () => {
+    const mockStartAtSnapshot = { id: 'startAtDoc' } as DocumentSnapshot<TestData>;
+    const mockStartAfterValue = 'startAfterValue';
+    const mockEndBeforeSnapshot = { id: 'endBeforeDoc' } as DocumentSnapshot<TestData>;
+    const mockEndAtValue = 'endAtValue';
+
+    const finalBuilder = queryBuilder
+      .orderBy('age') // Cursors require orderBy
+      .limitToLast(5)
+      .startAt(mockStartAtSnapshot)
+      .startAfter(mockStartAfterValue)
+      .endBefore(mockEndBeforeSnapshot)
+      .endAt(mockEndAtValue);
+
+    const builtQuery = finalBuilder.buildQuery();
+
+    // Verify the chain starts with orderBy, then the others are called on the mockQuery
+    expect(mockCollectionRef.orderBy).toHaveBeenCalledWith('age', 'asc');
+    expect(mockQuery.limitToLast).toHaveBeenCalledWith(5);
+    expect(mockQuery.startAt).toHaveBeenCalledWith(mockStartAtSnapshot);
+    expect(mockQuery.startAfter).toHaveBeenCalledWith(mockStartAfterValue);
+  expect(mockQuery.endBefore).toHaveBeenCalledWith(mockEndBeforeSnapshot);
+  expect(mockQuery.endAt).toHaveBeenCalledWith(mockEndAtValue);
+
+  expect(builtQuery).toBe(mockQuery);
+});
+
+it('should throw an error for unsupported constraint types in buildQuery', () => {
+  // Manually add an invalid constraint definition
+  (queryBuilder as any).constraintDefinitions.push({ type: 'invalid-constraint' });
+
+  // Expect buildQuery to throw an error
+  expect(() => queryBuilder.buildQuery()).toThrow(
+    'Unsupported admin constraint type: invalid-constraint'
+  );
+});
+
 
   // Test getSnapshot
   it('should call get() on the built query when getSnapshot() is called', async () => {

@@ -39,6 +39,18 @@ interface TestAddData extends DocumentData {
   createdAt?: 'serverTimestamp'; // Use string literal for schema default
 }
 
+// Mock Sub-Collection Class to be instantiated by the test
+class MockSubCollection extends AdminBaseCollectionRef<any, any> {
+  constructor(
+    firestore: Firestore,
+    collectionId: string,
+    schema?: any,
+    parentRef?: DocumentReference<DocumentData>
+  ) {
+    super(firestore, collectionId, schema, parentRef);
+  }
+}
+
 describe('AdminBaseCollectionRef', () => {
   // Use 'any' or partial mocks, focusing on methods used by the class under test
   let mockFirestore: any;
@@ -154,6 +166,29 @@ describe('AdminBaseCollectionRef', () => {
     expect(AdminFieldValue.serverTimestamp).toHaveBeenCalledTimes(1);
     expect(mockCollectionRef.add).toHaveBeenCalledWith(expectedDataWithDefault);
   });
+
+  it('should NOT apply serverTimestamp default if value is provided', async () => {
+    const schema = { fields: { createdAt: { defaultValue: 'serverTimestamp' } } };
+    collectionRefInstance = new AdminBaseCollectionRef<TestData, TestAddData>(
+        mockFirestore, testCollectionId, schema
+    );
+    const providedTimestamp = { seconds: 987, nanoseconds: 654 } as Timestamp; // Mock a specific timestamp
+    const dataToAdd: TestAddData = {
+        name: 'Item With Provided Timestamp',
+        createdAt: providedTimestamp as any // Cast to 'any' to match TestAddData structure if needed, but value is provided
+    };
+    const expectedDataWithoutDefault: TestData = {
+        name: 'Item With Provided Timestamp',
+        createdAt: providedTimestamp
+    };
+
+    await collectionRefInstance.add(dataToAdd);
+
+    // Ensure serverTimestamp was NOT called, and the provided value was used
+    expect(AdminFieldValue.serverTimestamp).not.toHaveBeenCalled();
+    expect(mockCollectionRef.add).toHaveBeenCalledWith(expectedDataWithoutDefault);
+  });
+
 
   // Test set()
   it('should call docRef.set() with data when set() is called', async () => {
