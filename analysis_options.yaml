@@ -1,0 +1,4 @@
+analyzer:
+  exclude:
+    - 'src/__tests__/dart-generated/**' # Exclude generated test code
+# include: package:lints/recommended.yaml # Optionally include lint rules later
