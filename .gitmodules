@@ -1,0 +1,9 @@
+[submodule "packages/fireschema_dart_runtime"]
+	path = packages/fireschema_dart_runtime
+	url = https://github.com/shtse8/fireschema_dart_runtime.git
+[submodule "packages/fireschema-ts-admin-runtime"]
+	path = packages/fireschema-ts-admin-runtime
+	url = https://github.com/shtse8/fireschema-ts-admin-runtime.git
+[submodule "packages/fireschema-ts-client-runtime"]
+	path = packages/fireschema-ts-client-runtime
+	url = https://github.com/shtse8/fireschema-ts-client-runtime.git
