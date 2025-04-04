@@ -32,7 +32,7 @@ jobs:
         run: |
           curl -sL https://firebase.tools | bash
           # Run emulator directly; rely on job termination or timeout + pkill step for cleanup
-          firebase emulators:start --only firestore --project=test-project
+          firebase emulators:start --only firestore --project=test-project &
           # Wait for emulator to start (adjust sleep time if needed)
           sleep 10
         env:
