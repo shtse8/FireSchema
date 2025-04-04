@@ -32,14 +32,14 @@ jobs:
         run: |
           curl -sL https://firebase.tools | bash
           # Run emulator directly; rely on job termination or timeout + pkill step for cleanup
-          firebase emulators:start --only firestore --project=test-project &
+          firebase emulators:start --only firestore --project=fireschema-test-emulator &
           # Wait for emulator to start (adjust sleep time if needed)
           sleep 10
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} # Optional: If needed for other firebase commands
 
-      - name: Run tests (using npx jest due to bun test issues)
-        run: npx jest
+      - name: Run tests
+        run: bun run test
         env:
            FIRESTORE_EMULATOR_HOST: "localhost:8080" # Ensure tests use the emulator
 
