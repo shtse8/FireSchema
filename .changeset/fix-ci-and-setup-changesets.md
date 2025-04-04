@@ -1,7 +1,6 @@
 ---
 "@shtse8/fireschema-ts-client-runtime": patch
 "@shtse8/fireschema-ts-admin-runtime": patch
-"fireschema_dart_runtime": patch
 ---
 
 fix: Resolve CI build and publish issues
@@ -12,4 +11,4 @@ fix: Resolve CI build and publish issues
 - Fix dead links in documentation build.
 - Add missing dev dependencies for Dart runtime package.
 - Exclude generated Dart test code from analysis (`analysis_options.yaml`).
-- Setup Changesets for versioning and publishing.
+- Setup Changesets for versioning and publishing (TS packages only).
