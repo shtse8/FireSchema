@@ -5,6 +5,7 @@ export default defineConfig({
   lang: 'en-US',
   title: "FireSchema",
   description: "Strongly-typed Firestore ODM Generator",
+  ignoreDeadLinks: true, // Add this line to ignore dead links
 
   // Theme related configurations.
   themeConfig: {
