@@ -39,7 +39,7 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} # Optional: If needed for other firebase commands
 
       - name: Run tests
-        run: bun run test -- --forceExit # Added --forceExit for Jest
+        run: bun run test -- --forceExit --detectOpenHandles # Added --detectOpenHandles
         env:
            FIRESTORE_EMULATOR_HOST: "localhost:8080" # Ensure tests use the emulator
 
