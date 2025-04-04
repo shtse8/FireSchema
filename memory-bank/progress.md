@@ -10,6 +10,7 @@
 -   **Repository Structure:**
     -   Runtime packages (`fireschema-ts-client-runtime`, `fireschema-ts-admin-runtime`, `fireschema_dart_runtime`) now reside in **separate, independent GitHub repositories**.
     -   These runtime repositories are linked back into the main `firestore-odm` repository as **Git submodules** within the `packages/` directory.
+    -   **`.gitignore` files have been added** to each runtime submodule directory to exclude build artifacts/dependencies.
 -   **Build & Development:**
     -   Build system using Bun/TSC (`tsc -b`) successfully builds the core CLI package (`build:root`).
     -   Development tooling standardized on Bun in the main repo.
@@ -19,7 +20,7 @@
     -   The main repository's CI no longer runs runtime package tests.
 -   **Publishing & CI/CD:**
     -   The main repository's GitHub Actions workflow (`.github/workflows/publish.yml`) successfully builds the CLI, checks out submodules, builds the documentation site, and deploys docs to GitHub Pages. It **no longer handles package publishing**.
-    -   Publishing for runtime packages will be handled by **separate workflows within each runtime's repository**.
+    -   Publishing for runtime packages will be handled by **separate workflows within each runtime's repository**. Initial workflow files (`.github/workflows/publish.yml`) have been created and subsequently patched (attempting fixes for `npm ci`, `bun` usage, `tsconfig.json` issues, `process.exit` in tests) within each submodule directory.
 -   **Documentation:**
     -   VitePress site is set up (`docs-src/`).
     -   Configuration (`config.mts`) is updated for runtime-centric navigation and ignores dead links (as a workaround for potential CI issues).
@@ -31,20 +32,16 @@
 
 **What's Left:**
 
-1.  **CI/CD for Runtime Repos:** Set up GitHub Actions workflows in each of the three new runtime repositories (`fireschema-ts-client-runtime`, `fireschema-ts-admin-runtime`, `fireschema_dart_runtime`) to:
-    -   Build the package.
-    -   Run its specific tests (unit & integration, likely requiring emulator setup).
-    -   Publish the package to its registry (npm or pub.dev) when a version tag is pushed **to that specific repository**.
-2.  **(Optional) Add `.gitignore` to Runtime Repos:** Add `node_modules/`, `.dart_tool/`, `build/`, etc., to the `.gitignore` files in the respective runtime repositories to avoid committing build artifacts.
-3.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
-4.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
-5.  **(Future) Documentation Content:** Refine existing content, add more examples.
+1.  **Fix Runtime CI/CD Workflows:** Investigate and resolve the failures in the latest GitHub Actions runs for `fireschema-ts-client-runtime` (v0.1.4), `fireschema-ts-admin-runtime` (v0.1.6), and `fireschema_dart_runtime` (v0.1.0) to enable successful package publishing.
+2.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
+3.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
+4.  **(Future) Documentation Content:** Refine existing content, add more examples.
 
 **Current Status:**
 
-**Repository Refactor Complete:** The project has been successfully restructured. Runtime packages are now independent repositories linked via Git submodules. The main repository focuses on the CLI tool, documentation, and overall project structure. The CI/CD pipeline in the main repo is simplified, and the foundation is laid for independent package releases.
+**Runtime CI/CD Setup In Progress (Blocked):** The project has been restructured with independent runtime repositories linked via Git submodules. Initial CI/CD workflow files and `.gitignore` files were created and multiple fixes were applied to the TS runtimes. However, the publishing workflows for all three packages are still failing.
 
-**Next focus:** Setting up the CI/CD workflows in the individual runtime package repositories.
+**Next focus:** Debugging the failed GitHub Actions workflows for each runtime package.
 
 **Known Issues:**
 
