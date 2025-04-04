@@ -226,14 +226,12 @@ describe('Client Runtime Integration Tests', () => {
       expect(docRef).toBeDefined();
       expect(docRef.id).toBeTruthy();
 
-  await cleanupCollection(testCollectionWithSchema.ref); // Cleanup schema collection too
       // Retrieve the document directly using the runtime's get method
       const retrievedData = await testCollection.get(docRef.id);
 
-      expect(retrievedData).toBeDefined();
+      expect(retrievedData).toBeDefined(); // Check if it exists first
       // ID is not part of the data payload itself in Firestore
-  await cleanupCollection(testCollectionWithSchema.ref);
-      expect(retrievedData).toEqual(expect.objectContaining(dataToAdd));
+      expect(retrievedData).toEqual(expect.objectContaining(dataToAdd)); // Then check content
 
     } finally {
       // Cleanup: delete the added document
