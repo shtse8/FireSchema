@@ -1,6 +1,6 @@
 {
   "name": "@shtse8/fireschema-ts-client-runtime",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Client-side TypeScript runtime for FireSchema generated code",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
