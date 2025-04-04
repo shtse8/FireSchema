@@ -1,6 +1,6 @@
 {
   "name": "@shtse8/fireschema",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
   "main": "dist/cli.js",
   "bin": {
@@ -16,9 +16,7 @@
     "docs:dev": "vitepress dev docs-src",
     "docs:build": "vitepress build docs-src",
     "docs:preview": "vitepress preview docs-src",
-    "prepublishOnly": "bun run build",
-    "version:ci": "changeset version",
-    "release": "bun run build && changeset publish"
+    "prepublishOnly": "bun run build"
   },
   "keywords": [],
   "author": "",
@@ -29,8 +27,6 @@
   ],
   "type": "commonjs",
   "devDependencies": {
-    "@changesets/changelog-git": "^0.2.1",
-    "@changesets/cli": "^2.28.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.16",
     "bun": "^1.2.8",

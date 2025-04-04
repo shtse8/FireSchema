@@ -1,6 +1,6 @@
 {
   "name": "@shtse8/fireschema-ts-admin-runtime",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Admin-side TypeScript runtime for FireSchema generated code",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
