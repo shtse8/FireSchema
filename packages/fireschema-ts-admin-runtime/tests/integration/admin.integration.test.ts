@@ -192,6 +192,7 @@ afterAll(async () => {
   // Unset the environment variable
   delete process.env.FIRESTORE_EMULATOR_HOST;
   console.log('Admin SDK disconnected from Firestore emulator.');
+  process.exit(0); // Force exit in CI
 });
 
 // Helper function to clear the collection (more robust than single doc delete)

@@ -205,6 +205,7 @@ afterAll(async () => {
   // Delete Firebase App
   await deleteApp(app);
   console.log('Disconnected from Firestore emulator.');
+  process.exit(0); // Force exit in CI
 });
 
 // Clear collection before each test run for isolation
