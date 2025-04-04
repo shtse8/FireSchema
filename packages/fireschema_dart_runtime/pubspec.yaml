@@ -6,13 +6,20 @@ repository: https://github.com/your_org/fireschema/tree/main/packages/fireschema
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
+  # Flutter constraint might be needed if flutter_test is used
+  # flutter: ">=1.17.0"
 
 dependencies:
   cloud_firestore: ^4.0.0 # Match typical user dependency
   meta: ^1.9.0 # For annotations like @required
 
 dev_dependencies:
+  cloud_firestore_platform_interface: ^6.2.5 # Added
   fake_cloud_firestore: ^2.5.2
+  firebase_core: ^2.32.0 # Added
+  flutter_test: # Added
+    sdk: flutter
   lints: ^2.0.0
   mockito: ^5.4.5
+  plugin_platform_interface: ^2.1.8 # Added
   test: ^1.21.0

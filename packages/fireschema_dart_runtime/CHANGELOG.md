@@ -1,3 +1,8 @@
+## 0.2.0
+
+- Fix CI test execution and documentation build issues.
+- Update dependencies.
+
 ## 0.1.3
 
 - Fix build and publish issues.
