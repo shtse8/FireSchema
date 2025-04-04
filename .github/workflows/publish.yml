@@ -1,17 +1,25 @@
-name: Publish Packages
+name: Release Packages
 
 on:
   push:
-    tags:
-      # Must align with the tag-pattern configured on pub.dev
-      - 'v[0-9]+.[0-9]+.[0-9]+' # Example for tag pattern 'v{{version}}' on pub.dev
+    branches:
+      - main # Trigger on pushes to main
 
 jobs:
-  build-and-test:
+  release:
+    name: Build, Test, Version & Publish
     runs-on: ubuntu-latest
+    # Add permissions for pushing commits and tags
+    permissions:
+      contents: write
+      id-token: write # For Dart OIDC publish
+
     steps:
       - name: Checkout code
+        # Need fetch-depth: 0 for Changesets versioning based on previous tags
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
@@ -22,37 +30,36 @@ jobs:
       - name: Build all packages
         run: bun run build
 
+      # --- Testing ---
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin' # Or another distribution
-          java-version: '11' # Or the version required by the emulator
+          distribution: 'temurin'
+          java-version: '11'
 
       - name: Start Firestore Emulator
         run: |
           curl -sL https://firebase.tools | bash
-          # Run emulator directly; rely on job termination or timeout + pkill step for cleanup
           firebase emulators:start --only firestore --project=fireschema-test-emulator &
-          # Wait for emulator to start (adjust sleep time if needed)
           sleep 10
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} # Optional: If needed for other firebase commands
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} # Optional
 
       - name: Run tests
-        run: npx jest --forceExit --detectOpenHandles --runInBand # Use npx jest with flags
+        # Use npx jest as it seemed more stable in CI, keep flags
+        run: npx jest --forceExit --detectOpenHandles --runInBand
         env:
-           FIRESTORE_EMULATOR_HOST: "localhost:8080" # Ensure tests use the emulator
+           FIRESTORE_EMULATOR_HOST: "localhost:8080"
 
       - name: Stop Firestore Emulator
-        if: always() # Ensure emulator stops even if tests fail
+        if: always()
         run: |
           echo "Attempting to stop Firestore emulator..."
-          PID=$(lsof -t -i:8080 || echo "") # Get PID listening on 8080
+          PID=$(lsof -t -i:8080 || echo "")
           if [ -n "$PID" ]; then
             echo "Found emulator process with PID: $PID. Killing..."
-            kill $PID
-            sleep 5 # Give it a moment to shut down
-            # Verify if killed
+            kill $PID || echo "Kill failed, process might have already exited."
+            sleep 5
             if kill -0 $PID > /dev/null 2>&1; then
               echo "Process $PID did not terminate, attempting force kill..."
               kill -9 $PID || echo "Force kill failed."
@@ -63,80 +70,37 @@ jobs:
             echo "No process found listening on port 8080."
           fi
 
+      # --- Versioning & Publishing ---
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          # This command attempts to publish packages to npm
+          publish: bun run release
+          # This command commits version bumps if publish isn't possible
+          version: bun run version:ci
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # --- Dart Publishing (Conditional) ---
+      # Only run if changesets detected a version bump for the dart package
+      # We need to check if the pubspec.yaml was modified by the version step
+
+      # TODO: Add step to check if pubspec.yaml was modified
+      # TODO: Add step to extract Dart version
+      # TODO: Add step to create/push Dart-specific tag
+      # TODO: Run Dart publish action
+
+      # --- Docs Deployment (Conditional) ---
+      # Only run if changesets detected changes (new versions published)
       - name: Build VitePress site
-        run: npm run docs:build # Or use bun run docs:build if preferred
-
-      - name: Upload VitePress build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: github-pages # Artifact name
-          path: ./docs # Directory containing VitePress build output (defined in config.mts outDir)
-  publish-npm:
-    needs: build-and-test # Run after build and test succeed
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build all packages # Build again in this job context
-        run: bun run build
-
-      - name: Set up Node.js for npm publish
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20' # Use a version compatible with your project/npm
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Publish @shtse8/fireschema-ts-client-runtime to npm
-        run: cd packages/fireschema-ts-client-runtime && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish @shtse8/fireschema-ts-admin-runtime to npm
-        run: cd packages/fireschema-ts-admin-runtime && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish @shtse8/fireschema CLI to npm
-        run: npm publish --access public # Assumes root package is the CLI
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  # Publish Dart package using the official reusable workflow (OIDC)
-  publish-dart:
-    needs: build-and-test
-    permissions:
-        id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    with:
-        working-directory: ./packages/fireschema_dart_runtime
-        # If you configure a GitHub Environment called 'pub.dev' for added protection:
-        # environment: pub.dev
-        # environment: pub.dev
-
-  deploy-docs:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # Required to push to gh-pages branch
-    steps:
-      - name: Download VitePress build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: github-pages # Match artifact name from build job
-          # No path needed, defaults to workflow run directory
+        if: steps.changesets.outputs.published == 'true'
+        run: bun run docs:build # Use bun
 
       - name: Deploy to GitHub Pages
+        if: steps.changesets.outputs.published == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: . # Deploy the downloaded artifact content from the root
-          # Optional: configure user name and email for commit
-          # user_name: 'github-actions[bot]'
-          # user_email: 'github-actions[bot]@users.noreply.github.com'
+          publish_dir: ./docs
