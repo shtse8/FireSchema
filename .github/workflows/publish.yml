@@ -46,9 +46,22 @@ jobs:
       - name: Stop Firestore Emulator
         if: always() # Ensure emulator stops even if tests fail
         run: |
-          # Find and kill the emulator process
-          # This might need adjustment based on how the process runs in CI
-          pkill -f firebase || echo "Emulator not running or already stopped."
+          echo "Attempting to stop Firestore emulator..."
+          PID=$(lsof -t -i:8080 || echo "") # Get PID listening on 8080
+          if [ -n "$PID" ]; then
+            echo "Found emulator process with PID: $PID. Killing..."
+            kill $PID
+            sleep 5 # Give it a moment to shut down
+            # Verify if killed
+            if kill -0 $PID > /dev/null 2>&1; then
+              echo "Process $PID did not terminate, attempting force kill..."
+              kill -9 $PID || echo "Force kill failed."
+            else
+              echo "Emulator process $PID terminated successfully."
+            fi
+          else
+            echo "No process found listening on port 8080."
+          fi
 
       - name: Build VitePress site
         run: npm run docs:build # Or use bun run docs:build if preferred
