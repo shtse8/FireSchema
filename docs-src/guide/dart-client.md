@@ -402,7 +402,7 @@ batch.delete(usersCollection.docRef('old-user-id'));
 
 await batch.commit();
 ```
-*(See [Advanced Usage Patterns](../advanced-usage/#transactions-and-batched-writes) for more detailed examples)*
+*(See [Advanced Usage Patterns](../advanced-usage.md#transactions-and-batched-writes) for more detailed examples)*
 
 ---
 

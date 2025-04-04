@@ -82,4 +82,4 @@ Currently, FireSchema supports generating code for:
 Future planned targets include support for a Dart Admin SDK (likely leveraging the Firestore REST API) and a C# Client SDK.
 
 Ready to simplify your Firestore workflow? Head over to the
-[Getting Started](./getting-started.md) guide!
+[Installation](./installation.md) guide!

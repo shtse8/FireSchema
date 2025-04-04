@@ -41,7 +41,7 @@ These are the official runtime packages maintained alongside FireSchema:
 
 ## Installation
 
-As mentioned in the [Getting Started](./getting-started.md) guide, you **must** install the appropriate *available* runtime library **in the project where you intend to use the generated code**, alongside the corresponding Firebase SDK. The generated code directly imports from and extends classes/mixins provided by these runtime packages.
+As mentioned in the [Installation](./installation.md) guide, you **must** install the appropriate *available* runtime library **in the project where you intend to use the generated code**, alongside the corresponding Firebase SDK. The generated code directly imports from and extends classes/mixins provided by these runtime packages.
 
 ## Key Components Explained
 
