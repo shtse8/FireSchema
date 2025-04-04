@@ -1,66 +1,38 @@
-name: Publish Packages
+name: Main CI (CLI Build & Test)
 
 on:
   push:
-    tags:
-      # Must align with the tag-pattern configured on pub.dev
-      - 'v[0-9]+.[0-9]+.[0-9]+' # Example for tag pattern 'v{{version}}' on pub.dev
+    branches:
+      - main # Trigger on pushes to main
+  pull_request: # Also trigger on PRs
 
 jobs:
-  build-and-test:
+  build-and-test-cli: # Renamed job for clarity
+    name: Build & Test CLI
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout code (with submodules)
         uses: actions/checkout@v4
+        with:
+          submodules: 'recursive' # Checkout submodules
 
       - name: Set up Bun
         uses: oven-sh/setup-bun@v1
 
-      - name: Install dependencies
+      - name: Install Root Dependencies # Install only root deps
         run: bun install --frozen-lockfile
 
-      - name: Build all packages
-        run: bun run build
+      # Build only the root package (CLI)
+      # Assuming build:root handles this
+      - name: Build CLI Package
+        run: bun run build:root
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '11'
+      # --- Testing (Optional - depends if root has tests) ---
+      # If the root package has tests that DON'T depend on emulator/runtimes:
+      # - name: Run Root Tests (if any)
+      #   run: bun run test:root # Assuming a separate test script exists
 
-      - name: Start Firestore Emulator
-        run: |
-          curl -sL https://firebase.tools | bash
-          firebase emulators:start --only firestore --project=fireschema-test-emulator &
-          sleep 10
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }} # Optional
-
-      - name: Run tests
-        # Use npx jest with flags as it seemed most stable in CI
-        run: npx jest --forceExit --detectOpenHandles --runInBand
-        env:
-           FIRESTORE_EMULATOR_HOST: "localhost:8080"
-
-      - name: Stop Firestore Emulator
-        if: always()
-        run: |
-          echo "Attempting to stop Firestore emulator..."
-          PID=$(lsof -t -i:8080 || echo "")
-          if [ -n "$PID" ]; then
-            echo "Found emulator process with PID: $PID. Killing..."
-            kill $PID || echo "Kill failed, process might have already exited."
-            sleep 5
-            if kill -0 $PID > /dev/null 2>&1; then
-              echo "Process $PID did not terminate, attempting force kill..."
-              kill -9 $PID || echo "Force kill failed."
-            else
-              echo "Emulator process $PID terminated successfully."
-            fi
-          else
-            echo "No process found listening on port 8080."
-          fi
-
+      # --- Docs Build (Keep this here) ---
       - name: Build VitePress site
         run: bun run docs:build # Use bun
 
@@ -70,53 +42,9 @@ jobs:
           name: github-pages
           path: ./docs
 
-  publish-npm:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build all packages # Build again in this job context
-        run: bun run build
-
-      - name: Set up Node.js for npm publish
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Publish @shtse8/fireschema-ts-client-runtime to npm
-        run: cd packages/fireschema-ts-client-runtime && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish @shtse8/fireschema-ts-admin-runtime to npm
-        run: cd packages/fireschema-ts-admin-runtime && npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish @shtse8/fireschema CLI to npm
-        run: npm publish --access public # Assumes root package is the CLI
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-dart:
-    needs: build-and-test
-    permissions:
-        id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
-    with:
-        working-directory: ./packages/fireschema_dart_runtime
-
+  # --- Deployment Job (Keep this here) ---
   deploy-docs:
-    needs: build-and-test
+    needs: build-and-test-cli # Depends on the CLI build job
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -131,3 +59,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
+          # Keep existing user config or remove if default is fine
+          # user_name: 'github-actions[bot]'
+          # user_email: 'github-actions[bot]@users.noreply.github.com'
+
+# Removed publish-npm and publish-dart jobs.
+# These should live in the respective runtime package repositories.
