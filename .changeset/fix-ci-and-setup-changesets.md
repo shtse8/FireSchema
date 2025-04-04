@@ -1,5 +1,4 @@
 ---
-"@shtse8/fireschema": patch
 "@shtse8/fireschema-ts-client-runtime": patch
 "@shtse8/fireschema-ts-admin-runtime": patch
 "fireschema_dart_runtime": patch
