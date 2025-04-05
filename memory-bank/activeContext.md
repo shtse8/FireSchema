@@ -1,40 +1,42 @@
-<!-- Version: 1.4 | Last Updated: 2025-04-05 | Updated By: Cline -->
-# Active Context: FireSchema (Implementing C# Client)
+<!-- Version: 1.6 | Last Updated: 2025-04-05 | Updated By: Cline -->
+# Active Context: FireSchema (Debugging C# Test Compilation)
 
-**Current Focus:** Implementing support for generating a C# client library.
+**Current Focus:** Resolving compilation errors in the C# Runtime test project (`FireSchema.CS.Runtime.Tests`) related to MSTest types not being found (CS0234, CS0246).
 
 **Recent Changes:**
 
--   **(In Progress) Implement C# Client Support:**
-    -   Created C# adapter directory structure (`src/adapters/csharp-client/`).
-    -   Updated config loader (`src/configLoader.ts`) to recognize `'csharp-client'` target.
-    -   Created placeholder C# adapter logic (`src/adapters/csharp-client/index.ts`).
-    -   Updated generator (`src/generator.ts`) to load and execute the C# adapter.
--   **(Completed) Fix GitHub Pages Deployment:**
-    -   Corrected `README.md` links and VitePress `base` path to use `/FireSchema/`.
-    -   Corrected `publish_dir` in GitHub Actions workflow.
-    -   Switched artifact upload/deployment actions to official `actions/upload-pages-artifact` and `actions/deploy-pages`.
-    -   Verified deployment is live and correct at `https://shtse8.github.io/FireSchema/`.
--   **(Previous) Improve Documentation with Diagrams:** Added Mermaid diagrams.
--   **(Previous) Verify Runtime CI Status & Fix Dart CI:** Dart CI now runs unit tests only. TS runtimes passed on last tag.
+-   **(Completed) Implement C# Client Support (Base):** Adapter, templates, runtime submodule, runtime base classes, and initial test project setup completed and committed.
+-   **(Attempted) Run C# Unit Tests:** Executed `dotnet test` for the C# runtime library.
+-   **(Failed) C# Test Compilation:** Build failed repeatedly due to errors indicating MSTest types (`TestClass`, `TestMethod`, `Microsoft.VisualStudio...`) could not be found, despite:
+    -   Correct NuGet package references (`Microsoft.NET.Test.Sdk`, `MSTest.TestAdapter`, `MSTest.TestFramework`).
+    -   Correct `using` statements in test files.
+    -   Correct project references in test `.csproj`.
+    -   Correct Solution file (`.sln`) configuration.
+    -   Upgrading Target Frameworks to `net6.0`.
+    -   Upgrading MSTest NuGet packages.
+    -   Disabling ImplicitUsings in test project.
+    -   Explicitly marking test project with `<IsTestProject>true`.
+    -   Clearing NuGet cache and restoring.
+    -   Confirming .NET SDK environment works with a simple, new MSTest project.
+-   **(Previous) Fix GitHub Pages Deployment.**
+-   **(Previous) Improve Documentation with Diagrams.**
+-   **(Previous) Verify Runtime CI Status & Fix Dart CI.**
 -   **(Previous) Repository Split & Submodule Setup.**
 -   **(Previous) Documentation Restructure & Content.**
 -   **(Previous) Executor + Adapter Refactor.**
 
 **Next Steps:**
 
-1.  **(High Priority) Implement C# Client Adapter Logic & Templates:**
-    -   Define EJS templates for C# models, collection references, query builders, update builders within `src/adapters/csharp-client/templates/`.
-    -   Write the core generation logic in `src/adapters/csharp-client/index.ts` to use the templates and schema information.
-2.  **(High Priority) Create C# Client Runtime Library:**
-    -   Set up a new Git repository (`fireschema-csharp-runtime`).
-    -   Implement base classes and helpers using `Google.Cloud.Firestore`.
-    -   Configure project for NuGet packaging.
-    -   Add the new repository as a submodule under `packages/`.
-3.  **(Medium Priority) Add C# Client Tests:**
-    -   Extend generator snapshot tests (`src/__tests__/generator.test.ts`) to cover C# output.
-    -   Create unit and integration tests within the `fireschema-csharp-runtime` repository.
-4.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm workflow pass on next tag.
-5.  **(Future) Implement More Adapters:** `dart-admin-rest`.
-6.  **(Future) Generator Enhancements:** Validation, error reporting, plugins.
-7.  **(Future) Documentation:** Add C# guide, refine content, add examples, Contributing guide.
+1.  **(Highest Priority) Investigate & Fix C# Test Compilation Errors:**
+    -   Perform deeper research on potential causes for MSTest types not being found in this specific project setup (e.g., conflicts with other dependencies, build target issues, SDK component issues).
+    -   Consider alternative testing frameworks (like NUnit or xUnit) if MSTest issues persist.
+    -   Try building the test project directly (`dotnet build`) instead of `dotnet test` to isolate build errors.
+2.  **(Blocked) Test C# Generation & Runtime:** (Depends on fixing compilation errors)
+    -   Add C# target to generator snapshot tests.
+    -   Write unit and integration tests for C# runtime.
+3.  **(Pending) Refine C# Implementation.**
+4.  **(Pending) Setup C# Runtime CI/CD.**
+5.  **(Future) Verify `fireschema_dart_runtime` CI.**
+6.  **(Future) Implement More Adapters:** `dart-admin-rest`.
+7.  **(Future) Generator Enhancements.**
+8.  **(Future) Documentation:** Add C# guide.
