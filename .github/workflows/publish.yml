@@ -64,6 +64,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages # Explicitly specify artifact name
         # artifact_name is implicitly 'github-pages' if not specified and configure-pages is used
 
 # Removed publish-npm and publish-dart jobs.
