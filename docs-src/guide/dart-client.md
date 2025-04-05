@@ -331,30 +331,45 @@ await usersCollection.update(userId)
   .commit();
 ```
 
-### Raw Updates (`updateRaw`)
+### Using Raw FieldValue Operations
 
-Use for nested fields (dot notation) and `FieldValue` operations.
+For nested fields or operations not covered by generated helpers, you can use the standard `cloud_firestore` `update` method on the raw `DocumentReference` with a `Map<String, dynamic>` containing `FieldValue` operations.
 
 ```dart
-await usersCollection.update(userId)
-  .updateRaw({
-    'settings.theme': 'nord',
-    'profile.visits': FieldValue.increment(1),
-    'roles': FieldValue.arrayUnion(['tester']),
-    'tempScore': FieldValue.delete(),
-  })
-  .commit();
+// Get the raw DocumentReference (or use the typed one)
+final userDocRef = usersCollection.docRef(userId);
+
+await userDocRef.update({
+  'settings.theme': 'nord',
+  'profile.visits': FieldValue.increment(1), // Use imported FieldValue
+  'roles': FieldValue.arrayUnion(['tester']),   // Use imported FieldValue
+  'tempScore': FieldValue.delete(),             // Use imported FieldValue
+});
+
+// Alternatively, use the updateData method from BaseCollectionRef
+// (Note: This bypasses the UpdateBuilder)
+// await usersCollection.updateData(userId, {
+//   'settings.theme': 'nord',
+//   'profile.visits': FieldValue.increment(1),
+//   'roles': FieldValue.arrayUnion(['tester']),
+//   'tempScore': FieldValue.delete(),
+// });
+
 ```
 
 ### Combining Updates
 
-Chain generated methods and `updateRaw` before `commit()`.
+You can combine generated helpers with raw updates by committing the builder first, then performing the raw update, or vice-versa if appropriate for your logic. However, they cannot be chained within the same `UpdateBuilder` instance.
 
 ```dart
+// Example: Use builder for some fields, then raw update for others
 await usersCollection.update(userId)
   .setIsActive(false)
-  .updateRaw({ 'tags': FieldValue.arrayUnion(['dart-update']) })
-  .commit();
+  .commit(); // Commit builder changes first
+
+await usersCollection.docRef(userId).update({ // Perform raw update separately
+  'tags': FieldValue.arrayUnion(['dart-update'])
+});
 ```
 
 ---

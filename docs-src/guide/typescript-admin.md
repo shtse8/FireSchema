@@ -297,30 +297,35 @@ await usersCollection.update(userId)
   .commit();
 ```
 
-### Raw Updates (`updateRaw`)
+### Using Raw FieldValue Operations
 
-Use for nested fields (dot notation) and `FieldValue` operations.
+For nested fields or operations not covered by generated helpers, you can use the standard Admin SDK `update` method on the raw `DocumentReference` with `FieldValue` operations directly.
 
 ```typescript
-await usersCollection.update(userId)
-  .updateRaw({
-    'settings.theme': 'monokai',
-    'stats.adminLogins': FieldValue.increment(1),
-    roles: FieldValue.arrayUnion('moderator'),
-    legacyId: FieldValue.delete()
-  })
-  .commit();
+// Get the raw DocumentReference
+const userDocRef = usersCollection.docRef(userId);
+
+await userDocRef.update({
+  'settings.theme': 'monokai',
+  'stats.adminLogins': FieldValue.increment(1), // Use imported FieldValue
+  roles: FieldValue.arrayUnion('moderator'),   // Use imported FieldValue
+  legacyId: FieldValue.delete()                // Use imported FieldValue
+});
 ```
 
 ### Combining Updates
 
-Chain generated methods and `updateRaw` before `commit()`.
+You can combine generated helpers with raw updates by committing the builder first, then performing the raw update, or vice-versa if appropriate for your logic. However, they cannot be chained within the same `UpdateBuilder` instance.
 
 ```typescript
+// Example: Use builder for some fields, then raw update for others
 await usersCollection.update(userId)
   .setIsActive(true)
-  .updateRaw({ roles: FieldValue.arrayUnion('verified-admin') })
-  .commit();
+  .commit(); // Commit builder changes first
+
+await usersCollection.docRef(userId).update({ // Perform raw update separately
+  roles: FieldValue.arrayUnion('verified-admin')
+});
 ```
 
 ---

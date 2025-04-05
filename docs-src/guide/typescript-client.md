@@ -348,31 +348,38 @@ await usersCollection.update(userId)
   .commit();
 ```
 
-### Raw Updates (`updateRaw`)
+### Using Raw FieldValue Operations
 
-Use for nested fields (dot notation) and `FieldValue` operations.
+For nested fields or operations not covered by generated helpers, you can use the standard Firebase `updateDoc` function with the raw `DocumentReference` and `FieldValue` functions directly.
 
 ```typescript
-await usersCollection.update(userId)
-  .updateRaw({
-    'settings.theme': 'dark',                 // Nested field
-    'profile.visits': increment(1),         // Nested increment
-    tags: arrayUnion('atomic', 'update'),   // Add array elements
-    oldTags: arrayRemove('legacy'),         // Remove array elements
-    tempData: deleteField()                 // Delete field
-  })
-  .commit();
+import { updateDoc, doc } from 'firebase/firestore'; // Import updateDoc and doc
+
+// Get the raw DocumentReference
+const userDocRef = usersCollection.docRef(userId);
+
+await updateDoc(userDocRef, {
+  'settings.theme': 'dark',                 // Nested field
+  'profile.visits': increment(1),         // Nested increment using imported function
+  tags: arrayUnion('atomic', 'update'),   // Add array elements using imported function
+  oldTags: arrayRemove('legacy'),         // Remove array elements using imported function
+  tempData: deleteField()                 // Delete field using imported function
+});
 ```
 
 ### Combining Updates
 
-Chain generated methods and `updateRaw` before `commit()`.
+You can combine generated helpers with raw updates by committing the builder first, then performing the raw update, or vice-versa if appropriate for your logic. However, they cannot be chained within the same `UpdateBuilder` instance.
 
 ```typescript
+// Example: Use builder for some fields, then raw update for others
 await usersCollection.update(userId)
   .setDisplayName('Updated User')
-  .updateRaw({ tags: arrayUnion('combined') })
-  .commit();
+  .commit(); // Commit builder changes first
+
+await updateDoc(usersCollection.docRef(userId), {
+  tags: arrayUnion('combined') // Perform raw update separately
+});
 ```
 
 ---
