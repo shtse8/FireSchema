@@ -7,3 +7,6 @@
 [submodule "packages/fireschema-ts-client-runtime"]
 	path = packages/fireschema-ts-client-runtime
 	url = https://github.com/shtse8/fireschema-ts-client-runtime.git
+[submodule "packages/fireschema-csharp-runtime"]
+	path = packages/fireschema-csharp-runtime
+	url = https://github.com/shtse8/fireschema-csharp-runtime.git
