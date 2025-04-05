@@ -8,7 +8,7 @@ FireSchema is a command-line tool that generates strongly-typed Object Document 
 
 Stop writing repetitive boilerplate and prevent runtime errors caused by typos or incorrect data structures. Define your schema once and let FireSchema generate type-safe, easy-to-use code for interacting with Firestore.
 
-**➡️ [View the Full Documentation Site for Complete Details](https://shtse8.github.io/firestore-odm/)**
+**➡️ [View the Full Documentation Site for Complete Details](https://shtse8.github.io/FireSchema/)**
 
 ## Key Features
 
@@ -57,7 +57,7 @@ Here's a snapshot of current support and future plans:
     ```
 2.  **Install Runtimes & SDKs:** Install the required runtime(s) (`@shtse8/fireschema-ts-client-runtime`, `@shtse8/fireschema-ts-admin-runtime`, `fireschema_dart_runtime`) **AND** the corresponding Firebase SDK (`firebase`, `firebase-admin`, `cloud_firestore`) in your target project(s).
 
-**➡️ See the [Installation Guide](https://shtse8.github.io/firestore-odm/guide/installation.html) for full details.**
+**➡️ See the [Installation Guide](https://shtse8.github.io/FireSchema/guide/installation.html) for full details.**
 
 ## Basic Usage Examples
 
@@ -99,7 +99,7 @@ async function clientExample() {
   console.log('Updated:', newUserRef.id);
 }
 ```
-**➡️ See the full [TypeScript Client Guide](https://shtse8.github.io/firestore-odm/guide/typescript-client.html)**
+**➡️ See the full [TypeScript Client Guide](https://shtse8.github.io/FireSchema/guide/typescript-client.html)**
 
 ### TypeScript Admin (`firebase-admin`)
 
@@ -138,7 +138,7 @@ async function adminExample() {
   console.log('Admin Updated:', newUserRef.id);
 }
 ```
-**➡️ See the full [TypeScript Admin Guide](https://shtse8.github.io/firestore-odm/guide/typescript-admin.html)**
+**➡️ See the full [TypeScript Admin Guide](https://shtse8.github.io/FireSchema/guide/typescript-admin.html)**
 
 ### Dart Client (`cloud_firestore`)
 
@@ -177,11 +177,11 @@ Future<void> dartExample() async {
 }
 
 ```
-**➡️ See the full [Dart Client Guide](https://shtse8.github.io/firestore-odm/guide/dart-client.html)**
+**➡️ See the full [Dart Client Guide](https://shtse8.github.io/FireSchema/guide/dart-client.html)**
 
 ## Full Documentation
 
-For detailed information on schema definition, configuration options, advanced usage (subcollections, transactions, streaming, testing), and the API for each runtime, please visit the **[Full Documentation Site](https://shtse8.github.io/firestore-odm/)**.
+For detailed information on schema definition, configuration options, advanced usage (subcollections, transactions, streaming, testing), and the API for each runtime, please visit the **[Full Documentation Site](https://shtse8.github.io/FireSchema/)**.
 
 ## Contributing
 
