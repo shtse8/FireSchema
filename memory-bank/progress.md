@@ -1,5 +1,5 @@
-<!-- Version: 1.0 | Last Updated: 2025-04-05 | Updated By: Cline -->
-# Progress: FireSchema (Documentation Diagrams Added)
+<!-- Version: 1.1 | Last Updated: 2025-04-05 | Updated By: Cline -->
+# Progress: FireSchema (GitHub Pages Fix)
 
 **What Works:**
 
@@ -29,23 +29,28 @@
     -   VitePress site is set up (`docs-src/`) with runtime-centric navigation.
     -   Guide pages for each runtime cover setup, CRUD, querying, etc. (Reviewed and minor fixes applied).
     -   Roadmap and README updated.
-    -   **Mermaid diagrams added** to `introduction.md`, `runtime-libraries.md`, and `schema-definition.md` for visualization.
+    -   Mermaid diagrams added to `introduction.md`, `runtime-libraries.md`, and `schema-definition.md` for visualization.
+    -   **GitHub Pages Deployment Fixes:**
+        -   Corrected documentation links in `README.md` (was pointing to `/FireSchema/`, now `/firestore-odm/`).
+        -   Corrected `base` path in VitePress config (`docs-src/.vitepress/config.mts`) to `/firestore-odm/`.
 
 **What's Left:**
 
-1.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm the workflow passes (running only unit tests) when the next version tag is pushed.
-2.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
-3.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
-4.  **(Future) Documentation Content:** Refine existing content, add more examples, add Contributing guide.
+1.  **(Future) Verify GitHub Pages Deployment:** After the next CI run, confirm `https://shtse8.github.io/firestore-odm/` is accessible and working correctly.
+2.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm the workflow passes (running only unit tests) when the next version tag is pushed.
+3.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
+4.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
+5.  **(Future) Documentation Content:** Refine existing content, add more examples, add Contributing guide.
 
 **Current Status:**
 
+**GitHub Pages Fixed:** Corrected broken links in `README.md` and the `base` path in VitePress config. Changes are ready to be committed and pushed to trigger redeployment.
 **Documentation Improved:** Core documentation reviewed, minor fixes applied, and Mermaid diagrams added to key guides.
 **Runtime CI/CD Stable (with caveats):**
 -   Dart runtime CI is configured to run only unit tests on tag pushes. Integration tests are skipped due to persistent CI environment issues.
 -   TS client and admin runtime CIs are passing on their latest tags (v0.2.2).
 
-**Next focus:** Ready for the next task (e.g., new adapter, generator enhancement, or further documentation).
+**Next focus:** Commit and push fixes, then verify GitHub Pages deployment. After that, ready for the next task.
 
 **Known Issues:**
 
