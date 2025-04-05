@@ -57,17 +57,19 @@ export async function generate(
   }
 
   // --- Load Templates ---
-  let modelTemplate: string, collectionRefTemplate: string, queryBuilderTemplate: string;
+  let modelTemplate: string, collectionRefTemplate: string, queryBuilderTemplate: string, updateBuilderTemplate: string;
   try {
     const modelTemplatePath = path.join(__dirname, 'templates', 'model.ejs');
     const collectionRefTemplatePath = path.join(__dirname, 'templates', 'collectionRef.ejs');
     const queryBuilderTemplatePath = path.join(__dirname, 'templates', 'queryBuilder.ejs');
-    [modelTemplate, collectionRefTemplate, queryBuilderTemplate] = await Promise.all([
+    const updateBuilderTemplatePath = path.join(__dirname, 'templates', 'updateBuilder.ejs'); // Load new template
+    [modelTemplate, collectionRefTemplate, queryBuilderTemplate, updateBuilderTemplate] = await Promise.all([
         fs.readFile(modelTemplatePath, 'utf-8'),
         fs.readFile(collectionRefTemplatePath, 'utf-8'),
-        fs.readFile(queryBuilderTemplatePath, 'utf-8')
+        fs.readFile(queryBuilderTemplatePath, 'utf-8'),
+        fs.readFile(updateBuilderTemplatePath, 'utf-8') // Read new template
     ]);
-    console.log(`Loaded templates: model, collectionRef, queryBuilder`);
+    console.log(`Loaded templates: model, collectionRef, queryBuilder, updateBuilder`);
   } catch (error: any) {
     console.error('Error loading C# templates:', error);
     throw error;
@@ -175,10 +177,39 @@ export async function generate(
         throw error; // Re-throw to stop generation for this query builder
     }
 
+    // --- Generate UpdateBuilder File ---
+    const updateBuilderName = `${collectionPascalName}UpdateBuilder`;
+    const updateBuilderFileName = `${updateBuilderName}.cs`;
+    const updateBuilderFilePath = path.join(outputConfig.outputDir, updateBuilderFileName);
+
+    const updateBuilderData = {
+        namespace: targetNamespace,
+        collectionName: collectionName,
+        modelName: modelName,
+        properties: fields, // Pass fields for generating typed Set methods etc.
+    };
+
+    console.log(`Rendering updateBuilder for ${collectionName} -> ${updateBuilderFileName}`);
+    let generatedUpdateBuilderCode: string;
+    try {
+        generatedUpdateBuilderCode = ejs.render(updateBuilderTemplate, updateBuilderData);
+    } catch (error: any) {
+        console.error(`Error rendering EJS template for ${updateBuilderName}:`, error);
+        throw new Error(`EJS rendering failed for ${updateBuilderName}: ${error.message}`);
+    }
+
+    try {
+        await fs.writeFile(updateBuilderFilePath, generatedUpdateBuilderCode, 'utf-8');
+        console.log(`Successfully wrote updateBuilder file: ${updateBuilderFilePath}`);
+    } catch (error: any) {
+        console.error(`Error writing updateBuilder file ${updateBuilderFilePath}:`, error);
+        throw error; // Re-throw to stop generation for this update builder
+    }
+
 
   } // End loop through collections
 
-  // --- TODO: Add generation for other file types (update builders, etc.) ---
+  // --- TODO: Add generation for other file types if needed ---
 
-  console.log('C# client code generation (models, collectionRefs, queryBuilders) complete.');
+  console.log('C# client code generation (models, collectionRefs, queryBuilders, updateBuilders) complete.');
 }
