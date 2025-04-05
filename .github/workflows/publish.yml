@@ -36,11 +36,15 @@ jobs:
       - name: Build VitePress site
         run: bun run docs:build # Use bun
 
+      - name: Create tarball artifact (dereference symlinks)
+        run: tar -czhf artifact.tar.gz -C docs . # Create tar.gz from ./docs content, dereferencing symlinks
+
       - name: Upload VitePress build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
-          path: ./docs
+          name: github-pages # actions/deploy-pages expects this name by default
+          path: artifact.tar.gz # Upload the tarball
+          retention-days: 1 # Optional: Keep artifact for 1 day
 
   # --- Deployment Job (Keep this here) ---
   deploy-docs:
