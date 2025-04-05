@@ -36,15 +36,12 @@ jobs:
       - name: Build VitePress site
         run: bun run docs:build # Use bun
 
-      - name: Create tarball artifact (dereference symlinks)
-        run: tar -czhf artifact.tar.gz -C docs . # Create tar.gz from ./docs content, dereferencing symlinks
-
-      - name: Upload VitePress build artifact
-        uses: actions/upload-artifact@v4
+      # No tarball needed, upload directory directly using the dedicated Pages artifact action
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: github-pages # actions/deploy-pages expects this name by default
-          path: artifact.tar.gz # Upload the tarball
-          retention-days: 1 # Optional: Keep artifact for 1 day
+          # Upload entire directory
+          path: './docs'
 
   # --- Deployment Job (Keep this here) ---
   deploy-docs:
@@ -64,9 +61,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages # Explicitly specify artifact name
-        # artifact_name is implicitly 'github-pages' if not specified and configure-pages is used
+        # No 'with' needed here, deploy-pages automatically uses the artifact uploaded by upload-pages-artifact
 
 # Removed publish-npm and publish-dart jobs.
 # These should live in the respective runtime package repositories.
