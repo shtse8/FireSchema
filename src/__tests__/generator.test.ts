@@ -1,5 +1,5 @@
 // src/__tests__/generator.test.ts
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'; // Revert to jest globals
 import * as fs from 'fs'; // Use namespace import
 import * as path from 'path'; // Use namespace import
 import { execSync } from 'child_process';
@@ -17,21 +17,28 @@ const testConfig = {
   outputs: [
     // TypeScript Client Target
     {
-      target: 'typescript-client', // Use target string
+      target: 'typescript-client',
       outputDir: './ts-generated-client',
       package: { name: '@test/generated-ts-client', version: '1.0.0' },
-      options: { dateTimeType: 'Timestamp' }, // Keep relevant options
+      options: { dateTimeType: 'Timestamp' },
     },
     // TypeScript Admin Target
     {
-      target: 'typescript-admin', // Use target string
+      target: 'typescript-admin',
       outputDir: './ts-generated-admin',
       package: { name: '@test/generated-ts-admin', version: '1.0.0' },
-      options: { dateTimeType: 'Timestamp' }, // Keep relevant options
+      options: { dateTimeType: 'Timestamp' },
+    },
+    // C# Client Target
+    {
+        target: 'csharp-client',
+        outputDir: './cs-generated-client',
+        options: { namespace: 'Test.Generated.CS' }, // Example namespace
+        // No package info needed for C# project generation in this test
     },
     // Dart Client Target - Temporarily Disabled
     // {
-    //   target: 'dart-client', // Use target string
+    //   target: 'dart-client',
     //   outputDir: './dart-generated',
     //   package: { name: 'test_generated_dart', version: '1.0.0', description: 'Test Dart generated code', environment: { sdk: '>=3.0.0 <4.0.0' } },
     // },
@@ -133,6 +140,7 @@ const invalidSchema_DefaultValueType = {
 // --- Test Suite ---
 describe('FireSchema Generator', () => {
   beforeAll(() => {
+    // Restore beforeAll to create test directory and files
     if (fs.existsSync(testOutputDir)) fs.rmSync(testOutputDir, { recursive: true, force: true });
     fs.mkdirSync(testOutputDir, { recursive: true });
     fs.writeFileSync(testSchemaPath, JSON.stringify(testSchema, null, 2));
@@ -151,6 +159,7 @@ describe('FireSchema Generator', () => {
   });
 
   // Simplified test - run generator once with the combined config
+  // Restore the original first test that runs the generator
   it('should run the generator CLI successfully', () => {
     try {
       console.log(`Running generator with config: ${testConfigPath}`);
@@ -160,12 +169,14 @@ describe('FireSchema Generator', () => {
       throw error;
     }
     // Check existence of output directories based on the combined config
-    const generatedClientDir = path.resolve(testOutputDir, testConfig.outputs[0].outputDir); // ts-client
-    const generatedAdminDir = path.resolve(testOutputDir, testConfig.outputs[1].outputDir); // ts-admin
-    // const generatedDartDir = path.resolve(testOutputDir, testConfig.outputs[2].outputDir); // Dart dir check removed
+    const generatedTsClientDir = path.resolve(testOutputDir, testConfig.outputs[0].outputDir); // ts-client
+    const generatedTsAdminDir = path.resolve(testOutputDir, testConfig.outputs[1].outputDir); // ts-admin
+    const generatedCsClientDir = path.resolve(testOutputDir, testConfig.outputs[2].outputDir); // cs-client
+    // const generatedDartDir = path.resolve(testOutputDir, testConfig.outputs[3].outputDir); // Dart dir check removed
 
-    expect(fs.existsSync(generatedClientDir)).toBe(true);
-    expect(fs.existsSync(generatedAdminDir)).toBe(true);
+    expect(fs.existsSync(generatedTsClientDir)).toBe(true);
+    expect(fs.existsSync(generatedTsAdminDir)).toBe(true);
+    expect(fs.existsSync(generatedCsClientDir)).toBe(true); // Check C# dir
     // expect(fs.existsSync(generatedDartDir)).toBe(true); // Dart dir check removed
   });
 
@@ -195,9 +206,33 @@ describe('FireSchema Generator', () => {
       expect(fileContent).toMatchSnapshot(relPath.replace(/[{}]/g, '_') + '-admin');
     });
   });
+// Dart test skipped
+// it('should generate Dart files matching snapshots', () => { ... });
 
-  // Dart test skipped
-  // it('should generate Dart files matching snapshots', () => { ... });
+// C# Snapshot Test
+const csExpectedFiles = [
+    'ItemsData.cs', 'ItemsCollectionRef.cs', 'ItemsQueryBuilder.cs', 'ItemsUpdateBuilder.cs',
+    // 'TagsData.cs', 'TagsCollectionRef.cs', 'TagsQueryBuilder.cs', 'TagsUpdateBuilder.cs', // TODO: Add back when subcollection generation is implemented for C#
+];
+
+it('should generate C# client files matching snapshots', () => { // Keep test sync for now
+  const generatedBaseDir = path.resolve(testOutputDir, testConfig.outputs[2].outputDir); // Index 2 = cs-client
+
+  // Keep the read-first logic as it might help with timing issues
+  csExpectedFiles.forEach((fileName) => {
+    const filePath = path.join(generatedBaseDir, fileName);
+    // Try reading first, let it throw if file doesn't exist
+    let fileContent = '';
+    try {
+        fileContent = fs.readFileSync(filePath, 'utf-8');
+    } catch (e: any) {
+        // Throw a more informative error if reading fails (likely due to non-existence)
+        throw new Error(`Failed to read expected file: ${filePath}. Error: ${e.message}`);
+    }
+    // If reading succeeded, the file exists. Now compare snapshot.
+    expect(fileContent).toMatchSnapshot(fileName + '-csharp');
+  });
+});
 
   // --- Validation Failure Tests ---
   const validationTestCases = [

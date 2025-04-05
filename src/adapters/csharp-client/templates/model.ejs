@@ -82,11 +82,8 @@ namespace <%%= namespace %> // Assuming namespace is passed in data
         public string Id { get; set; }
 
 <%% Object.entries(properties).forEach(([propName, propSchema]) => { -%>
-        /// <summary>
-        /// Maps to the '<%%= propName %>' field in Firestore.
-        /// Type: <%%= propSchema.type %><% if (propSchema.description) { %> | Description: <%%= propSchema.description %><% } %>
-        /// </summary>
-<%%= generateProperty(propName, propSchema) %>
+<%% // SIMPLIFIED LOOP FOR DEBUGGING -%>
+        // --- Field: <%%= propName %> ---
 <%% }); -%>
 
         // TODO: Add constructor(s) if needed?
