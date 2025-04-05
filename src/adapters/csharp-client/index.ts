@@ -38,8 +38,9 @@ function singularize(name: string): string {
  * @param globalConfig The global configuration object (optional).
  */
 export async function generate(
-  schema: ParsedFirestoreSchema,
+  // Correct parameter order to match the call in generator.ts
   outputConfig: OutputTarget,
+  schema: ParsedFirestoreSchema,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   globalConfig?: any, // Keep signature consistent, even if not used initially
 ): Promise<void> {

@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "../dist", // Output relative to the root
     "rootDir": ".", // Root is the src directory itself
-    "composite": true // Required for project references
+    "composite": true, // Required for project references
+    "types": ["node"] // Revert: Keep only node types for tsc compatibility
     // No need for declaration/map/sourceMap here if base has them
   },
   "include": ["**/*", "**/*.json"], // Include all files within src, including JSON
