@@ -48,6 +48,10 @@ export async function generate(config: FirestoreODMConfig, schema: ParsedFiresto
           adapterPath = './adapters/dart-client';
           adapter = await import(adapterPath);
           break;
+        case 'csharp-client':
+          adapterPath = './adapters/csharp-client';
+          adapter = await import(adapterPath);
+          break;
         // Add cases for future targets here
         // case 'dart-server-rest':
         //   adapterPath = './adapters/dart-server-rest'; // Example

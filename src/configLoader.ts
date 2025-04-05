@@ -46,7 +46,7 @@ export function loadConfig(configPath: string): FirestoreODMConfig {
   const resolvedSchemaPath = path.resolve(configDir, parsedConfig.schema);
 
   // Define known targets (can be expanded)
-  const knownTargets = ['typescript-client', 'typescript-admin', 'dart-client'];
+  const knownTargets = ['typescript-client', 'typescript-admin', 'dart-client', 'csharp-client'];
 
   const resolvedOutputs = parsedConfig.outputs.map((output: any): OutputTarget => { // Use any initially for validation
     // Validate target property
