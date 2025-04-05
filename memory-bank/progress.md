@@ -1,4 +1,5 @@
-# Progress: FireSchema (Runtime CI/CD Status Verified)
+<!-- Version: 1.0 | Last Updated: 2025-04-05 | Updated By: Cline -->
+# Progress: FireSchema (Documentation Diagrams Added)
 
 **What Works:**
 
@@ -21,28 +22,30 @@
 -   **Publishing & CI/CD:**
     -   Main repository's GitHub Actions workflow builds the CLI, checks out submodules, builds docs, and deploys docs. It **does not** handle package publishing.
     -   **`fireschema_dart_runtime` CI/CD:**
-        -   Workflow (`packages/fireschema_dart_runtime/.github/workflows/publish.yml`) is configured to trigger **only on version tags (`v*.*.*`)**.
+        -   Workflow (`packages/fireschema_dart_runtime/.github/workflows/publish.yml`) is configured to trigger **only on version tags (`v*.*.*`)**.\
         -   Workflow now runs **only unit tests** (`flutter test ./test/unit`) to avoid persistent `PlatformException` errors with integration tests in CI.
     -   **TS Runtime CI/CD:** Workflows for both `fireschema-ts-client-runtime` and `fireschema-ts-admin-runtime` **passed successfully** on their latest tag pushes (v0.2.2).
 -   **Documentation:**
     -   VitePress site is set up (`docs-src/`) with runtime-centric navigation.
-    -   Guide pages for each runtime cover setup, CRUD, querying, etc.
+    -   Guide pages for each runtime cover setup, CRUD, querying, etc. (Reviewed and minor fixes applied).
     -   Roadmap and README updated.
+    -   **Mermaid diagrams added** to `introduction.md`, `runtime-libraries.md`, and `schema-definition.md` for visualization.
 
 **What's Left:**
 
 1.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm the workflow passes (running only unit tests) when the next version tag is pushed.
 2.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
 3.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
-4.  **(Future) Documentation Content:** Refine existing content, add more examples.
+4.  **(Future) Documentation Content:** Refine existing content, add more examples, add Contributing guide.
 
 **Current Status:**
 
+**Documentation Improved:** Core documentation reviewed, minor fixes applied, and Mermaid diagrams added to key guides.
 **Runtime CI/CD Stable (with caveats):**
 -   Dart runtime CI is configured to run only unit tests on tag pushes. Integration tests are skipped due to persistent CI environment issues.
 -   TS client and admin runtime CIs are passing on their latest tags (v0.2.2).
 
-**Next focus:** No immediate CI/CD issues remain for the runtime packages based on current configurations. Focus can shift to future tasks.
+**Next focus:** Ready for the next task (e.g., new adapter, generator enhancement, or further documentation).
 
 **Known Issues:**
 

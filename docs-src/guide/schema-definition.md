@@ -33,6 +33,40 @@ following root structure:
 - **`collections`**: An object where each key represents the ID of a top-level
   collection in your Firestore database.
 
+
+### Schema Structure Visualization
+
+```mermaid
+graph TD
+    Root["firestore.schema.json"] --> Collections["collections: { ... }"];
+    Collections --> CollectionA["collectionIdA: { ... }"];
+    Collections --> CollectionB["collectionIdB: { ... }"];
+
+    CollectionA --> FieldsA["fields: { ... }"];
+    CollectionA --> SubcollectionsA["subcollections: { ... } (Optional)"];
+
+    FieldsA --> FieldA1["field1: { type, description, ... }"];
+    FieldsA --> FieldA2["field2: { type, properties: {...} } (Object)"];
+    FieldsA --> FieldA3["field3: { type: 'array', items: {...} } (Array)"];
+
+    SubcollectionsA --> SubCollectionA1["subCollectionId1: { ... }"];
+    SubCollectionA1 --> FieldsA1_1["fields: { ... }"];
+    SubCollectionA1 --> SubcollectionsA1_1["subcollections: { ... } (Optional)"];
+
+    style Root fill:#f9f,stroke:#333
+    style Collections fill:#ccf,stroke:#333
+    style CollectionA fill:#ccf,stroke:#333
+    style CollectionB fill:#ccf,stroke:#333
+    style FieldsA fill:#cfc,stroke:#333
+    style SubcollectionsA fill:#cfc,stroke:#333
+    style FieldA1 fill:#ffc,stroke:#333
+    style FieldA2 fill:#ffc,stroke:#333
+    style FieldA3 fill:#ffc,stroke:#333
+    style SubCollectionA1 fill:#ccf,stroke:#333
+    style FieldsA1_1 fill:#cfc,stroke:#333
+    style SubcollectionsA1_1 fill:#cfc,stroke:#333
+```
+
 ## Collection Definition
 
 Each object within the root `collections` object defines the structure of

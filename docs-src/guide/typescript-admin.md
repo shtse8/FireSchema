@@ -367,7 +367,7 @@ batch.delete(usersCollection.docRef('old-user-id'));
 
 await batch.commit();
 ```
-*(See [Advanced Usage Patterns](../advanced-usage.md#transactions-and-batched-writes) for more detailed examples)*
+*(Refer to the official Firebase Admin SDK documentation for more complex transaction/batch patterns)*
 
 ---
 

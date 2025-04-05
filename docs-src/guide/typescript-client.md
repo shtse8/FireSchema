@@ -126,7 +126,7 @@ async function createOrReplaceUser(userId: string, data: UserData) {
 }
 
 const bobData: UserData = {
-  id: 'bob-123', // ID is part of type, not stored
+  id: 'bob-123', // ID is included in the UserData type after fetching, but not stored in the Firestore document itself.
   displayName: 'Bob',
   email: 'bob@example.com',
   isActive: true,
@@ -396,7 +396,7 @@ await runTransaction(firestore, async (transaction: Transaction) => {
   if (!userSnap.exists()) throw new Error("User not found");
   const userData = userSnap.data(); // Typed data
   // ... perform logic based on userData ...
-  transaction.update(userRef, { points: FieldValue.increment(10) }); // Write
+  transaction.update(userRef, { points: increment(10) }); // Write (using imported increment)
 });
 ```
 
@@ -415,7 +415,7 @@ batch.delete(usersCollection.docRef('old-user-id'));
 
 await batch.commit();
 ```
-*(See [Advanced Usage Patterns](../advanced-usage.md#transactions-and-batched-writes) for more detailed examples)*
+*(Refer to the official Firebase documentation for more complex transaction/batch patterns)*
 
 ---
 

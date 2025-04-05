@@ -8,6 +8,46 @@ FireSchema generates code that relies on small, dedicated runtime libraries for 
 -   **Centralize Core Logic:** Allows for improvements, bug fixes, and new features to be implemented in the runtime packages and benefit all users upon updating, without needing to regenerate code (unless the generation templates themselves change).
 -   **Encapsulate SDK Differences:** Provides a mostly consistent API layer over the underlying Firebase Client/Admin SDKs, simplifying the generated code and the developer experience. For example, the `getData()` method on the query builder works similarly across platforms, even though the underlying SDK calls might differ.
 
+
+### Component Relationships
+
+```mermaid
+graph LR
+    subgraph FireSchema_Tool [FireSchema CLI]
+        style FireSchema_Tool fill:#f9f,stroke:#333
+        Generator[Generator (Adapters + Templates)]
+    end
+
+    subgraph User_Project [User Project]
+        style User_Project fill:#ccf,stroke:#333
+        GeneratedCode[Generated ODM Code<br>(e.g., UsersCollection.ts)]
+        UserAppCode[User Application Code]
+    end
+
+    subgraph Runtime_Package [Runtime Package]
+         style Runtime_Package fill:#cfc,stroke:#333
+         RuntimeLib[Runtime Library<br>(e.g., @shtse8/fireschema-ts-client-runtime)]
+         BaseClasses[Base Classes<br>(e.g., ClientBaseCollectionRef)]
+         Helpers[Helpers & Converters]
+    end
+
+    subgraph Firebase_SDK [Firebase SDK]
+        style Firebase_SDK fill:#ffc,stroke:#333
+        SDK[Firebase SDK<br>(e.g., `firebase` or `firebase-admin`)]
+    end
+
+    Generator -- Generates --> GeneratedCode;
+    UserAppCode -- Uses --> GeneratedCode;
+    GeneratedCode -- Extends/Uses --> BaseClasses;
+    GeneratedCode -- Imports --> RuntimeLib;
+    RuntimeLib -- Contains --> BaseClasses;
+    RuntimeLib -- Contains --> Helpers;
+    BaseClasses -- Uses --> SDK;
+    Helpers -- Uses --> SDK;
+    UserAppCode -- Installs --> RuntimeLib;
+    UserAppCode -- Installs --> SDK;
+```
+
 ## Available Runtimes
 
 These are the official runtime packages maintained alongside FireSchema:

@@ -42,6 +42,26 @@ FireSchema promotes a **schema-first** approach:
    code, benefiting from compile-time checks, intelligent autocompletion, and
    significantly reduced boilerplate.
 
+
+### High-Level Workflow
+
+```mermaid
+graph LR
+    A[1. Define Schema<br>(firestore.schema.json)] --> C{3. Run `fireschema generate`};
+    B[2. Configure Targets<br>(fireschema.config.json)] --> C;
+    C --> D[4. Generated Code<br>(TS/Dart ODM)];
+    D --> E[5. User Application Code];
+    F[Runtime Libraries<br>(e.g., @shtse8/fireschema-ts-client-runtime)] --> E;
+    D -- Depends on --> F;
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#f9f,stroke:#333,stroke-width:2px
+    style C fill:#ccf,stroke:#333,stroke-width:2px
+    style D fill:#cfc,stroke:#333,stroke-width:2px
+    style F fill:#cfc,stroke:#333,stroke-width:2px
+    style E fill:#ffc,stroke:#333,stroke-width:2px
+```
+
 ## Core Generated Components
 
 For each collection defined in your schema, FireSchema typically generates:
