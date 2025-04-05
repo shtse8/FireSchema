@@ -47,21 +47,20 @@ jobs:
     needs: build-and-test-cli # Depends on the CLI build job
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read # Read permission is sufficient for checkout in build job
+      pages: write # Needed by actions/deploy-pages
+      id-token: write # Needed by actions/deploy-pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download VitePress build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: github-pages
-
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      # No download needed, deploy-pages handles the artifact directly
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ # Publish from the root where artifact is downloaded
-          # Keep existing user config or remove if default is fine
-          # user_name: 'github-actions[bot]'
-          # user_email: 'github-actions[bot]@users.noreply.github.com'
+        id: deployment
+        uses: actions/deploy-pages@v4
+        # artifact_name is implicitly 'github-pages' if not specified and configure-pages is used
 
 # Removed publish-npm and publish-dart jobs.
 # These should live in the respective runtime package repositories.
