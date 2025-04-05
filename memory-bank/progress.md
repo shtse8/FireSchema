@@ -1,5 +1,5 @@
-<!-- Version: 1.2 | Last Updated: 2025-04-05 | Updated By: Cline -->
-# Progress: FireSchema (GitHub Pages Fix - Corrected)
+<!-- Version: 1.3 | Last Updated: 2025-04-05 | Updated By: Cline -->
+# Progress: FireSchema (GitHub Pages Deployed)
 
 **What Works:**
 
@@ -20,37 +20,34 @@
     -   **TS Runtime Tests:** Pass in their respective CI workflows (verified for v0.2.2 tags).
     -   **Dart Runtime Integration Tests:** Pass locally but consistently fail in CI due to `PlatformException` during Firebase initialization. **Skipped in CI.**
 -   **Publishing & CI/CD:**
-    -   Main repository's GitHub Actions workflow builds the CLI, checks out submodules, builds docs, and deploys docs. It **does not** handle package publishing.
+    -   Main repository's GitHub Actions workflow (`.github/workflows/publish.yml`) builds the CLI, checks out submodules, builds docs, and **successfully deploys docs to GitHub Pages** using `actions/upload-pages-artifact` and `actions/deploy-pages`. It **does not** handle package publishing.
     -   **`fireschema_dart_runtime` CI/CD:**
         -   Workflow (`packages/fireschema_dart_runtime/.github/workflows/publish.yml`) is configured to trigger **only on version tags (`v*.*.*`)**.\
         -   Workflow now runs **only unit tests** (`flutter test ./test/unit`) to avoid persistent `PlatformException` errors with integration tests in CI.
     -   **TS Runtime CI/CD:** Workflows for both `fireschema-ts-client-runtime` and `fireschema-ts-admin-runtime` **passed successfully** on their latest tag pushes (v0.2.2).
 -   **Documentation:**
     -   VitePress site is set up (`docs-src/`) with runtime-centric navigation.
-    -   Guide pages for each runtime cover setup, CRUD, querying, etc. (Reviewed and minor fixes applied).
+    -   Guide pages for each runtime cover setup, CRUD, querying, etc.
     -   Roadmap and README updated.
-    -   Mermaid diagrams added to `introduction.md`, `runtime-libraries.md`, and `schema-definition.md` for visualization.
-    -   **GitHub Pages Deployment Fixes (Corrected):**
-        -   Corrected documentation links in `README.md` to use the correct base path (`https://shtse8.github.io/FireSchema/`).
-        -   Corrected `base` path in VitePress config (`docs-src/.vitepress/config.mts`) to `/FireSchema/`.
+    -   Mermaid diagrams added to key guides.
+    -   **GitHub Pages Deployment:** Successfully deployed and accessible at `https://shtse8.github.io/FireSchema/`. Base path and links are correct.
 
 **What's Left:**
 
-1.  **(Future) Verify GitHub Pages Deployment:** After the next CI run, confirm `https://shtse8.github.io/FireSchema/` is accessible and working correctly.
-2.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm the workflow passes (running only unit tests) when the next version tag is pushed.
-3.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
-4.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
-5.  **(Future) Documentation Content:** Refine existing content, add more examples, add Contributing guide.
+1.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm the workflow passes (running only unit tests) when the next version tag is pushed.
+2.  **(Future) Implement More Adapters:** `dart-admin-rest`, `csharp-client`.
+3.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
+4.  **(Future) Documentation Content:** Refine existing content, add more examples, add Contributing guide.
 
 **Current Status:**
 
-**GitHub Pages Fixed (Corrected):** Corrected documentation links in `README.md` and the `base` path in VitePress config to use `/FireSchema/`. Changes are ready to be committed and pushed to trigger redeployment.
+**GitHub Pages Deployment Fixed & Verified:** The deployment workflow was corrected using `actions/upload-pages-artifact` and `actions/deploy-pages`. The documentation site at `https://shtse8.github.io/FireSchema/` is now live and working correctly.
 **Documentation Improved:** Core documentation reviewed, minor fixes applied, and Mermaid diagrams added to key guides.
 **Runtime CI/CD Stable (with caveats):**
 -   Dart runtime CI is configured to run only unit tests on tag pushes. Integration tests are skipped due to persistent CI environment issues.
 -   TS client and admin runtime CIs are passing on their latest tags (v0.2.2).
 
-**Next focus:** Commit and push fixes, then verify GitHub Pages deployment. After that, ready for the next task.
+**Next focus:** Ready for the next task.
 
 **Known Issues:**
 
