@@ -1,3 +1,4 @@
+<!-- Version: 1.3 | Last Updated: 2025-04-05 | Updated By: Cline -->
 # Technical Context: FireSchema (Separate Repos + Submodules)
 
 **Core Generator Tool (`@shtse8/fireschema`):**
@@ -119,8 +120,8 @@
 - **Runtime Packages (e.g., `ts-client-runtime`, `ts-admin-runtime`,
   `dart-runtime`):**
   - **Unit & Integration Tests:** Located **within each runtime package's own repository**. These tests are run independently.
-  - **TS Testing Setup:** Uses Jest configured via `jest.config.cjs` or similar in each TS runtime package.
-  - **Dart Testing Setup:** Uses `dart test` configured via `pubspec.yaml`.
+  - **TS Testing Setup:** Uses Jest configured via `jest.config.cjs` or similar in each TS runtime package. Tests typically run against the Firestore emulator.
+  - **Dart Testing Setup:** Uses `dart test` configured via `pubspec.yaml`. **Unit tests use `fake_cloud_firestore`.** Integration tests use the emulator but are currently skipped in CI due to platform issues.
 - **Adapters (`src/adapters/*`):**
   - Primarily tested via the core tool's Snapshot Tests.
   - Can include specific Unit Tests for complex internal helper functions if
