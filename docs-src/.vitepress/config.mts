@@ -66,6 +66,6 @@ export default defineConfig({
     }
   },
 
-  base: '/FireSchema/', // Use project name for deployment base path
+  base: '/firestore-odm/', // Base path for GitHub Pages deployment
   outDir: '../docs'
 })
