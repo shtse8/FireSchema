@@ -409,4 +409,4 @@ await batch.commit();
 ## Testing Strategy
 
 -   **Unit Tests:** Use `fake_cloud_firestore` to mock Firestore behavior in memory for fast testing of base class logic, converters, and application logic using the ODM.
--   **Integration Tests:** Use the **Firestore Emulator** and the `test` package. Connect a real `FirebaseFirestore` instance to the emulator to test generated code against actual Firestore behavior (CRUD, queries, updates, streaming, etc.). This is the primary method used for testing the `fireschema_dart_runtime` package.
+-   **Integration Tests:** Use the **Firestore Emulator** and the `integration_test` package. Connect a real `FirebaseFirestore` instance to the emulator to test generated code against actual Firestore behavior (CRUD, queries, updates, streaming, etc.). This is the primary method used for testing the `fireschema_dart_runtime` package. **Note:** Due to persistent platform channel initialization issues in standard CI environments, these integration tests are currently **skipped** in the package's GitHub Actions workflow and should be run locally.

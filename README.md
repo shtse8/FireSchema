@@ -27,7 +27,7 @@ Here's a snapshot of current support and future plans:
 | :---------------------- | :---------- | :----------------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **TypeScript (Client)** | ✅ Supported | `firebase` v9+ (Modular)       | Unit & Integration (Emulator)    | Ideal for Web Apps (React, Vue, etc.) & Node.js clients. Full CRUD, Querying, Streaming, Subcollections, Transactions/Batches.                       |
 | **TypeScript (Admin)**  | ✅ Supported | `firebase-admin` (Node.js)     | Unit & Integration (Emulator)    | Ideal for Backends (Node.js, Cloud Functions). Full CRUD, Querying, Subcollections, Transactions/Batches. **No Streaming.**                           |
-| **Dart (Client)**       | ✅ Supported | `cloud_firestore` (Flutter)    | Unit (Fake) & Integration (Emulator) | Ideal for Flutter Apps & Dart clients. Full CRUD, Querying, Streaming, Subcollections, Transactions/Batches. Includes `serverTimestamp` handling on `add`. |
+| **Dart (Client)**       | ✅ Supported | `cloud_firestore` (Flutter)    | Unit (Fake) & Integration (Local)³ | Ideal for Flutter Apps & Dart clients. Full CRUD, Querying, Streaming, Subcollections, Transactions/Batches. Includes `serverTimestamp` handling on `add`. |
 | **Dart (Admin/Server)** | ⏳ Planned   | Firestore REST API             | N/A                                | Target: `dart-admin-rest` (tentative). **Addresses lack of official Dart Admin SDK**, enabling type-safe backend Dart Firestore access.             |
 | **C# (Client)**         | ⏳ Planned   | Firebase SDK for .NET (TBD)    | N/A                                | Target: `csharp-client` (tentative). For Unity, MAUI, Blazor, etc.                                                                                 |
 
@@ -46,6 +46,7 @@ Here's a snapshot of current support and future plans:
 
 1.  You must install the specified Firebase SDK alongside the corresponding FireSchema runtime package in your project.
 2.  Test coverage indicates that automated tests exist for core runtime functionality. See the full documentation for details.
+3.  Dart integration tests currently fail in standard CI environments due to platform channel issues and are skipped. They should be run locally using the Firestore emulator.
 
 ## Installation
 
