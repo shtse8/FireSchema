@@ -58,7 +58,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          publish_dir: ./ # Publish from the root where artifact is downloaded
           # Keep existing user config or remove if default is fine
           # user_name: 'github-actions[bot]'
           # user_email: 'github-actions[bot]@users.noreply.github.com'
