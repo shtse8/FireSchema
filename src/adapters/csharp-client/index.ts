@@ -11,6 +11,25 @@ interface CSharpClientOptions {
   // Add other C# specific options here
 }
 
+// Simple helper for PascalCase conversion
+function toPascalCase(str: string): string {
+    if (!str) return '';
+    // Handle potential separators like '-' or '_'
+    return str.replace(/[-_](\w)/g, (_, c) => c.toUpperCase())
+              .replace(/^./, (c) => c.toUpperCase());
+}
+
+// Simple singularization (very basic, might need improvement)
+function singularize(name: string): string {
+    if (name.endsWith('ies')) {
+        return name.substring(0, name.length - 3) + 'y';
+    }
+    if (name.endsWith('s') && !name.endsWith('ss')) { // Avoid changing 'address' to 'addres'
+        return name.substring(0, name.length - 1);
+    }
+    return name;
+}
+
 /**
  * Generates C# client-side code based on the provided schema and configuration.
  *
@@ -37,38 +56,59 @@ export async function generate(
     throw error; // Re-throw to stop generation
   }
 
-  // --- Placeholder for template loading and rendering ---
-  // TODO: Load EJS templates from ./templates/
-  // TODO: Prepare data object for EJS based on schema and options
-  // TODO: Render templates (e.g., models, collection refs, query builders)
-  // TODO: Render templates (e.g., models, collection refs, query builders)
-
-  // Example: Generating a placeholder file
-  const placeholderContent = `
-// Placeholder for generated C# code
-// Target Namespace: ${targetNamespace}
-// Schema Root: (Placeholder - Add relevant schema info if needed)
-
-namespace ${targetNamespace}
-{
-    public class Placeholder
-    {
-        // TODO: Implement actual code generation
-    }
-}
-`;
-  const placeholderPath = path.join(outputConfig.outputDir, 'Placeholder.cs');
-
+  // --- Load Templates ---
+  let modelTemplate: string;
   try {
-    // TODO: Add C# formatting step later if possible and necessary
-    await fs.writeFile(placeholderPath, placeholderContent, 'utf-8');
-    console.log(`Successfully wrote placeholder file to ${placeholderPath}`);
+    const modelTemplatePath = path.join(__dirname, 'templates', 'model.ejs');
+    modelTemplate = await fs.readFile(modelTemplatePath, 'utf-8');
+    console.log(`Loaded model template from: ${modelTemplatePath}`);
   } catch (error: any) {
-    console.error(`Error writing placeholder file ${placeholderPath}:`, error);
+    console.error('Error loading C# model template:', error);
     throw error;
   }
 
-  // --- Add generation for other file types (models, collections, etc.) ---
+  // --- Generate Model Files ---
+  for (const collectionName in schema.collections) {
+    const collectionSchema = schema.collections[collectionName];
+    // Access the fields defined for the collection
+    const fields = collectionSchema.fields || {};
 
-  console.log('C# client code generation (placeholder) complete.');
+    // Derive Model Name (e.g., 'users' -> 'UserData')
+    const singularName = singularize(collectionName);
+    const modelName = `${toPascalCase(singularName)}Data`;
+    const modelFileName = `${modelName}.cs`;
+    const modelFilePath = path.join(outputConfig.outputDir, modelFileName);
+
+    const templateData = {
+      namespace: targetNamespace,
+      collectionName: collectionName,
+      modelName: modelName,
+      properties: fields, // Pass the fields object to the template
+      // Add other necessary data for the template here
+    };
+
+    console.log(`Rendering model for ${collectionName} -> ${modelFileName}`);
+    let generatedCode: string;
+    try {
+      generatedCode = ejs.render(modelTemplate, templateData);
+    } catch (error: any) {
+      console.error(`Error rendering EJS template for ${modelName}:`, error);
+      throw new Error(`EJS rendering failed for ${modelName}: ${error.message}`);
+    }
+
+    // TODO: Add C# formatting step later if possible and necessary
+    // For now, write the raw generated code
+
+    try {
+      await fs.writeFile(modelFilePath, generatedCode, 'utf-8');
+      console.log(`Successfully wrote model file: ${modelFilePath}`);
+    } catch (error: any) {
+      console.error(`Error writing model file ${modelFilePath}:`, error);
+      throw error; // Re-throw to stop generation
+    }
+  }
+
+  // --- TODO: Add generation for other file types (collection refs, query builders, etc.) ---
+
+  console.log('C# client code generation (models only) complete.');
 }
