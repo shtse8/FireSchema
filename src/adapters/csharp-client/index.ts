@@ -57,21 +57,27 @@ export async function generate(
   }
 
   // --- Load Templates ---
-  let modelTemplate: string;
+  let modelTemplate: string, collectionRefTemplate: string;
   try {
     const modelTemplatePath = path.join(__dirname, 'templates', 'model.ejs');
-    modelTemplate = await fs.readFile(modelTemplatePath, 'utf-8');
-    console.log(`Loaded model template from: ${modelTemplatePath}`);
+    const collectionRefTemplatePath = path.join(__dirname, 'templates', 'collectionRef.ejs');
+    [modelTemplate, collectionRefTemplate] = await Promise.all([
+        fs.readFile(modelTemplatePath, 'utf-8'),
+        fs.readFile(collectionRefTemplatePath, 'utf-8')
+    ]);
+    console.log(`Loaded templates: model, collectionRef`);
   } catch (error: any) {
-    console.error('Error loading C# model template:', error);
+    console.error('Error loading C# templates:', error);
     throw error;
   }
 
-  // --- Generate Model Files ---
+  // --- Generate Files per Collection ---
   for (const collectionName in schema.collections) {
     const collectionSchema = schema.collections[collectionName];
     // Access the fields defined for the collection
     const fields = collectionSchema.fields || {};
+    const subcollections = collectionSchema.subcollections || {};
+    const collectionPath = collectionName; // Assuming root collection path is just the name for now
 
     // Derive Model Name (e.g., 'users' -> 'UserData')
     const singularName = singularize(collectionName);
@@ -83,8 +89,8 @@ export async function generate(
       namespace: targetNamespace,
       collectionName: collectionName,
       modelName: modelName,
-      properties: fields, // Pass the fields object to the template
-      // Add other necessary data for the template here
+      properties: fields,
+      // No subcollection data needed for model template
     };
 
     console.log(`Rendering model for ${collectionName} -> ${modelFileName}`);
@@ -104,11 +110,43 @@ export async function generate(
       console.log(`Successfully wrote model file: ${modelFilePath}`);
     } catch (error: any) {
       console.error(`Error writing model file ${modelFilePath}:`, error);
-      throw error; // Re-throw to stop generation
+      throw error; // Re-throw to stop generation for this model
     }
-  }
 
-  // --- TODO: Add generation for other file types (collection refs, query builders, etc.) ---
+    // --- Generate CollectionRef File ---
+    const collectionPascalName = toPascalCase(collectionName);
+    const collectionRefName = `${collectionPascalName}CollectionRef`;
+    const collectionRefFileName = `${collectionRefName}.cs`;
+    const collectionRefFilePath = path.join(outputConfig.outputDir, collectionRefFileName);
 
-  console.log('C# client code generation (models only) complete.');
+    const collectionRefData = {
+        namespace: targetNamespace,
+        collectionName: collectionName,
+        collectionPath: collectionPath, // Pass the determined path
+        modelName: modelName,
+        subcollections: subcollections, // Pass subcollection definitions
+    };
+
+    console.log(`Rendering collectionRef for ${collectionName} -> ${collectionRefFileName}`);
+    let generatedCollectionRefCode: string;
+    try {
+        generatedCollectionRefCode = ejs.render(collectionRefTemplate, collectionRefData);
+    } catch (error: any) {
+        console.error(`Error rendering EJS template for ${collectionRefName}:`, error);
+        throw new Error(`EJS rendering failed for ${collectionRefName}: ${error.message}`);
+    }
+
+    try {
+        await fs.writeFile(collectionRefFilePath, generatedCollectionRefCode, 'utf-8');
+        console.log(`Successfully wrote collectionRef file: ${collectionRefFilePath}`);
+    } catch (error: any) {
+        console.error(`Error writing collectionRef file ${collectionRefFilePath}:`, error);
+        throw error; // Re-throw to stop generation for this collection ref
+    }
+
+  } // End loop through collections
+
+  // --- TODO: Add generation for other file types (query builders, update builders, etc.) ---
+
+  console.log('C# client code generation (models, collectionRefs) complete.');
 }
