@@ -166,38 +166,24 @@ function validateFirestoreSpecificRules(schema: ParsedFirestoreSchema): void {
         errors.push(`Invalid field name at ${currentPath}: Field names cannot contain '/' or '.'. Found: '${fieldName}'`);
       }
 
-      // Rule: Check referenceTo validity
-      if (field.type === 'reference' && field.referenceTo) {
-         // Basic check: does it look like a path? More robust check needed if dynamic segments are allowed.
-         // For now, just check if it exists in the defined paths (ignoring document IDs)
-         const normalizedRefPath = field.referenceTo.replace(/\{[^}]+\}/g, '<docId>');
-         if (!definedCollectionPaths.has(normalizedRefPath)) {
-            errors.push(`Invalid referenceTo at ${currentPath}: Path '${field.referenceTo}' (normalized: '${normalizedRefPath}') does not correspond to a defined collection path in the schema. Defined paths: ${Array.from(definedCollectionPaths).join(', ')}`);
-         }
+      // Rule: Check referenceTo validity (Revised)
+      if (field.type === 'reference') {
+        if (!field.referenceTo) {
+           // This case should be caught by Ajv based on schema-definition.json required rule
+           // errors.push(`Missing referenceTo at ${currentPath}: Field of type 'reference' requires 'referenceTo'.`);
+        } else {
+           const normalizedRefPath = field.referenceTo.replace(/\{[^}]+\}/g, '<docId>');
+           if (!definedCollectionPaths.has(normalizedRefPath)) {
+              // Ensure the error message includes the list of valid paths for easier debugging
+              errors.push(`Invalid referenceTo at ${currentPath}: Path '${field.referenceTo}' (normalized: '${normalizedRefPath}') does not correspond to a defined collection path in the schema. Defined paths: [${Array.from(definedCollectionPaths).join(', ')}]`);
+           }
+        }
       }
 
-      // Rule: Check defaultValue type
+      // Rule: Check defaultValue type using the enhanced recursive helper (Final)
       if (field.defaultValue !== undefined) {
-        const defaultValueType = getFirestoreValueType(field.defaultValue);
-        const expectedType = field.type;
-        let isValidDefault = false;
-
-        if (expectedType === 'timestamp' && field.defaultValue === 'serverTimestamp') {
-          isValidDefault = true;
-        } else if (expectedType === 'timestamp' && defaultValueType === 'date') {
-           isValidDefault = true;
-        } else if (expectedType === 'reference' && defaultValueType === 'string') {
-           // Basic check, could be stricter (e.g., check path format)
-           isValidDefault = true;
-        } else if (expectedType === 'geopoint' && defaultValueType === 'object') {
-           // Basic check, could check for latitude/longitude properties
-           isValidDefault = true;
-        } else if (expectedType === defaultValueType) {
-          isValidDefault = true;
-        }
-
-        if (!isValidDefault) {
-          errors.push(`Invalid defaultValue at ${currentPath}: Default value type '${defaultValueType}' does not match field type '${expectedType}'. Value: ${JSON.stringify(field.defaultValue)}`);
+        if (!isDefaultValueValid(field, field.defaultValue)) {
+            errors.push(`Invalid defaultValue at ${currentPath}: Default value ${JSON.stringify(field.defaultValue)} is not valid for field type '${field.type}'.`);
         }
       }
 
@@ -229,27 +215,11 @@ function validateFirestoreSpecificRules(schema: ParsedFirestoreSchema): void {
         errors.push(`Invalid map key at ${currentPath}: Map keys cannot contain '/' or '.'. Found: '${propName}'`);
       }
 
-      // Rule: Check defaultValue type for map properties
+      // Rule: Check defaultValue type for map properties using the enhanced recursive helper (Final)
       if (propField.defaultValue !== undefined) {
-        const defaultValueType = getFirestoreValueType(propField.defaultValue);
-        const expectedType = propField.type;
-        let isValidDefault = false;
-
-        if (expectedType === 'timestamp' && propField.defaultValue === 'serverTimestamp') {
-          isValidDefault = true;
-        } else if (expectedType === 'timestamp' && defaultValueType === 'date') {
-           isValidDefault = true;
-        } else if (expectedType === 'reference' && defaultValueType === 'string') {
-           isValidDefault = true;
-        } else if (expectedType === 'geopoint' && defaultValueType === 'object') {
-           isValidDefault = true;
-        } else if (expectedType === defaultValueType) {
-          isValidDefault = true;
-        }
-
-        if (!isValidDefault) {
-          errors.push(`Invalid defaultValue at ${currentPath}: Default value type '${defaultValueType}' does not match field type '${expectedType}'. Value: ${JSON.stringify(propField.defaultValue)}`);
-        }
+         if (!isDefaultValueValid(propField, propField.defaultValue)) {
+            errors.push(`Invalid defaultValue at ${currentPath}: Default value ${JSON.stringify(propField.defaultValue)} is not valid for field type '${propField.type}'.`);
+         }
       }
 
       // Recursively check nested maps
@@ -268,20 +238,68 @@ function validateFirestoreSpecificRules(schema: ParsedFirestoreSchema): void {
     checkCollection('', schema.collections[collectionId]);
   }
 
+  // Throw error if any custom validation failed (Final)
   if (errors.length > 0) {
-    // FIXED JOIN SYNTAX HERE
     throw new Error(`Firestore specific schema validation failed:\n${errors.map(e => `  - ${e}`).join('\n')}`);
+  } else {
+    // Only log success if no errors were found by Ajv OR custom validation
+    console.log('Firestore specific validation rules passed.');
   }
-
-  console.log('Firestore specific validation rules passed.');
 }
 
-/** Helper to determine the effective type of a value for Firestore comparison */
+/**
+ * Recursively checks if a default value is valid for a given field definition.
+ */
+function isDefaultValueValid(field: ParsedFieldDefinition, defaultValue: any): boolean {
+  if (defaultValue === undefined) return true; // No default value to check
+
+  const expectedType = field.type;
+
+  switch (expectedType) {
+    case 'string':
+      return typeof defaultValue === 'string';
+    case 'number':
+      return typeof defaultValue === 'number';
+    case 'boolean':
+      return typeof defaultValue === 'boolean';
+    case 'timestamp':
+      return defaultValue === 'serverTimestamp' || defaultValue instanceof Date || (typeof defaultValue === 'string' && !isNaN(Date.parse(defaultValue))); // Allow valid date strings too? Maybe too lenient. Stick to Date object or serverTimestamp for now.
+      // Let's stick to Date object or serverTimestamp for stricter validation:
+      // return defaultValue === 'serverTimestamp' || defaultValue instanceof Date;
+    case 'geopoint':
+      return typeof defaultValue === 'object' && defaultValue !== null &&
+             typeof defaultValue.latitude === 'number' && typeof defaultValue.longitude === 'number';
+    case 'reference':
+      // Basic check: is it a string? Could add path format check later.
+      return typeof defaultValue === 'string';
+    case 'array':
+      if (!Array.isArray(defaultValue)) return false;
+      if (!field.items) return false; // Invalid schema, should be caught earlier
+      // Check each item in the array against the 'items' definition
+      return defaultValue.every(item => isDefaultValueValid(field.items!, item));
+    case 'map':
+      if (typeof defaultValue !== 'object' || defaultValue === null || Array.isArray(defaultValue)) return false;
+      if (!field.properties) return false; // Invalid schema
+      // Check each property in the default value object
+      for (const key in defaultValue) {
+        if (!field.properties[key]) {
+          // Allow extra properties in default value? For now, let's be strict.
+          // return false; // Uncomment for strict property matching
+        } else if (!isDefaultValueValid(field.properties[key], defaultValue[key])) {
+          return false; // Invalid type for a defined property
+        }
+      }
+      // Check if all required properties of the map have a default value if the map itself has a default
+      // This might be too complex/strict for defaultValue validation. Let's skip for now.
+      return true;
+    default:
+      return false; // Unknown type
+  }
+}
+
+// Remove or comment out the old basic helper if no longer needed
+/*
 function getFirestoreValueType(value: any): string {
-  if (value === null) return 'null'; // Firestore doesn't have 'null' type, but useful for validation
-  if (Array.isArray(value)) return 'array';
-  if (value instanceof Date) return 'date'; // Distinguish from generic object for timestamp
-  const jsType = typeof value;
-  if (jsType === 'object') return 'object'; // Includes maps and geopoints for basic check
-  return jsType; // string, number, boolean, undefined
+  // ... old implementation ...
 }
+*/

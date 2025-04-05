@@ -41,23 +41,36 @@ export class <%- modelName %>Collection extends AdminBaseCollectionRef<<%- model
    */
   // Simplified constructor: Accepts only firestore and optional parentRef
   constructor(
-    firestore: FirestoreLike,
-    parentRef?: DocumentReferenceLike<DocumentDataLike> // Use generic type
+    // Use specific types imported from 'firebase-admin/firestore'
+    firestore: AdminFirestore,
+    parentRef?: AdminDocumentReference<AdminDocumentData>
   ) {
-    // Process fields to create schema for runtime base class
-    const processedFields: Record<string, FieldSchema> = {};
+    // Process fields and subcollections to create the full schema for the runtime base class
+    const schemaForRuntime: CollectionSchema = {
+      fields: {},
+      subCollections: {}, // Initialize subCollections
+    };
+
     <% Object.entries(collection.fields).forEach(([fieldName, fieldDef]) => { %>
-      processedFields['<%- fieldName %>'] = {
+      schemaForRuntime.fields['<%- fieldName %>'] = {
         <% if (fieldDef.defaultValue !== undefined) { %>
         defaultValue: <%- JSON.stringify(fieldDef.defaultValue) %>,
         <% } %>
       };
     <% }); %>
-    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    <% if (collection.subcollections) { %>
+    <%   Object.keys(collection.subcollections).forEach(subId => { %>
+    <%     const subModelName = capitalizeFirstLetter(subId); %>
+    schemaForRuntime.subCollections!['<%- subId %>'] = {
+      collectionClass: <%- subModelName %>Collection, // Pass constructor reference
+    };
+    <%   }); %>
+    <% } %>
 
     // Call the base class constructor, providing the hardcoded collectionId
     // Base class constructor: (firestore, collectionId, schema?, parentRef?)
-    super(firestore, '<%- collection.collectionId %>', schemaForRuntime, parentRef);
+    super(firestore, '<%- collection.collectionId %>', schemaForRuntime, parentRef); // Pass the complete schema
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -96,8 +109,8 @@ export class <%- modelName %>Collection extends AdminBaseCollectionRef<<%- model
     <% }); %>
     const subSchema: CollectionSchema = { fields: processedSubFields };
     // Use the subCollection helper from BaseCollectionRef
-    // It expects: parentId, subCollectionId, SubCollectionClass, subSchema?
-    return this.subCollection(documentId, '<%- subId %>', <%- subModelName %>Collection, subSchema);
+    // It expects: parentId, subCollectionId, subSchema? (SubCollectionClass removed from base)
+    return this.subCollection(documentId, '<%- subId %>', subSchema);
   }
 <%   }); %>
 <% } %>

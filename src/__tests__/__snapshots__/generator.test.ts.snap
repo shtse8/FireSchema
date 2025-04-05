@@ -44,39 +44,52 @@ export class ItemsCollection extends AdminBaseCollectionRef<ItemsData, ItemsAddD
    */
   // Simplified constructor: Accepts only firestore and optional parentRef
   constructor(
-    firestore: FirestoreLike,
-    parentRef?: DocumentReferenceLike<DocumentDataLike> // Use generic type
+    // Use specific types imported from 'firebase-admin/firestore'
+    firestore: AdminFirestore,
+    parentRef?: AdminDocumentReference<AdminDocumentData>
   ) {
-    // Process fields to create schema for runtime base class
-    const processedFields: Record<string, FieldSchema> = {};
+    // Process fields and subcollections to create the full schema for the runtime base class
+    const schemaForRuntime: CollectionSchema = {
+      fields: {},
+      subCollections: {}, // Initialize subCollections
+    };
+
     
-      processedFields['name'] = {
+      schemaForRuntime.fields['name'] = {
         
       };
     
-      processedFields['value'] = {
+      schemaForRuntime.fields['value'] = {
         
       };
     
-      processedFields['createdAt'] = {
+      schemaForRuntime.fields['createdAt'] = {
         
         defaultValue: "serverTimestamp",
         
       };
     
-      processedFields['tagsArray'] = {
+      schemaForRuntime.fields['tagsArray'] = {
         
       };
     
-      processedFields['address'] = {
+      schemaForRuntime.fields['address'] = {
         
       };
     
-    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    
+    
+    
+    schemaForRuntime.subCollections!['tags'] = {
+      collectionClass: TagsCollection, // Pass constructor reference
+    };
+    
+    
 
     // Call the base class constructor, providing the hardcoded collectionId
     // Base class constructor: (firestore, collectionId, schema?, parentRef?)
-    super(firestore, 'items', schemaForRuntime, parentRef);
+    super(firestore, 'items', schemaForRuntime, parentRef); // Pass the complete schema
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -113,8 +126,8 @@ export class ItemsCollection extends AdminBaseCollectionRef<ItemsData, ItemsAddD
     
     const subSchema: CollectionSchema = { fields: processedSubFields };
     // Use the subCollection helper from BaseCollectionRef
-    // It expects: parentId, subCollectionId, SubCollectionClass, subSchema?
-    return this.subCollection(documentId, 'tags', TagsCollection, subSchema);
+    // It expects: parentId, subCollectionId, subSchema? (SubCollectionClass removed from base)
+    return this.subCollection(documentId, 'tags', subSchema);
   }
 
 
@@ -643,21 +656,27 @@ export class TagsCollection extends AdminBaseCollectionRef<TagsData, TagsAddData
    */
   // Simplified constructor: Accepts only firestore and optional parentRef
   constructor(
-    firestore: FirestoreLike,
-    parentRef?: DocumentReferenceLike<DocumentDataLike> // Use generic type
+    // Use specific types imported from 'firebase-admin/firestore'
+    firestore: AdminFirestore,
+    parentRef?: AdminDocumentReference<AdminDocumentData>
   ) {
-    // Process fields to create schema for runtime base class
-    const processedFields: Record<string, FieldSchema> = {};
+    // Process fields and subcollections to create the full schema for the runtime base class
+    const schemaForRuntime: CollectionSchema = {
+      fields: {},
+      subCollections: {}, // Initialize subCollections
+    };
+
     
-      processedFields['label'] = {
+      schemaForRuntime.fields['label'] = {
         
       };
     
-    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    
 
     // Call the base class constructor, providing the hardcoded collectionId
     // Base class constructor: (firestore, collectionId, schema?, parentRef?)
-    super(firestore, 'tags', schemaForRuntime, parentRef);
+    super(firestore, 'tags', schemaForRuntime, parentRef); // Pass the complete schema
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -904,39 +923,56 @@ export class ItemsCollection extends ClientBaseCollectionRef<ItemsData, ItemsAdd
    */
   // Simplified constructor: Accepts only firestore and optional parentRef
   constructor(
-    firestore: FirestoreLike,
-    parentRef?: DocumentReferenceLike<DocumentDataLike> // Use generic type
+    // Use specific types imported from 'firebase/firestore'
+    firestore: ClientFirestore,
+    parentRef?: ClientDocumentReference<ClientDocumentData>
   ) {
-    // Process fields to create schema for runtime base class
-    const processedFields: Record<string, FieldSchema> = {};
+    // Process fields and subcollections to create the full schema for the runtime base class
+    const schemaForRuntime: CollectionSchema = {
+      fields: {},
+      subCollections: {}, // Initialize subCollections
+    };
+
     
-      processedFields['name'] = {
+      schemaForRuntime.fields['name'] = {
         
       };
     
-      processedFields['value'] = {
+      schemaForRuntime.fields['value'] = {
         
       };
     
-      processedFields['createdAt'] = {
+      schemaForRuntime.fields['createdAt'] = {
         
         defaultValue: "serverTimestamp",
         
       };
     
-      processedFields['tagsArray'] = {
+      schemaForRuntime.fields['tagsArray'] = {
         
       };
     
-      processedFields['address'] = {
+      schemaForRuntime.fields['address'] = {
         
       };
     
-    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    
+    
+    
+    
+    schemaForRuntime.subCollections!['tags'] = {
+      // We don't need to pass the sub-schema *data* here, the base class
+      // subCollection method will receive it when called.
+      // We *do* need to pass the constructor reference itself.
+      collectionClass: TagsCollection,
+    };
+    
+    
 
     // Call the base class constructor, providing the hardcoded collectionId
     // Base class constructor: (firestore, collectionId, schema?, parentRef?)
-    super(firestore, 'items', schemaForRuntime, parentRef);
+    super(firestore, 'items', schemaForRuntime, parentRef); // Pass the complete schema
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -973,8 +1009,8 @@ export class ItemsCollection extends ClientBaseCollectionRef<ItemsData, ItemsAdd
     
     const subSchema: CollectionSchema = { fields: processedSubFields };
     // Use the subCollection helper from BaseCollectionRef
-    // It expects: parentId, subCollectionId, SubCollectionClass, subSchema?
-    return this.subCollection(documentId, 'tags', TagsCollection, subSchema);
+    // It expects: parentId, subCollectionId, subSchema? (SubCollectionClass removed)
+    return this.subCollection(documentId, 'tags', subSchema);
   }
 
 
@@ -1504,21 +1540,27 @@ export class TagsCollection extends ClientBaseCollectionRef<TagsData, TagsAddDat
    */
   // Simplified constructor: Accepts only firestore and optional parentRef
   constructor(
-    firestore: FirestoreLike,
-    parentRef?: DocumentReferenceLike<DocumentDataLike> // Use generic type
+    // Use specific types imported from 'firebase/firestore'
+    firestore: ClientFirestore,
+    parentRef?: ClientDocumentReference<ClientDocumentData>
   ) {
-    // Process fields to create schema for runtime base class
-    const processedFields: Record<string, FieldSchema> = {};
+    // Process fields and subcollections to create the full schema for the runtime base class
+    const schemaForRuntime: CollectionSchema = {
+      fields: {},
+      subCollections: {}, // Initialize subCollections
+    };
+
     
-      processedFields['label'] = {
+      schemaForRuntime.fields['label'] = {
         
       };
     
-    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    
 
     // Call the base class constructor, providing the hardcoded collectionId
     // Base class constructor: (firestore, collectionId, schema?, parentRef?)
-    super(firestore, 'tags', schemaForRuntime, parentRef);
+    super(firestore, 'tags', schemaForRuntime, parentRef); // Pass the complete schema
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -1720,36 +1762,74 @@ exports[`FireSchema Generator should generate TypeScript client files matching s
 }"
 `;
 
+exports[`FireSchema Generator should throw validation error for invalid defaultValue type: invalid defaultValue type 1`] = `
+"Command failed: node C:\\Users\\shtse\\firestore-odm\\dist\\cli.js generate -c "C:\\Users\\shtse\\firestore-odm\\src\\__tests__\\test-output\\config-for-invalid-schema-defaultvalue.json.json"
+Error during code generation: Error: Firestore specific schema validation failed:
+  - Invalid defaultValue at /items/<docId>/count: Default value "not a number" is not valid for field type 'number'.
+    at validateFirestoreSpecificRules (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:215:15)
+    at loadAndValidateSchema (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:53:5)
+    at Command.<anonymous> (C:\\Users\\shtse\\firestore-odm\\dist\\cli.js:29:71)
+    at Command.listener [as _actionHandler] (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:552:17)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1586:14
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1585:27)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1349:27
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._dispatchSubcommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1345:25)
+"
+`;
+
 exports[`FireSchema Generator should throw validation error for invalid field name: invalid field name 1`] = `
 "Command failed: node C:\\Users\\shtse\\firestore-odm\\dist\\cli.js generate -c "C:\\Users\\shtse\\firestore-odm\\src\\__tests__\\test-output\\config-for-invalid-schema-fieldname.json.json"
 Error during code generation: Error: Schema validation failed:
-  - /collections/items/fields must NOT have additional properties (#/properties/fields/additionalProperties)
-    at loadAndValidateSchema (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:43:15)
+  - Location: collections -> items -> fields
+    Error: must NOT have additional properties
+    Rule: #/properties/fields/additionalProperties
+    at loadAndValidateSchema (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:47:15)
     at Command.<anonymous> (C:\\Users\\shtse\\firestore-odm\\dist\\cli.js:29:71)
-    at Command.listener [as _actionHandler] (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:552:17)
-    at C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1586:14
-    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1470:12)
-    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1585:27)
-    at C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1349:27
-    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1470:12)
-    at Command._dispatchSubcommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1345:25)
-    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1541:19)
+    at Command.listener [as _actionHandler] (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:552:17)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1586:14
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1585:27)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1349:27
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._dispatchSubcommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1345:25)
+    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1541:19)
 "
 `;
 
 exports[`FireSchema Generator should throw validation error for invalid map key: invalid map key 1`] = `
 "Command failed: node C:\\Users\\shtse\\firestore-odm\\dist\\cli.js generate -c "C:\\Users\\shtse\\firestore-odm\\src\\__tests__\\test-output\\config-for-invalid-schema-mapkey.json.json"
 Error during code generation: Error: Schema validation failed:
-  - /collections/items/fields/address/properties must NOT have additional properties (#/properties/properties/additionalProperties)
-    at loadAndValidateSchema (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:43:15)
+  - Location: collections -> items -> fields -> address -> properties
+    Error: must NOT have additional properties
+    Rule: #/properties/properties/additionalProperties
+    at loadAndValidateSchema (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:47:15)
     at Command.<anonymous> (C:\\Users\\shtse\\firestore-odm\\dist\\cli.js:29:71)
-    at Command.listener [as _actionHandler] (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:552:17)
-    at C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1586:14
-    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1470:12)
-    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1585:27)
-    at C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1349:27
-    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1470:12)
-    at Command._dispatchSubcommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1345:25)
-    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\[4mcommander[24m\\lib\\command.js:1541:19)
+    at Command.listener [as _actionHandler] (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:552:17)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1586:14
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1585:27)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1349:27
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._dispatchSubcommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1345:25)
+    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1541:19)
+"
+`;
+
+exports[`FireSchema Generator should throw validation error for invalid referenceTo: invalid referenceTo 1`] = `
+"Command failed: node C:\\Users\\shtse\\firestore-odm\\dist\\cli.js generate -c "C:\\Users\\shtse\\firestore-odm\\src\\__tests__\\test-output\\config-for-invalid-schema-refto.json.json"
+Error during code generation: Error: Firestore specific schema validation failed:
+  - Invalid referenceTo at /items/<docId>/userRef: Path 'nonExistentCollection' (normalized: 'nonExistentCollection') does not correspond to a defined collection path in the schema. Defined paths: [items, items/<docId>/tags]
+    at validateFirestoreSpecificRules (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:215:15)
+    at loadAndValidateSchema (C:\\Users\\shtse\\firestore-odm\\dist\\schemaLoader.js:53:5)
+    at Command.<anonymous> (C:\\Users\\shtse\\firestore-odm\\dist\\cli.js:29:71)
+    at Command.listener [as _actionHandler] (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:552:17)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1586:14
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._parseCommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1585:27)
+    at C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1349:27
+    at Command._chainOrCall (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1470:12)
+    at Command._dispatchSubcommand (C:\\Users\\shtse\\firestore-odm\\node_modules\\commander\\lib\\command.js:1345:25)
 "
 `;

@@ -42,23 +42,41 @@ export class <%- modelName %>Collection extends ClientBaseCollectionRef<<%- mode
    */
   // Simplified constructor: Accepts only firestore and optional parentRef
   constructor(
-    firestore: FirestoreLike,
-    parentRef?: DocumentReferenceLike<DocumentDataLike> // Use generic type
+    // Use specific types imported from 'firebase/firestore'
+    firestore: ClientFirestore,
+    parentRef?: ClientDocumentReference<ClientDocumentData>
   ) {
-    // Process fields to create schema for runtime base class
-    const processedFields: Record<string, FieldSchema> = {};
+    // Process fields and subcollections to create the full schema for the runtime base class
+    const schemaForRuntime: CollectionSchema = {
+      fields: {},
+      subCollections: {}, // Initialize subCollections
+    };
+
     <% Object.entries(collection.fields).forEach(([fieldName, fieldDef]) => { %>
-      processedFields['<%- fieldName %>'] = {
+      schemaForRuntime.fields['<%- fieldName %>'] = {
         <% if (fieldDef.defaultValue !== undefined) { %>
         defaultValue: <%- JSON.stringify(fieldDef.defaultValue) %>,
         <% } %>
       };
     <% }); %>
-    const schemaForRuntime: CollectionSchema = { fields: processedFields };
+
+    <% if (collection.subcollections) { %>
+    <%   Object.keys(collection.subcollections).forEach(subId => { %>
+    <%     const subModelName = capitalizeFirstLetter(subId); %>
+    <%     // Note: We need the actual SubCollection Class constructor here.
+           // The template imports it (line 22), so we can reference it directly. %>
+    schemaForRuntime.subCollections!['<%- subId %>'] = {
+      // We don't need to pass the sub-schema *data* here, the base class
+      // subCollection method will receive it when called.
+      // We *do* need to pass the constructor reference itself.
+      collectionClass: <%- subModelName %>Collection,
+    };
+    <%   }); %>
+    <% } %>
 
     // Call the base class constructor, providing the hardcoded collectionId
     // Base class constructor: (firestore, collectionId, schema?, parentRef?)
-    super(firestore, '<%- collection.collectionId %>', schemaForRuntime, parentRef);
+    super(firestore, '<%- collection.collectionId %>', schemaForRuntime, parentRef); // Pass the complete schema
   }
 
   // Methods like doc(), add(), set(), get(), delete() are inherited from BaseCollectionRef
@@ -97,8 +115,8 @@ export class <%- modelName %>Collection extends ClientBaseCollectionRef<<%- mode
     <% }); %>
     const subSchema: CollectionSchema = { fields: processedSubFields };
     // Use the subCollection helper from BaseCollectionRef
-    // It expects: parentId, subCollectionId, SubCollectionClass, subSchema?
-    return this.subCollection(documentId, '<%- subId %>', <%- subModelName %>Collection, subSchema);
+    // It expects: parentId, subCollectionId, subSchema? (SubCollectionClass removed)
+    return this.subCollection(documentId, '<%- subId %>', subSchema);
   }
 <%   }); %>
 <% } %>
