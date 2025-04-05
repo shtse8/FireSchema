@@ -67,6 +67,69 @@ const testSchema = {
   },
 };
 
+// --- Invalid Schemas for Validation Tests ---
+const invalidSchema_FieldName = {
+  ...testSchema,
+  collections: {
+    ...testSchema.collections,
+    items: {
+      ...testSchema.collections.items,
+      fields: {
+        ...testSchema.collections.items.fields,
+        'invalid/name': { type: 'string' }, // Invalid field name
+      },
+    },
+  },
+};
+
+const invalidSchema_MapKey = {
+  ...testSchema,
+  collections: {
+    ...testSchema.collections,
+    items: {
+      ...testSchema.collections.items,
+      fields: {
+        ...testSchema.collections.items.fields,
+        address: {
+          type: 'map',
+          properties: {
+            'street.dot': { type: 'string' }, // Invalid map key
+          },
+        },
+      },
+    },
+  },
+};
+
+const invalidSchema_ReferenceTo = {
+  ...testSchema,
+  collections: {
+    ...testSchema.collections,
+    items: {
+      ...testSchema.collections.items,
+      fields: {
+        ...testSchema.collections.items.fields,
+        userRef: { type: 'reference', referenceTo: 'nonExistentCollection' }, // Invalid reference
+      },
+    },
+  },
+};
+
+const invalidSchema_DefaultValueType = {
+  ...testSchema,
+  collections: {
+    ...testSchema.collections,
+    items: {
+      ...testSchema.collections.items,
+      fields: {
+        ...testSchema.collections.items.fields,
+        count: { type: 'number', defaultValue: 'not a number' }, // Invalid default value type
+      },
+    },
+  },
+};
+
+
 // --- Test Suite ---
 describe('FireSchema Generator', () => {
   beforeAll(() => {
@@ -135,4 +198,36 @@ describe('FireSchema Generator', () => {
 
   // Dart test skipped
   // it('should generate Dart files matching snapshots', () => { ... });
+
+  // --- Validation Failure Tests ---
+  const validationTestCases = [
+    { name: 'invalid field name', schema: invalidSchema_FieldName, schemaFile: 'invalid-schema-fieldname.json' },
+    { name: 'invalid map key', schema: invalidSchema_MapKey, schemaFile: 'invalid-schema-mapkey.json' },
+    { name: 'invalid referenceTo', schema: invalidSchema_ReferenceTo, schemaFile: 'invalid-schema-refto.json' },
+    { name: 'invalid defaultValue type', schema: invalidSchema_DefaultValueType, schemaFile: 'invalid-schema-defaultvalue.json' },
+  ];
+
+  validationTestCases.forEach(testCase => {
+    it(`should throw validation error for ${testCase.name}`, () => {
+      const specificSchemaPath = path.resolve(testOutputDir, testCase.schemaFile);
+      const specificConfigPath = path.resolve(testOutputDir, `config-for-${testCase.schemaFile}.json`);
+      const specificConfig = {
+        schema: `./${testCase.schemaFile}`,
+        outputs: [
+          { target: 'typescript-client', outputDir: `./out-${testCase.name}` },
+        ],
+      };
+
+      fs.writeFileSync(specificSchemaPath, JSON.stringify(testCase.schema, null, 2));
+      fs.writeFileSync(specificConfigPath, JSON.stringify(specificConfig, null, 2));
+
+      const command = `node ${cliPath} generate -c "${specificConfigPath}"`;
+
+      // Expect the command to throw an error and match the snapshot
+      expect(() => {
+        execSync(command, { cwd: testOutputDir, stdio: 'pipe' }); // Use 'pipe' to capture stderr
+      }).toThrowErrorMatchingSnapshot(testCase.name);
+    });
+  });
+
 });
