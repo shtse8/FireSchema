@@ -1,11 +1,21 @@
-<!-- Version: 1.0 | Last Updated: 2025-04-05 | Updated By: Cline -->
-# Active Context: FireSchema (Documentation Diagrams Added)
+<!-- Version: 1.2 | Last Updated: 2025-04-05 | Updated By: Cline -->
+# Active Context: FireSchema (GitHub Pages Fix - Corrected)
 
-**Current Focus:** Documentation improvement task completed. Added Mermaid diagrams to visualize core concepts. Focus can shift back to future tasks.
+**Current Focus:** Corrected GitHub Pages links and base path after initial misunderstanding. Preparing to commit the correct changes.
 
 **Recent Changes:**
 
--   **(Current) Improve Documentation with Diagrams:**
+-   **(Current) Fix GitHub Pages Deployment (Corrected):**
+    -   Initially identified documentation links in `README.md` and `base` path in VitePress config (`docs-src/.vitepress/config.mts`) pointing to `/FireSchema/`.
+    -   *Mistakenly* assumed the correct path should be `/firestore-odm/` based on the repository name.
+    -   *Incorrectly* changed `README.md` links and VitePress `base` path to `/firestore-odm/`.
+    -   User clarified that the project name and intended base path is indeed `/FireSchema/`.
+    -   **Corrected** `README.md` links back to use `https://shtse8.github.io/FireSchema/`.
+    -   **Corrected** VitePress `base` path in `docs-src/.vitepress/config.mts` back to `/FireSchema/`.
+    -   Reset the previous incorrect Git commit (`git reset HEAD~1`).
+    -   Updated Memory Bank files (`activeContext.md`, `progress.md`) to reflect the correct sequence of events.
+    -   Preparing to stage and commit the correct changes.
+-   **(Previous) Improve Documentation with Diagrams:**
     -   Reviewed core documentation files (`index.md`, `introduction.md`, `installation.md`, `schema-definition.md`, `configuration.md`, `advanced-schema.md`, `runtime-libraries.md`, `typescript-client.md`, `typescript-admin.md`, `dart-client.md`).
     -   Corrected minor issues in runtime guides (TS client/admin, Dart client) related to examples and broken links.
     -   Added Mermaid diagrams to `introduction.md`, `runtime-libraries.md`, and `schema-definition.md` to visually explain workflow, component relationships, and schema structure.
@@ -54,7 +64,9 @@
 
 **Next Steps:**
 
-1.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm that the workflow passes when triggered by the next version tag (running only unit tests).
-2.  **(Future) Implement More Adapters:** Add adapters for new targets (e.g., `dart-admin-rest`, `csharp-client`).
-3.  **(Future) Generator Enhancements:** Add support for more complex schema validation rules, improve error reporting.
-4.  **(Future) Documentation:** Continue refining and expanding the VitePress documentation content (e.g., add Contributing guide, more examples).
+1.  **(Current) Commit and Push Fixes:** Commit the changes to `README.md`, `docs-src/.vitepress/config.mts`, and Memory Bank files with the correct `/FireSchema/` path. Push to `main` to trigger the documentation deployment workflow.
+2.  **(Future) Verify GitHub Pages:** After the workflow completes, check if `https://shtse8.github.io/FireSchema/` is accessible and displays correctly.
+3.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm that the workflow passes when triggered by the next version tag (running only unit tests).
+4.  **(Future) Implement More Adapters:** Add adapters for new targets (e.g., `dart-admin-rest`, `csharp-client`).
+5.  **(Future) Generator Enhancements:** Add support for more complex schema validation rules, improve error reporting.
+6.  **(Future) Documentation:** Continue refining and expanding the VitePress documentation content (e.g., add Contributing guide, more examples).
