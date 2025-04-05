@@ -57,15 +57,17 @@ export async function generate(
   }
 
   // --- Load Templates ---
-  let modelTemplate: string, collectionRefTemplate: string;
+  let modelTemplate: string, collectionRefTemplate: string, queryBuilderTemplate: string;
   try {
     const modelTemplatePath = path.join(__dirname, 'templates', 'model.ejs');
     const collectionRefTemplatePath = path.join(__dirname, 'templates', 'collectionRef.ejs');
-    [modelTemplate, collectionRefTemplate] = await Promise.all([
+    const queryBuilderTemplatePath = path.join(__dirname, 'templates', 'queryBuilder.ejs');
+    [modelTemplate, collectionRefTemplate, queryBuilderTemplate] = await Promise.all([
         fs.readFile(modelTemplatePath, 'utf-8'),
-        fs.readFile(collectionRefTemplatePath, 'utf-8')
+        fs.readFile(collectionRefTemplatePath, 'utf-8'),
+        fs.readFile(queryBuilderTemplatePath, 'utf-8')
     ]);
-    console.log(`Loaded templates: model, collectionRef`);
+    console.log(`Loaded templates: model, collectionRef, queryBuilder`);
   } catch (error: any) {
     console.error('Error loading C# templates:', error);
     throw error;
@@ -144,9 +146,39 @@ export async function generate(
         throw error; // Re-throw to stop generation for this collection ref
     }
 
+    // --- Generate QueryBuilder File ---
+    const queryBuilderName = `${collectionPascalName}QueryBuilder`;
+    const queryBuilderFileName = `${queryBuilderName}.cs`;
+    const queryBuilderFilePath = path.join(outputConfig.outputDir, queryBuilderFileName);
+
+    const queryBuilderData = {
+        namespace: targetNamespace,
+        collectionName: collectionName,
+        modelName: modelName,
+        properties: fields, // Pass fields for generating typed Where/OrderBy methods
+    };
+
+    console.log(`Rendering queryBuilder for ${collectionName} -> ${queryBuilderFileName}`);
+    let generatedQueryBuilderCode: string;
+    try {
+        generatedQueryBuilderCode = ejs.render(queryBuilderTemplate, queryBuilderData);
+    } catch (error: any) {
+        console.error(`Error rendering EJS template for ${queryBuilderName}:`, error);
+        throw new Error(`EJS rendering failed for ${queryBuilderName}: ${error.message}`);
+    }
+
+    try {
+        await fs.writeFile(queryBuilderFilePath, generatedQueryBuilderCode, 'utf-8');
+        console.log(`Successfully wrote queryBuilder file: ${queryBuilderFilePath}`);
+    } catch (error: any) {
+        console.error(`Error writing queryBuilder file ${queryBuilderFilePath}:`, error);
+        throw error; // Re-throw to stop generation for this query builder
+    }
+
+
   } // End loop through collections
 
-  // --- TODO: Add generation for other file types (query builders, update builders, etc.) ---
+  // --- TODO: Add generation for other file types (update builders, etc.) ---
 
-  console.log('C# client code generation (models, collectionRefs) complete.');
+  console.log('C# client code generation (models, collectionRefs, queryBuilders) complete.');
 }
