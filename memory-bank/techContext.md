@@ -1,4 +1,4 @@
-<!-- Version: 1.9 | Last Updated: 2025-04-06 | Updated By: Cline -->
+<!-- Version: 1.10 | Last Updated: 2025-04-06 | Updated By: Cline -->
 # Technical Context: FireSchema (Separate Repos + Submodules)
 
 **Core Generator Tool (`@shtse8/fireschema`):**
@@ -32,8 +32,9 @@
   - **Location:** `packages/fireschema-csharp-runtime` (Submodule linking to `fireschema-csharp-runtime` repo)
   - **Purpose:** Uses `Google.Cloud.Firestore` SDK. Contains base classes (`BaseCollectionRef`, `BaseQueryBuilder`, `BaseUpdateBuilder`), converter (`FirestoreDataConverter`), interface (`IFirestoreDocument`), attribute (`FirestoreDocumentIdAttribute`).
   - **Target Framework:** `net8.0` (LTS, compatible with CI)
+  - **Version:** `0.1.1`
   - **Used by:** `csharp-client` adapter.
-  - **Published:** NuGet package (v0.1.0 tagged for release via CI).
+  - **Published:** NuGet package (v0.1.1 tagged for release via CI).
   - **Dependencies:** `Google.Cloud.Firestore`.
 
 **Generated Code Targets (Examples):**
@@ -64,4 +65,4 @@
 - **Automation:** GitHub Actions.
 - **Main Repo:** Builds/tests CLI & docs, deploys docs. **No package publishing.**
 - **Runtime Repos:** Separate workflows trigger on tags **in that repo** to build, test, publish **only that package**.
-- **C# CI (`dotnet-ci-cd.yml`):** Uses `ubuntu-latest`, `actions/setup-dotnet@v4` (with `dotnet-version: '8.0.x'`), `google-github-actions/setup-gcloud@v2` (to install `beta`, `cloud-firestore-emulator`), starts emulator, runs `dotnet build`, `dotnet test` (without `--no-build`), `dotnet pack` (with `--no-build`), and pushes NuGet on tag (e.g., `v0.1.0`).
+- **C# CI (`dotnet-ci-cd.yml`):** Uses `ubuntu-latest`, `actions/setup-dotnet@v4` (with `dotnet-version: '8.0.x'`), `google-github-actions/setup-gcloud@v2` (to install `beta`, `cloud-firestore-emulator`), starts emulator, runs `dotnet build`, `dotnet test` (without `--no-build`), `dotnet pack` (with `--no-build`), and pushes NuGet on tag (e.g., `v0.1.1`).
