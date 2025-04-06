@@ -1,42 +1,38 @@
-<!-- Version: 1.17 | Last Updated: 2025-04-06 | Updated By: Cline -->
-# Progress: FireSchema (C# Runtime v0.1.1 Tagged)
+<!-- Version: 1.18 | Last Updated: 2025-04-06 | Updated By: Cline -->
+# Progress: FireSchema (C# Runtime Docs Updated)
 
 **What Works:**
 
--   **Core Functionality:** CLI tool (`fireschema generate`) executes, parses config/schema, generates code for TS/Dart targets.
+-   **Core Functionality:** CLI tool (`fireschema generate`) executes, parses config/schema, generates code for TS/Dart/C# targets.
 -   **C# Client Adapter Implementation (Basic):** Adapter structure, config loading, templates, generator integration complete.
 -   **Repository Structure:** Runtimes (TS, Dart, C#) linked as submodules.
--   **C# Client Runtime Library (Core Features):** Submodule added, project file created (targeting `net8.0`, version `0.1.1`), core interface/attributes/converter/base classes implemented (`BaseCollectionRef`, `BaseUpdateBuilder`, `BaseQueryBuilder`). Includes:
-    -   CRUD operations (Add, Get, Set, Delete, Update).
-    -   Basic Queries (Where, OrderBy, Limit).
-    -   Advanced Queries (WhereIn, WhereNotIn, WhereArrayContainsAny, Pagination).
-    -   Update Builder operations (Set, Increment, ArrayUnion, ArrayRemove, **Delete (type-safe)**, **SetServerTimestamp (type-safe)**).
+-   **C# Client Runtime Library (Core Features):** Submodule added, project file created (targeting `net8.0`, version `0.1.1`), core interface/attributes/converter/base classes implemented. Includes CRUD, basic & advanced queries, update builder operations (Set, Increment, ArrayUnion/Remove, Delete, SetServerTimestamp).
 -   **Build & Development:** Core CLI builds. Bun used in main repo. .NET SDK functional.
 -   **Testing:**
-    -   (Excluding C# specific generator tests) Generator snapshot tests pass.
+    -   Generator snapshot tests pass (excluding C# specific tests for now).
     -   Dart unit tests pass, TS runtime tests pass in CI.
-    -   **C# Runtime:** Unit test (`FirestoreDataConverterTests`) and integration tests (`IntegrationTests` for CRUD, Update Ops, Basic & Advanced Queries, Pagination, **Type-safe Delete/Timestamp**) pass against the emulator.
--   **Publishing & CI/CD:** Main repo deploys docs. Runtime publishing in respective repos (TS/Dart). C# CI workflow emulator setup fixed. **C# CI build, test, and pack steps fixed after multiple attempts (specified build output dir).** C# Runtime v0.1.1 tagged for release via CI.
--   **Documentation:** VitePress site deployed.
+    -   **C# Runtime:** Unit & Integration tests pass against the emulator.
+-   **Publishing & CI/CD:** Main repo deploys docs. Runtime publishing in respective repos (TS/Dart). C# CI workflow fixed. C# Runtime v0.1.1 tagged for release via CI.
+-   **Documentation:** VitePress site deployed. **READMEs and Docs updated to reflect C# support.**
 
 **What's Left:**
 
-1.  **(Monitor) Verify C# Runtime v0.1.1 NuGet Publication:** Check GitHub Actions status and NuGet.org. The workflow triggered by the *final* `v0.1.1` tag (`b0cfa40`) should now succeed.
+1.  **(Monitor) Verify C# Runtime v0.1.1 NuGet Publication:** Check GitHub Actions status and NuGet.org. (Ongoing)
 2.  **(Active) Refine C# Implementation:**
     -   Implement remaining/complex update operations in `BaseUpdateBuilder` and add tests.
-    -   Add C# output back to generator snapshot tests (`src/__tests__/generator.test.ts`) and update snapshots (once C# generation is stable and fully testable).
+    -   Add C# output back to generator snapshot tests (`src/__tests__/generator.test.ts`) and update snapshots.
     -   Address CS8600 warning in `IntegrationTests.cs` pagination test.
 3.  **(Future) Verify `fireschema_dart_runtime` CI:** Confirm pass on next tag.
 4.  **(Future) Implement More Adapters:** `dart-admin-rest`.
 5.  **(Future) Generator Enhancements:** Complex validation, error reporting, plugins.
-6.  **(Future) Documentation Content:** Add C# guide.
+6.  **(Future) Documentation Content:** Flesh out C# guide (`docs-src/guide/csharp-client.md`).
 
 **Current Status:**
 
 **C# Client Generation Basics Complete.**
 **C# Runtime Library Core Features Implemented & Tested.**
-**C# CI Workflow Fixed & Build/Test/Pack Succeeding (Hopefully).**
 **C# Runtime v0.1.1 Tagged for NuGet Release via CI.**
+**Documentation Updated for C# Support.**
 **Next focus:** Monitor NuGet publication, then continue refining C# implementation.
 
 **Known Issues:**
@@ -45,5 +41,5 @@
 -   **C# Build Warning (CS8600):** Potential null conversion in `IntegrationTests.cs` pagination test. **Low priority.**
 -   **Generator Snapshot Test Flakiness (Windows):** Potential timing issues reading files immediately after generation.
 -   **Dart Integration Tests in CI:** Consistently fail. **Currently skipped in CI.**
--   **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in `src/__tests__/dart-generated`.\\n
+-   **IDE Analysis Limitation:** Dart analyzer/IDE may show errors in `src/__tests__/dart-generated`.
 -   **Test Cleanup Flakiness:** Generator snapshot tests sometimes fail during cleanup (currently disabled).

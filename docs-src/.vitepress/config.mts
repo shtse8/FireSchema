@@ -32,6 +32,7 @@ export default defineConfig({
             { text: 'TypeScript Client Guide', link: '/guide/typescript-client' },
             { text: 'TypeScript Admin Guide', link: '/guide/typescript-admin' },
             { text: 'Dart Client Guide', link: '/guide/dart-client' },
+            { text: 'C# Client Guide', link: '/guide/csharp-client' }, // Added C# Guide
           ]
         },
         {

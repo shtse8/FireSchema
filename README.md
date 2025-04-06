@@ -2,9 +2,10 @@
 
 [![npm version](https://badge.fury.io/js/%40shtse8%2Ffireschema.svg)](https://badge.fury.io/js/%40shtse8%2Ffireschema)
 [![pub version](https://img.shields.io/pub/v/fireschema_dart_runtime.svg)](https://pub.dev/packages/fireschema_dart_runtime)
+[![NuGet version](https://badge.fury.io/nu/FireSchema.CS.Runtime.svg)](https://badge.fury.io/nu/FireSchema.CS.Runtime)
 <!-- Add other badges as needed: license, build status -->
 
-FireSchema is a command-line tool that generates strongly-typed Object Document Mapper (ODM) code for Google Firestore based on a JSON Schema definition. It aims to improve type safety, developer experience, and collaboration when working with Firestore, especially in multi-language projects (TypeScript & Dart).
+FireSchema is a command-line tool that generates strongly-typed Object Document Mapper (ODM) code for Google Firestore based on a JSON Schema definition. It aims to improve type safety, developer experience, and collaboration when working with Firestore, especially in multi-language projects (TypeScript, Dart, and C#).
 
 Stop writing repetitive boilerplate and prevent runtime errors caused by typos or incorrect data structures. Define your schema once and let FireSchema generate type-safe, easy-to-use code for interacting with Firestore.
 
@@ -14,7 +15,7 @@ Stop writing repetitive boilerplate and prevent runtime errors caused by typos o
 
 -   **🔥 Schema-Driven Generation:** Define your Firestore structure once using JSON Schema.
 -   **🔒 Type Safety First:** Catch data errors at compile time. Strongly-typed models, query builders, and update builders.
--   **🎯 Multi-Target Support:** Generate code for TypeScript (Client & Admin SDKs) and Dart (Client SDK).
+-   **🎯 Multi-Target Support:** Generate code for TypeScript (Client & Admin SDKs), Dart (Client SDK), and C# (Client SDK).
 -   **⚙️ Independent Runtimes:** Lightweight, target-specific runtime libraries provide base functionality.
 -   **🚀 Boost Productivity:** Automate boilerplate for CRUD, queries, and atomic operations.
 -   **🧩 Extensible Adapters:** Potential to support more languages in the future.
@@ -29,7 +30,7 @@ Here's a snapshot of current support and future plans:
 | **TypeScript (Admin)**  | ✅ Supported | `firebase-admin` (Node.js)     | Unit & Integration (Emulator)    | Ideal for Backends (Node.js, Cloud Functions). Full CRUD, Querying, Subcollections, Transactions/Batches. **No Streaming.**                           |
 | **Dart (Client)**       | ✅ Supported | `cloud_firestore` (Flutter)    | Unit (Fake) & Integration (Local)³ | Ideal for Flutter Apps & Dart clients. Full CRUD, Querying, Streaming, Subcollections, Transactions/Batches. Includes `serverTimestamp` handling on `add`. |
 | **Dart (Admin/Server)** | ⏳ Planned   | Firestore REST API             | N/A                                | Target: `dart-admin-rest` (tentative). **Addresses lack of official Dart Admin SDK**, enabling type-safe backend Dart Firestore access.             |
-| **C# (Client)**         | ⏳ Planned   | Firebase SDK for .NET (TBD)    | N/A                                | Target: `csharp-client` (tentative). For Unity, MAUI, Blazor, etc.                                                                                 |
+| **C# (Client)**         | ✅ Supported | `Google.Cloud.Firestore`       | Unit & Integration (Emulator)    | Target: `csharp-client`. For .NET applications (ASP.NET Core, MAUI, Blazor, Unity via .NET Standard 2.1). Full CRUD, Querying, Updates.             |
 
 **Core Features (Supported across all current runtimes):**
 
@@ -55,7 +56,7 @@ Here's a snapshot of current support and future plans:
     npm install -g @shtse8/fireschema
     # Or: npm install --save-dev @shtse8/fireschema
     ```
-2.  **Install Runtimes & SDKs:** Install the required runtime(s) (`@shtse8/fireschema-ts-client-runtime`, `@shtse8/fireschema-ts-admin-runtime`, `fireschema_dart_runtime`) **AND** the corresponding Firebase SDK (`firebase`, `firebase-admin`, `cloud_firestore`) in your target project(s).
+2.  **Install Runtimes & SDKs:** Install the required runtime(s) (`@shtse8/fireschema-ts-client-runtime`, `@shtse8/fireschema-ts-admin-runtime`, `fireschema_dart_runtime`, `FireSchema.CS.Runtime`) **AND** the corresponding Firebase SDK (`firebase`, `firebase-admin`, `cloud_firestore`, `Google.Cloud.Firestore`) in your target project(s).
 
 **➡️ See the [Installation Guide](https://shtse8.github.io/FireSchema/guide/installation.html) for full details.**
 
@@ -178,6 +179,47 @@ Future<void> dartExample() async {
 
 ```
 **➡️ See the full [Dart Client Guide](https://shtse8.github.io/FireSchema/guide/dart-client.html)**
+
+### C# Client (`Google.Cloud.Firestore`)
+
+```csharp
+using Google.Cloud.Firestore;
+using YourProject.Generated.Firestore; // Adjust namespace
+using YourProject.Generated.Firestore.Users; // Adjust namespace
+
+// Your initialized FirestoreDb instance
+FirestoreDb firestoreDb = FirestoreDb.Create("your-project-id"); 
+
+var usersCollection = new UsersCollection(firestoreDb);
+var userId = "user-csharp-123";
+
+async Task CSharpExample()
+{
+    // Add
+    var newUser = new UsersAddData { DisplayName = "CSharp User", Email = "csharp@example.com", Age = 30 };
+    var newUserRef = await usersCollection.AddAsync(newUser);
+    Console.WriteLine($"Added: {newUserRef.Id}");
+
+    // Get
+    var fetchedUser = await usersCollection.GetAsync(newUserRef.Id);
+    Console.WriteLine($"Fetched: {fetchedUser?.Data.DisplayName}");
+
+    // Query
+    var activeUsers = await usersCollection.Query()
+        .WhereIsActive(FilterOperator.EqualTo, true) // Assumes IsActive field
+        .Limit(10)
+        .GetDataAsync();
+    Console.WriteLine($"Active Users: {activeUsers.Count}");
+
+    // Update
+    await usersCollection.UpdateAsync(newUserRef.Id)
+        .IncrementAge(1) // Assumes Age field
+        .SetLastLogin(Timestamp.GetCurrentTimestamp()) // Assumes LastLogin field
+        .CommitAsync();
+    Console.WriteLine($"Updated: {newUserRef.Id}");
+}
+```
+**➡️ See the full [C# Client Guide](https://shtse8.github.io/FireSchema/guide/csharp-client.html) (Coming Soon!)**
 
 ## Full Documentation
 

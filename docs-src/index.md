@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "FireSchema"
   text: "Strongly-Typed Firestore ODM"
-  tagline: Generate type-safe code for TypeScript & Dart from your Firestore schema. Boost productivity and prevent runtime errors.
+  tagline: Generate type-safe code for TypeScript, Dart & C# from your Firestore schema. Boost productivity and prevent runtime errors. # Updated tagline
   image:
     # Optional: Add a logo or relevant image
     # src: /logo.png
@@ -22,7 +22,7 @@ features:
   - title: 🔒 Type Safety First
     details: Catch Firestore data errors at compile time, not runtime. Provides strongly-typed models, query builders, and update builders.
   - title: 🎯 Multi-Target Support
-    details: Generate code specifically tailored for TypeScript (Client & Admin SDKs) and Dart (Client SDK).
+    details: Generate code specifically tailored for TypeScript (Client & Admin SDKs), Dart (Client SDK), and C# (Client SDK). # Updated description
   - title: ⚙️ Independent Runtimes
     details: Lightweight, target-specific runtime libraries provide base functionality without bloating your generated code.
   - title: 🚀 Boost Productivity
@@ -43,7 +43,7 @@ FireSchema aims to provide a robust, type-safe interface for Firestore across mu
 | **TypeScript (Admin)**  | ✅ Supported | `firebase-admin` (Node.js)     | Unit & Integration (Emulator)    | Ideal for Backends (Node.js, Cloud Functions). Full CRUD, Querying, Subcollections, Transactions/Batches. **No Streaming.**                           |
 | **Dart (Client)**       | ✅ Supported | `cloud_firestore` (Flutter)    | Unit (Fake) & Integration (Emulator) | Ideal for Flutter Apps & Dart clients. Full CRUD, Querying, Streaming, Subcollections, Transactions/Batches. Includes `serverTimestamp` handling on `add`. |
 | **Dart (Admin/Server)** | ⏳ Planned   | Firestore REST API             | N/A                                | Target: `dart-admin-rest` (tentative). **Addresses lack of official Dart Admin SDK**, enabling type-safe backend Dart Firestore access.             |
-| **C# (Client)**         | ⏳ Planned   | Firebase SDK for .NET (TBD)    | N/A                                | Target: `csharp-client` (tentative). For Unity, MAUI, Blazor, etc.                                                                                 |
+| **C# (Client)**         | ✅ Supported | `Google.Cloud.Firestore`       | Unit & Integration (Emulator)    | Target: `csharp-client`. For .NET applications (ASP.NET Core, MAUI, Blazor, Unity via .NET Standard 2.1). Full CRUD, Querying, Updates.             |
 
 **Core Features (Supported across all current runtimes):**
 
