@@ -1,43 +1,44 @@
-<!-- Version: 1.7 | Last Updated: 2025-04-05 | Updated By: Cline -->
-# Active Context: FireSchema (C# Test Compilation Blocked)
+<!-- Version: 1.10 | Last Updated: 2025-04-06 | Updated By: Cline -->
+# Active Context: FireSchema (C# Query Features Complete, CI Fix)
 
-**Current Focus:** C# base implementation is complete, but further progress (testing, refinement) is blocked by persistent compilation errors in the C# test project (`FireSchema.CS.Runtime.Tests`). The immediate next step is to investigate these errors in a dedicated task.
+**Current Focus:** C# runtime library features are mostly complete, including base CRUD, updates, and advanced querying (WhereIn, NotIn, ArrayContainsAny, Pagination). Integration tests pass against the Firestore emulator. The known CS0436 warnings persist due to the NUnit workaround. The C# CI workflow emulator setup has been fixed.
 
 **Recent Changes:**
 
--   **(Completed) Implement C# Client Support (Base):** Adapter, templates, runtime submodule, runtime base classes, and initial test project setup completed and committed.
--   **(Attempted & Failed) Run C# Unit Tests:** Executed `dotnet test` repeatedly. Build failed due to errors indicating test framework types (MSTest initially, then NUnit after refactoring) could not be found (CS0234, CS0246).
--   **(Troubleshooting C# Test Compilation):**
-    -   Verified/Corrected NuGet package references (`Microsoft.NET.Test.Sdk`, test framework adapters/frameworks).
-    -   Verified/Corrected `using` statements.
-    -   Verified/Corrected project references and Solution file configuration.
-    -   Upgraded Target Frameworks to `net6.0`.
-    -   Upgraded test framework NuGet packages.
-    -   Disabled ImplicitUsings.
-    -   Explicitly marked test project with `<IsTestProject>true`.
-    -   Cleared NuGet cache and restoring.
-    -   **Confirmed .NET SDK environment works:** Successfully created and tested a simple, new MSTest project outside the current solution.
-    -   **Switched Test Framework:** Refactored test project from MSTest to NUnit; the same type/namespace resolution errors occurred for NUnit types.
+-   **(Completed) Fix C# CI Workflow Emulator Setup:**
+    -   Modified `packages/fireschema-csharp-runtime/.github/workflows/dotnet-ci-cd.yml`.
+    -   Replaced direct `gcloud components install` with `google-github-actions/setup-gcloud@v2` action to handle component installation (`beta`, `cloud-firestore-emulator`).
+    -   Separated emulator start command into its own step.
+-   **(Completed) Implement C# Query Support:**
+    -   Implemented `WhereIn`, `WhereNotIn`, `WhereArrayContainsAny` in `BaseQueryBuilder.cs`.
+    -   Implemented pagination methods (`StartAt`, `StartAfter`, `EndAt`, `EndBefore`) in `BaseQueryBuilder.cs`.
+    -   Added corresponding convenience methods to `BaseCollectionRef.cs`.
+    -   Added integration tests for new query operators and pagination in `IntegrationTests.cs`.
+    -   Fixed `FromFirestore` accessibility in `FirestoreDataConverter` for test usage.
+    -   Added `System.Linq` import to `BaseQueryBuilder.cs`.
+    -   Tests pass using `dotnet test`.
+-   **(Completed) Investigate &amp; Fix C# Test Compilation Errors:**
+    -   Ran `dotnet build` and `dotnet test` directly on the test project.
+    -   Builds and tests now pass, indicating the original compilation error is resolved or bypassed.
+    -   Added basic integration tests (`IntegrationTests.cs`) using the Firestore emulator.
+    -   Implemented `DeleteAsync` in `BaseCollectionRef`.
+    -   Implemented `BaseUpdateBuilder` (including type-safe `Set`, `Increment`, `ArrayUnion`, `ArrayRemove`) and `UpdateAsync` in `BaseCollectionRef`.
+    -   Refactored `TestModel` into its own file.
+    -   Addressed nullability warnings (CS8602) using `!`.\n    -   **Workaround:** Re-added `NUnit` PackageReference to the main `FireSchema.CS.Runtime.csproj` to allow tests to compile/run, accepting resulting CS0436 warnings.
+-   **(Previous) Implement C# Client Support (Base):** Adapter, templates, runtime submodule, runtime base classes, and initial test project setup completed and committed.
 -   **(Previous) Fix GitHub Pages Deployment.**
 -   **(Previous) Improve Documentation with Diagrams.**
--   **(Previous) Verify Runtime CI Status & Fix Dart CI.**
--   **(Previous) Repository Split & Submodule Setup.**
--   **(Previous) Documentation Restructure & Content.**
--   **(Previous) Executor + Adapter Refactor.**
+-   **(Previous) Verify Runtime CI Status &amp; Fix Dart CI.**
+-   **(Previous) Repository Split &amp; Submodule Setup.**
 
-**Next Steps (New Task):**
+**Next Steps:**
 
-1.  **(Highest Priority - New Task) Investigate & Fix C# Test Compilation Errors:**
-    -   Focus specifically on the `fireschema-csharp-runtime` solution/projects.
-    -   Try building the test project directly (`dotnet build ...`) to get more focused build output.
-    -   Examine build logs in detail (`/v:diag` or similar).
-    -   Investigate potential conflicts between dependencies (e.g., Google.Cloud.Firestore and test framework versions).
-    -   Check for any global build configurations or environment variables that might interfere.
-    -   Consider creating a minimal reproduction case within the submodule structure.
-2.  **(Blocked) Test C# Generation & Runtime.**
-3.  **(Pending) Refine C# Implementation.**
-4.  **(Pending) Setup C# Runtime CI/CD.**
-5.  **(Future) Verify `fireschema_dart_runtime` CI.**
-6.  **(Future) Implement More Adapters:** `dart-admin-rest`.
-7.  **(Future) Generator Enhancements.**
-8.  **(Future) Documentation:** Add C# guide.
+1.  **(Highest Priority) Refine C# Implementation:**
+    -   Implement remaining update operations (if any missed, e.g., more complex scenarios) in `BaseUpdateBuilder`.
+    -   Add more comprehensive tests for update operations.
+    -   Address CS8600 warning in `IntegrationTests.cs` pagination test if deemed necessary.
+2.  **(Pending) Setup C# Runtime CI/CD:** Build/test/publish NuGet package workflow in `fireschema-csharp-runtime` repo (Emulator setup part is done, need build/pack/publish steps).
+3.  **(Future) Verify `fireschema_dart_runtime` CI.**
+4.  **(Future) Implement More Adapters:** `dart-admin-rest`.
+5.  **(Future) Generator Enhancements.**
+6.  **(Future) Documentation:** Add C# guide.

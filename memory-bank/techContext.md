@@ -1,4 +1,4 @@
-<!-- Version: 1.5 | Last Updated: 2025-04-05 | Updated By: Cline -->
+<!-- Version: 1.6 | Last Updated: 2025-04-06 | Updated By: Cline -->
 # Technical Context: FireSchema (Separate Repos + Submodules)
 
 **Core Generator Tool (`@shtse8/fireschema`):**
@@ -52,13 +52,14 @@
 - **Core Tool:** Snapshot Tests (`src/__tests__/generator.test.ts`).
 - **Runtime Packages:** Unit & Integration Tests **within each runtime repo**.
 - **Adapters:** Primarily tested via core tool's Snapshot Tests.
+- **C# Integration Tests:** Require Firestore emulator (started via `gcloud beta emulators firestore start` in CI, using `setup-gcloud` action).
 
 **Documentation:**
 
-- **Framework:** VitePress (`docs-src/`). Build output `docs/`.
-
+- **Framework:** VitePress (`docs-src/`). Build output `docs/`.\n
 **Publishing & CI/CD:**
 
 - **Automation:** GitHub Actions.
 - **Main Repo:** Builds/tests CLI & docs, deploys docs. **No package publishing.**
 - **Runtime Repos:** Separate workflows trigger on tags **in that repo** to build, test, publish **only that package**.
+- **C# CI (`dotnet-ci-cd.yml`):** Uses `ubuntu-latest`, `actions/setup-dotnet@v4`, `google-github-actions/setup-gcloud@v2` (to install `beta`, `cloud-firestore-emulator`), starts emulator, runs `dotnet test`, packs/pushes NuGet on tag.
