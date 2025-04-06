@@ -1,4 +1,4 @@
-<!-- Version: 1.10 | Last Updated: 2025-04-06 | Updated By: Cline -->
+<!-- Version: 1.14 | Last Updated: 2025-04-06 | Updated By: Cline -->
 # Technical Context: FireSchema (Separate Repos + Submodules)
 
 **Core Generator Tool (`@shtse8/fireschema`):**
@@ -65,4 +65,4 @@
 - **Automation:** GitHub Actions.
 - **Main Repo:** Builds/tests CLI & docs, deploys docs. **No package publishing.**
 - **Runtime Repos:** Separate workflows trigger on tags **in that repo** to build, test, publish **only that package**.
-- **C# CI (`dotnet-ci-cd.yml`):** Uses `ubuntu-latest`, `actions/setup-dotnet@v4` (with `dotnet-version: '8.0.x'`), `google-github-actions/setup-gcloud@v2` (to install `beta`, `cloud-firestore-emulator`), starts emulator, runs `dotnet build`, `dotnet test` (without `--no-build`), `dotnet pack` (with `--no-build`), and pushes NuGet on tag (e.g., `v0.1.1`).
+- **C# CI (`dotnet-ci-cd.yml`):** Uses `ubuntu-latest`, `actions/setup-dotnet@v4` (with `dotnet-version: '8.0.x'`), `google-github-actions/setup-gcloud@v2` (to install `beta`, `cloud-firestore-emulator`), starts emulator. Runs steps: `dotnet restore <proj>`, `dotnet build <proj> --no-restore -o ./build_output`, `dotnet pack <proj> --no-build`, `dotnet test --no-build`, and pushes NuGet on tag (e.g., `v0.1.1`).

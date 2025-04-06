@@ -1,20 +1,24 @@
-<!-- Version: 1.15 | Last Updated: 2025-04-06 | Updated By: Cline -->
-# Active Context: FireSchema (C# Runtime v0.1.1 Tagged)
+<!-- Version: 1.19 | Last Updated: 2025-04-06 | Updated By: Cline -->
+# Active Context: FireSchema (C# Runtime v0.1.1 Tagged, CI Fix Attempt 6)
 
-**Current Focus:** C# runtime library features are mostly complete. Integration tests pass. C# CI workflow emulator setup fixed. CI build failures (NETSDK1045, NU5026) resolved. Project version bumped to `0.1.1`. New tag `v0.1.1` created on the latest fixed commit (`2941e10`) and pushed to trigger NuGet publishing via GitHub Actions.
+**Current Focus:** C# runtime library features are mostly complete. Integration tests pass. C# CI workflow emulator setup fixed. CI build failures (NETSDK1045, NU5026, NETSDK1004) resolved through multiple iterations, including specifying build output directory. Project version is `0.1.1`. Final tag `v0.1.1` created on the latest fixed commit (`b0cfa40`) and pushed to trigger NuGet publishing via GitHub Actions.
 
 **Recent Changes:**
 
--   **(Completed) Bump Version & Trigger C# Runtime Release (v0.1.1):**
-    -   Updated version in `FireSchema.CS.Runtime.csproj` to `0.1.1` (commit `2941e10`).
-    -   Deleted old `v0.1.0` tags (local and remote).
-    -   Created new `v0.1.1` tag on commit `2941e10` in `packages/fireschema-csharp-runtime` submodule.
-    -   Pushed new tag `v0.1.1` to submodule remote repository (`shtse8/fireschema-csharp-runtime`).
-    -   GitHub Actions workflow in `fireschema-csharp-runtime` repo should now be running with the correct code, workflow steps, and version to publish to NuGet.
--   **(Completed) Fix C# CI Pack Failure (NU5026):**
+-   **(Completed) Fix C# CI Workflow (Specify Build Output):**
     -   Modified `.github/workflows/dotnet-ci-cd.yml`.
-    -   Removed `--no-build` from `dotnet test` step.
-    -   Added `--no-build` to `dotnet pack` step (commit `a3587f1`).
+    -   Added `-o ./build_output` to `build` step.
+    -   Commit `b0cfa40`.
+-   **(Completed) Re-Tag & Trigger C# Runtime Release (v0.1.1 - Sixth Attempt):**
+    -   Deleted previous local and remote `v0.1.1` tag (which pointed to commit `b3f0303`).
+    -   Created new `v0.1.1` tag on commit `b0cfa40` (containing the build output dir fix) in `packages/fireschema-csharp-runtime` submodule.
+    -   Pushed new tag `v0.1.1` to submodule remote repository (`shtse8/fireschema-csharp-runtime`).
+    -   GitHub Actions workflow in `fireschema-csharp-runtime` repo should now be running with the correct code and workflow steps to publish to NuGet.
+-   **(Completed) Fix C# CI Workflow (Simplify Steps):** Removed most `--no-build`/`--no-restore` flags (commit `979b046`). (Superseded)
+-   **(Completed) Fix C# CI Step Order & Params:** Reordered steps (commit `37deebf`). (Superseded)
+-   **(Completed) Fix C# CI Assets File Failure (NETSDK1004):** Added explicit restore before pack step (commit `c8cc997`). (Superseded)
+-   **(Completed) Bump Version to 0.1.1:** Updated version in `FireSchema.CS.Runtime.csproj` (commit `2941e10`).
+-   **(Completed) Fix C# CI Pack Failure (NU5026):** Adjusted `--no-build` flags in test/pack steps (commit `a3587f1`).
 -   **(Completed) Fix C# CI Build Failure (NETSDK1045):** Changed target framework from `net9.0` to `net8.0` (commit `62205ab`).
 -   **(Previous - Related to initial tag) Tag & Trigger C# Runtime Release (v0.1.0):** (Details omitted - superseded)
 -   **(Completed) Add Type-Safe UpdateBuilder Methods:** (Details omitted)
@@ -29,7 +33,7 @@
 
 **Next Steps:**
 
-1.  **(Monitor) Verify C# Runtime v0.1.1 NuGet Publication:** Check GitHub Actions status in `shtse8/fireschema-csharp-runtime` repo and NuGet.org. The workflow triggered by the `v0.1.1` tag should now succeed.
+1.  **(Monitor) Verify C# Runtime v0.1.1 NuGet Publication:** Check GitHub Actions status in `shtse8/fireschema-csharp-runtime` repo and NuGet.org. The workflow triggered by the *final* `v0.1.1` tag (`b0cfa40`) should now succeed.
 2.  **(Highest Priority Post-Release) Refine C# Implementation:**
     -   Implement remaining update operations (if any missed).
     -   Add more comprehensive tests for update operations.

@@ -1,4 +1,4 @@
-<!-- Version: 1.13 | Last Updated: 2025-04-06 | Updated By: Cline -->
+<!-- Version: 1.17 | Last Updated: 2025-04-06 | Updated By: Cline -->
 # Progress: FireSchema (C# Runtime v0.1.1 Tagged)
 
 **What Works:**
@@ -16,12 +16,12 @@
     -   (Excluding C# specific generator tests) Generator snapshot tests pass.
     -   Dart unit tests pass, TS runtime tests pass in CI.
     -   **C# Runtime:** Unit test (`FirestoreDataConverterTests`) and integration tests (`IntegrationTests` for CRUD, Update Ops, Basic & Advanced Queries, Pagination, **Type-safe Delete/Timestamp**) pass against the emulator.
--   **Publishing & CI/CD:** Main repo deploys docs. Runtime publishing in respective repos (TS/Dart). C# CI workflow emulator setup fixed. **C# CI build and pack steps fixed.** C# Runtime v0.1.1 tagged for release via CI.
+-   **Publishing & CI/CD:** Main repo deploys docs. Runtime publishing in respective repos (TS/Dart). C# CI workflow emulator setup fixed. **C# CI build, test, and pack steps fixed after multiple attempts (specified build output dir).** C# Runtime v0.1.1 tagged for release via CI.
 -   **Documentation:** VitePress site deployed.
 
 **What's Left:**
 
-1.  **(Monitor) Verify C# Runtime v0.1.1 NuGet Publication:** Check GitHub Actions status and NuGet.org. The workflow triggered by the `v0.1.1` tag should now succeed.
+1.  **(Monitor) Verify C# Runtime v0.1.1 NuGet Publication:** Check GitHub Actions status and NuGet.org. The workflow triggered by the *final* `v0.1.1` tag (`b0cfa40`) should now succeed.
 2.  **(Active) Refine C# Implementation:**
     -   Implement remaining/complex update operations in `BaseUpdateBuilder` and add tests.
     -   Add C# output back to generator snapshot tests (`src/__tests__/generator.test.ts`) and update snapshots (once C# generation is stable and fully testable).
@@ -35,7 +35,7 @@
 
 **C# Client Generation Basics Complete.**
 **C# Runtime Library Core Features Implemented & Tested.**
-**C# CI Workflow Fixed & Build/Pack Succeeding.**
+**C# CI Workflow Fixed & Build/Test/Pack Succeeding (Hopefully).**
 **C# Runtime v0.1.1 Tagged for NuGet Release via CI.**
 **Next focus:** Monitor NuGet publication, then continue refining C# implementation.
 
