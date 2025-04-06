@@ -9,6 +9,9 @@ export default defineConfig({
 
   // Theme related configurations.
   themeConfig: {
+    outline: {
+      level: 3 // Show h2 and h3 headings in the sidebar/outline
+    },
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
@@ -19,8 +22,9 @@ export default defineConfig({
       '/guide/': [
         {
           text: 'Getting Started',
+          collapsed: false, // Make group collapsible and expanded by default
           items: [
-            { text: 'Introduction', link: '/guide/introduction' },
+            { text: 'Introduction', link: '/guide/introduction' }, // Remove collapsible from item
             { text: 'Installation', link: '/guide/installation' },
             { text: 'Schema Definition', link: '/guide/schema-definition' },
             { text: 'Configuration', link: '/guide/configuration' },
@@ -28,6 +32,7 @@ export default defineConfig({
         },
         {
           text: 'Runtime Guides',
+          collapsed: false, // Make group collapsible and expanded by default
           items: [
             { text: 'TypeScript Client Guide', link: '/guide/typescript-client' },
             { text: 'TypeScript Admin Guide', link: '/guide/typescript-admin' },
@@ -37,6 +42,7 @@ export default defineConfig({
         },
         {
           text: 'Advanced Topics',
+          collapsed: false, // Make group collapsible and expanded by default
           items: [
              { text: 'Advanced Schema', link: '/guide/advanced-schema' },
              // { text: 'Advanced Usage Patterns', link: '/guide/advanced-usage' }, // Merged into runtime guides
@@ -46,6 +52,7 @@ export default defineConfig({
         },
         {
             text: 'Roadmap',
+            collapsed: false, // Make group collapsible and expanded by default
             items: [
                 { text: 'Future Targets', link: '/guide/roadmap' }
             ]
