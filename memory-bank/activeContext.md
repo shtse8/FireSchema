@@ -1,16 +1,19 @@
-<!-- Version: 1.20 | Last Updated: 2025-04-06 | Updated By: Cline -->
-# Active Context: FireSchema (C# Runtime Docs Updated)
+<!-- Version: 1.21 | Last Updated: 2025-04-06 | Updated By: Cline -->
+# Active Context: FireSchema (C# Guide Significantly Improved)
 
-**Current Focus:** C# runtime library v0.1.1 tagged and (presumably) published. Documentation updated to reflect C# support.
+**Current Focus:** C# runtime library v0.1.1 tagged and (presumably) published. Documentation significantly improved based on user feedback, particularly the C# Client Guide.
 
 **Recent Changes:**
 
--   **(Completed) Update Documentation for C# Support:**
-    -   Updated `packages/fireschema-csharp-runtime/README.md` with installation and usage examples.
-    -   Updated main `README.md` to include C# in supported targets, added NuGet badge, updated feature table, and added C# example.
-    -   Created `docs-src/guide/csharp-client.md` with initial guide content.
-    -   Updated `docs-src/.vitepress/config.mts` to add C# guide to the sidebar.
-    -   Updated `docs-src/index.md` hero tagline, features list, and feature table to reflect C# support.
+-   **(Completed) Significantly Improve C# Client Guide:**
+    -   Rewrote `docs-src/guide/csharp-client.md` based on feedback.
+    -   Added detailed sections and examples for Core Concepts, CRUD, Querying, Realtime Updates (Listening), Subcollections, Advanced Updates, Transactions & Batched Writes, and Testing Strategy, mirroring the structure of TS/Dart guides.
+-   **(Completed) Update Documentation for C# Support (Initial):**
+    -   Updated `packages/fireschema-csharp-runtime/README.md`.
+    -   Updated main `README.md`.
+    -   Created initial `docs-src/guide/csharp-client.md`.
+    -   Updated `docs-src/.vitepress/config.mts`.
+    -   Updated `docs-src/index.md`.
 -   **(Completed) Fix C# CI Workflow & Release v0.1.1:** (Details omitted - see previous versions)
 
 **Next Steps:**
@@ -21,7 +24,7 @@
     -   Add more comprehensive tests for update operations.
     -   Address CS8600 warning in `IntegrationTests.cs` pagination test.
     -   Add C# output back to generator snapshot tests (`src/__tests__/generator.test.ts`) and update snapshots.
-3.  **(Future) Verify `fireschema_dart_runtime` CI.**
-4.  **(Future) Implement More Adapters:** `dart-admin-rest`.
-5.  **(Future) Generator Enhancements.**
-6.  **(Future) Documentation:** Flesh out C# guide (`docs-src/guide/csharp-client.md`).
+3.  **(Future) Review & Refine C# Documentation:** Review the newly written `docs-src/guide/csharp-client.md` for clarity, accuracy, and completeness.
+4.  **(Future) Verify `fireschema_dart_runtime` CI.**
+5.  **(Future) Implement More Adapters:** `dart-admin-rest`.
+6.  **(Future) Generator Enhancements.**
