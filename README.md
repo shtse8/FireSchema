@@ -219,7 +219,7 @@ async Task CSharpExample()
     Console.WriteLine($"Updated: {newUserRef.Id}");
 }
 ```
-**➡️ See the full [C# Client Guide](https://shtse8.github.io/FireSchema/guide/csharp-client.html) (Coming Soon!)**
+**➡️ See the full [C# Client Guide](https://shtse8.github.io/FireSchema/guide/csharp-client.html)**
 
 ## Full Documentation
 
