@@ -10,7 +10,7 @@ environment:
 dependencies:
   # flutter:
   #   sdk: flutter
-  cloud_firestore: ^4.0.0 # User needs this
+  cloud_firestore: ^5.0.0 # User needs this
   fireschema_dart_runtime: # Depends on the runtime package
     path: ../../packages/fireschema_dart_runtime
   # meta: ^1.8.0
