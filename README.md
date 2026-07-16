@@ -1,5 +1,10 @@
 # FireSchema 🔥📄
 
+<p align="center">
+  <img src="docs/banner.png" alt="FireSchema banner" width="100%" />
+</p>
+
+
 [![npm version](https://badge.fury.io/js/%40shtse8%2Ffireschema.svg)](https://badge.fury.io/js/%40shtse8%2Ffireschema)
 [![pub version](https://img.shields.io/pub/v/fireschema_dart_runtime.svg)](https://pub.dev/packages/fireschema_dart_runtime)
 [![NuGet version](https://badge.fury.io/nu/FireSchema.CS.Runtime.svg)](https://badge.fury.io/nu/FireSchema.CS.Runtime)
