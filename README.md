@@ -1,9 +1,8 @@
 # FireSchema 🔥📄
 
 <p align="center">
-  <img src="docs/banner.png" alt="FireSchema banner" width="100%" />
+  <img src="https://mark.sylphx.com/api/v1/banner?type=plasma&theme=tokyonight&text=FireSchema&desc=Open+source+%C2%B7+Sylphx+ecosystem&height=200&animation=rise&credit=0" alt="FireSchema — Sylphx Mark banner" width="100%" />
 </p>
-
 
 [![npm version](https://badge.fury.io/js/%40shtse8%2Ffireschema.svg)](https://badge.fury.io/js/%40shtse8%2Ffireschema)
 [![pub version](https://img.shields.io/pub/v/fireschema_dart_runtime.svg)](https://pub.dev/packages/fireschema_dart_runtime)
