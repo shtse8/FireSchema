@@ -38,7 +38,7 @@ jobs:
 
       # No tarball needed, upload directory directly using the dedicated Pages artifact action
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           # Upload entire directory
           path: './docs'
