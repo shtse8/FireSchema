@@ -19,6 +19,6 @@
     "firebase": "^10.12.4",
     "jest": "^29.7.0",
     "ts-jest": "^29.3.1",
-    "typescript": "^5.0.0"
+    "typescript": "^7.0.0"
   }
 }
