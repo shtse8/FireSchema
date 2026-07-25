@@ -60,7 +60,7 @@ jobs:
       # No download needed, deploy-pages handles the artifact directly
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         # No 'with' needed here, deploy-pages automatically uses the artifact uploaded by upload-pages-artifact
 
 # Removed publish-npm and publish-dart jobs.
