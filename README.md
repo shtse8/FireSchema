@@ -1,7 +1,7 @@
 # FireSchema 🔥📄
 
 <p align="center">
-  <img src="https://mark.sylphx.com/api/v1/mark/hero?type=plasma&theme=tokyonight&text=FireSchema&desc=Open+source+%C2%B7+Sylphx+ecosystem&height=200&animation=rise" alt="FireSchema — Sylphx Mark banner" width="100%" />
+  <img src="https://mark.sylphx.com/api/v1/mark/hero.svg?type=waving&theme=dark&text=FireSchema&desc=Typed%20Firestore%20code%20from%20JSON%20Schema" alt="FireSchema" width="100%" />
 </p>
 
 [![npm version](https://badge.fury.io/js/%40shtse8%2Ffireschema.svg)](https://badge.fury.io/js/%40shtse8%2Ffireschema)
